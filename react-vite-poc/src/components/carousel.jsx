@@ -25,11 +25,17 @@ function ControlledCarousel() {
   return (
     
     // <Carousel activeIndex={index} onSelect={handleSelect}>
-    <Carousel height='450' width='450' className='ratio ratio-1x1'>
+    loading ? (
+        <div className="d-flex align-items-center">
+          <strong role="status">Loading...</strong>
+          <div className="spinner-border ms-auto" aria-hidden="true"></div>
+        </div>
+      ) : (
+    <Carousel height='450' width='450' className='img-fluid bg-dark-subtle'>
         {photos.map((photo) => (
-        <Carousel.Item >
+        <Carousel.Item key={photo.url}>
             <Image src={photo.url}  text="First slide" className='text-center' height='450' width='450'/>
-            <Carousel.Caption>
+            <Carousel.Caption key={photo.url+1000}>
             {/* <h3>First slide label</h3> */}
             <p>{photo.caption}</p>
             </Carousel.Caption>
@@ -37,6 +43,7 @@ function ControlledCarousel() {
         ))}
 
     </Carousel>
+      )
   );
 }
 
