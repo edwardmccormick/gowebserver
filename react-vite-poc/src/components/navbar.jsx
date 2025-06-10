@@ -29,7 +29,7 @@ function NavBar({profile}) {
           <Nav>
             <Nav.Link href="#deets">More deets</Nav.Link>
             <Nav.Link eventKey={2} href="#memes">
-              Dank memes
+              <img src={profile} style={{borderRadius: '50%'}} className='m-1 p-1' height='50' width='50' alt="profile" />
             </Nav.Link>
           </Nav>
         </Navbar.Collapse>

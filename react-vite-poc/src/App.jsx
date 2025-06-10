@@ -25,7 +25,9 @@ function App() {
   return (
 
     <div className='mx-auto p-3 text-center'>
-      <NavBar />
+      <NavBar
+        profile='https://avatars.githubusercontent.com/u/102410?v=4'
+      />
       <h1 className='m-3 p-3 text-center'>Found {people.length} matches for you!</h1>
       <>
       <div className='container text-center'>
