@@ -46,14 +46,22 @@ function FormTextExample() {
 function BasicExample() {
   return (
     <>
-      <InputGroup className="mb-3">
-        <InputGroup.Text id="basic-addon1">@</InputGroup.Text>
-        <Form.Control
-          placeholder="Username"
-          aria-label="Username"
-          aria-describedby="basic-addon1"
-        />
-      </InputGroup>
+      <div className='d-flex align-items-center'>
+        <div className='col-3'>
+          <Form.Label htmlFor="createName">Name</Form.Label>
+          <Form.Control
+            id='createName'
+            type='text'
+            placeholder="Name"
+            aria-label="Name"
+            aria-describedby="Name"
+          />
+        </div>
+      
+      <div className='col-3'>
+        <Form.Label htmlFor="createMotto">Motto</Form.Label>
+        <Form.Control id='createMotto' as="textarea" aria-label="With textarea" />
+      </div>
 
       <InputGroup className="mb-3">
         <Form.Control
@@ -78,11 +86,9 @@ function BasicExample() {
         <InputGroup.Text>.00</InputGroup.Text>
       </InputGroup>
 
-      <InputGroup>
-        <InputGroup.Text>With textarea</InputGroup.Text>
-        <Form.Control as="textarea" aria-label="With textarea" />
-      </InputGroup>
+
       <Button variant="primary">Login</Button>
+      </div>
     </>
   );
 }
