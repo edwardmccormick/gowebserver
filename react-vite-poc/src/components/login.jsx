@@ -8,35 +8,37 @@ function FormTextExample() {
     <>      
     <h4 className='text-center'>Login:</h4>
       <InputGroup className="mb-3">
-        <InputGroup.Text id="inputGroup-sizing-default">
+        <InputGroup.Text id="email">
           Email Address:
         </InputGroup.Text>
         <Form.Control
           aria-label="Default"
-          aria-describedby="inputGroup-sizing-default"
+          aria-describedby="email"
         />
       </InputGroup>
         <p className='text-center'>OR</p>
       <InputGroup className="mb-3">
-        <InputGroup.Text id="inputGroup-sizing-default">
+        <InputGroup.Text id="username">
           Username:
         </InputGroup.Text>
         <Form.Control
           aria-label="Default"
-          aria-describedby="inputGroup-sizing-default"
+          aria-describedby="username"
         />
       </InputGroup>
 
-      <Form.Label htmlFor="inputPassword5">Password</Form.Label>
+      <Form.Label htmlFor="inputPassword">Password</Form.Label>
       <Form.Control
         type="password"
-        id="inputPassword5"
+        id="inputPassword"
         aria-describedby="passwordHelpBlock"
       />
       <Form.Text id="passwordHelpBlock" muted>
-        Your password must be 8-20 characters long, contain letters and numbers,
-        and must not contain spaces, special characters, or emoji.
+        Your password is 8-20 characters long, contains letters and numbers,
+        and does not contain spaces, special characters, or emoji.
       </Form.Text>
+      <br />
+      <Button variant="primary">Login</Button>
     </>
   );
 }

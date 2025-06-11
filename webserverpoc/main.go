@@ -6,9 +6,13 @@ import (
 	"net/http"
 	"sort"
 
+	"encoding/json"
+	"time"
+
 	"github.com/asmarques/geodist"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
 type person struct {
@@ -35,6 +39,19 @@ type profilePhoto struct {
 	Caption string `json:"caption"`
 }
 
+type chatMessage struct {
+	ID      int64  `json:"id"`
+	IsMe    bool   `json:"isme"`
+	Message string `json:"message"`
+}
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		// Allow all connections by default (for development)
+		return true
+	},
+}
+
 func main() {
 	router := gin.Default()
 	router.Use(cors.Default()) // add this line
@@ -52,7 +69,27 @@ func main() {
 	router.GET("/greet/:name", greetUserByName)
 	router.GET("/login", login)
 	router.GET("/photos/:id", getPhotosByID)
+	router.GET("/ws", func(c *gin.Context) {
+		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+
+		i := 0
+		for {
+			i++
+			// Marshal messages to JSON
+			msgBytes, err := json.Marshal(dummyMessages(i))
+			if err != nil {
+				conn.WriteMessage(websocket.TextMessage, []byte("Error marshaling messages"))
+				return
+			}
+			conn.WriteMessage(websocket.TextMessage, msgBytes)
+			time.Sleep(time.Second * 10)
+		}
+	})
 	router.Run("localhost:8080")
 }
 
@@ -82,6 +119,21 @@ var locations = []geodist.Point{
 	{Lat: 29.419922273698763, Long: 98.48366872664229}, // Tower of the Americas
 	{Lat: 48.858, Long: -2.294},                        // Eiffel Tower
 	{Lat: 38.898, Long: 77.037},                        // White House
+}
+
+var messages = []string{
+	"Hey look at this? Is it working?",
+	"Yes, it is working! I can see your message.",
+	"Great! I was worried it wasn't working.",
+	"Don't worry, it is working. I can see everything you type.",
+	"Is it really working? I don't think it is.",
+	"Yes, it is working. I can see your messages.",
+	"I don't think it is. Can you see what I'm typing? Try again?",
+}
+
+func dummyMessages(num int) chatMessage {
+	var message = chatMessage{ID: int64(num), IsMe: num%2 == 0, Message: messages[num%len(messages)]}
+	return message
 }
 
 // 29.456001687343456, -98.471976423337 DoSeum?
