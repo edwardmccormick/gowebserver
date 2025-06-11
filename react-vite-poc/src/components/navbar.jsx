@@ -6,6 +6,7 @@ import Image from 'react-bootstrap/Image';
 import FormTextExample from './login';
 import Button from 'react-bootstrap/esm/Button';
 import ChatModal from './chatmodal';
+import Form from 'react-bootstrap/Form';
 
 function NavBar({profile, username}) {
   return (
@@ -20,7 +21,14 @@ function NavBar({profile, username}) {
 
           </Nav>
           <Nav className="d.flex justify-content-around align-items-center">
-            <Nav.Link href="#deets">More deets</Nav.Link>
+            <Nav.Item>
+              <Form>
+                <Form.Check // prettier-ignore
+                  type="switch"
+                  id="light-dark-switch"
+                />
+              </Form>
+            </Nav.Item>
             <Nav.Link eventKey={2} href="#memes">
               <NavDropdown align={'end'} title={
                     <div>
