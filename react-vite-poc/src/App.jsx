@@ -5,7 +5,7 @@ import FormTextExample from './components/login';
 import WebSocketChat from './components/WebSocketChat';
 import { BasicExample } from './components/login';
 import ChatModal from './components/chatmodal';
-
+import verbiage from '../../verbiage.json';
 
 function App() {
   const [people, setPeople] = useState([]);

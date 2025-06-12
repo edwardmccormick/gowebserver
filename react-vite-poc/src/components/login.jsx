@@ -1,7 +1,7 @@
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Button from 'react-bootstrap/Button';
-
+import verbiage from '../../verbiage.json';
 
 function FormTextExample() {
   return (
@@ -83,20 +83,7 @@ function BasicExample() {
       </div>
 
       <div className='col-3 m-1 p-1'>
-            <Form.Select aria-label="Default select example">
-              <option>Open this select menu</option>
-              <option value="0">Zero</option>
-              <option value="1">One</option>
-              <option value="2">Two</option>
-              <option value="3">Three</option>
-              <option value="4">Four</option>
-              <option value="5">Five</option>
-              <option value="6">Six</option>
-              <option value="7">Seven</option>
-              <option value="8">Eight</option>
-              <option value="9">Nine</option>
-              <option value="10">Ten</option>
-            </Form.Select>
+
       </div>
 
 

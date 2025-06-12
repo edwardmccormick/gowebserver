@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../node_modules/@restart/ui/esm/utils.js"],
+  "sourcesContent": ["import * as React from 'react';\nexport function isEscKey(e) {\n  return e.code === 'Escape' || e.keyCode === 27;\n}\nexport function getReactVersion() {\n  const parts = React.version.split('.');\n  return {\n    major: +parts[0],\n    minor: +parts[1],\n    patch: +parts[2]\n  };\n}\nexport function getChildRef(element) {\n  if (!element || typeof element === 'function') {\n    return null;\n  }\n  const {\n    major\n  } = getReactVersion();\n  const childRef = major >= 19 ? element.props.ref : element.ref;\n  return childRef;\n}"],
+  "mappings": ";;;;;;AAAA,YAAuB;AAChB,SAAS,SAAS,GAAG;AAC1B,SAAO,EAAE,SAAS,YAAY,EAAE,YAAY;AAC9C;AACO,SAAS,kBAAkB;AAChC,QAAM,QAAc,cAAQ,MAAM,GAAG;AACrC,SAAO;AAAA,IACL,OAAO,CAAC,MAAM,CAAC;AAAA,IACf,OAAO,CAAC,MAAM,CAAC;AAAA,IACf,OAAO,CAAC,MAAM,CAAC;AAAA,EACjB;AACF;AACO,SAAS,YAAY,SAAS;AACnC,MAAI,CAAC,WAAW,OAAO,YAAY,YAAY;AAC7C,WAAO;AAAA,EACT;AACA,QAAM;AAAA,IACJ;AAAA,EACF,IAAI,gBAAgB;AACpB,QAAM,WAAW,SAAS,KAAK,QAAQ,MAAM,MAAM,QAAQ;AAC3D,SAAO;AACT;",
+  "names": []
+}
