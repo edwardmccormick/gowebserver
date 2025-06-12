@@ -7,6 +7,7 @@ import FormTextExample from './login';
 import Button from 'react-bootstrap/esm/Button';
 import ChatModal from './chatmodal';
 import Form from 'react-bootstrap/Form';
+import Badge from 'react-bootstrap/Badge';
 
 function NavBar({profile, username}) {
   return (
@@ -29,7 +30,7 @@ function NavBar({profile, username}) {
                 />
               </Form>
             </Nav.Item>
-            <Nav.Link eventKey={2} href="#memes">
+            {/* <Nav.Link eventKey={2} href="#memes" /> */}
               <NavDropdown align={'end'} title={
                     <div>
                         <img className="focus-ring" 
@@ -43,23 +44,42 @@ function NavBar({profile, username}) {
                 }  id="collapsible-nav-dropdown" >
               <NavDropdown.Item href="#action/3.1" className='text-center'>Currently logged in as: <br /> {username}</NavDropdown.Item>
               {username == undefined && profile == undefined ? (
-                <NavDropdown.Item>Bro you're not even signed in</NavDropdown.Item>
+                <>
+                  
+                  <NavDropdown.Item>It's free to look but....no touching, okay?</NavDropdown.Item>
+                  <NavDropdown.Item>Have an account? Why don't you...</NavDropdown.Item>
+                  <div className='m-2 p-2'>
+                    <FormTextExample />      
+                  </div>
+                </>
               ) : (
-                <NavDropdown.Item>Look at you all logged in and shit</NavDropdown.Item>
+                <>
+                  <NavDropdown.Item className='text-center'>    
+                    <Button variant="primary" className='w-100'>
+                        Chat
+                      <Badge bg="secondary">9</Badge>
+                      <span className="visually-hidden">unread messages</span>
+                    </Button>
+                  </NavDropdown.Item>
+                  <NavDropdown.Item>
+                    Update Profile
+                  </NavDropdown.Item>
+                  <NavDropdown.Item>
+                    Settings
+                  </NavDropdown.Item>
+                  <NavDropdown.Item>
+                    Account
+                  </NavDropdown.Item>
+                  <NavDropdown.Divider />
+                  <NavDropdown.Item href="#action/3.2" className='text-center'>
+                    <Button>Logout</Button>
+                  </NavDropdown.Item>
+                </>
               )}
               
-              <NavDropdown.Item href="#action/3.2" className='text-center'>
-                <Button>Logout</Button>
-              </NavDropdown.Item>
-                <FormTextExample />      
               
-              <NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item href="#action/3.4">
-                Separated link
-              </NavDropdown.Item>
             </NavDropdown>
-            </Nav.Link>
+            {/* </Nav.Link> */}
           </Nav>
         </Navbar.Collapse>
       </Container>

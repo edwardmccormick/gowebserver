@@ -16,7 +16,16 @@ function MatchList({
       <Accordion className='w-100'>
         {people.map((person) => (
         <Accordion.Item className='w-100' eventKey={person.id} key={person.id}>
-          <Accordion.Header className='w-100' key={person.id+100}><img src={person.profile} style={{borderRadius: '50%'}} className='m-1 p-1' height='50' width='50'/><strong>{person.name}</strong> — {person.motto} - Distance: {person.distance} miles -  Likes Dogs: {person.dogs}</Accordion.Header>
+          <Accordion.Header className='w-100' key={person.id+100}>
+            <img
+              src={person.profile ? person.profile : '/profile.svg'}
+              style={{ borderRadius: '50%' }}
+              className="m-1 p-1"
+              height="50"
+              width="50"
+              alt={`${person.name}'s profile`}
+            />
+            <strong>{person.name}</strong> — {person.motto} - Distance: {person.distance} miles</Accordion.Header>
           <Accordion.Body key={person.id+10000}>
             <div className='text-start'>
               <img src={person.profile} className='m-1 p-1 rounded float-start' height={'250'} width={'250'} />

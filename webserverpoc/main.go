@@ -21,8 +21,8 @@ type person struct {
 	Motto        string  `json:"motto"`
 	LatLocation  float64 `json:"lat"`
 	LongLocation float64 `json:"long"`
-	Dogs         int     `json:"dogs"`
 	Profile      string  `json:"profile"`
+	Verbiage     map[string]int `json:"verbiage"` // Add this to store rankings for each category
 }
 
 type processedProfile struct {
@@ -30,8 +30,8 @@ type processedProfile struct {
 	Name     string  `json:"name"`
 	Motto    string  `json:"motto"`
 	Distance float64 `json:"distance"`
-	Dogs     int     `json:"dogs"`
 	Profile  string  `json:"profile"`
+	Verbiage     map[string]int `json:"verbiage"`
 }
 
 type profilePhoto struct {
@@ -41,7 +41,7 @@ type profilePhoto struct {
 
 type chatMessage struct {
 	ID      int64  `json:"id"`
-	IsMe    bool   `json:"isme"`
+	Who     string `json:"who"`
 	Message string `json:"message"`
 }
 
@@ -69,37 +69,17 @@ func main() {
 	router.GET("/greet/:name", greetUserByName)
 	router.GET("/login", login)
 	router.GET("/photos/:id", getPhotosByID)
-	router.GET("/ws", func(c *gin.Context) {
-		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-
-		if err != nil {
-			return
-		}
-		defer conn.Close()
-
-		i := 0
-		for {
-			i++
-			// Marshal messages to JSON
-			msgBytes, err := json.Marshal(dummyMessages(i))
-			if err != nil {
-				conn.WriteMessage(websocket.TextMessage, []byte("Error marshaling messages"))
-				return
-			}
-			conn.WriteMessage(websocket.TextMessage, msgBytes)
-			time.Sleep(time.Second * 10)
-		}
-	})
+	router.GET("/ws", websocketDummy)
 	router.Run("localhost:8080")
 }
 
 // albums slice to seed record album data.
 var people = []person{
-	{ID: "0", Name: "Bobby", Motto: "Always Ready", LatLocation: 29.534261019806404, LongLocation: 98.47049550692051, Dogs: 4, Profile: "https://picsum.photos/200/200"},
-	{ID: "1", Name: "Joe", Motto: "Always Faithful", LatLocation: 29.52016959410149, LongLocation: 98.49401109752402, Dogs: 10, Profile: "https://picsum.photos/150/300"},
-	{ID: "2", Name: "Fred", Motto: "Always Prepared", LatLocation: 29.453596593823395, LongLocation: 98.47166788793534, Dogs: 0, Profile: "https://picsum.photos/250/250"},
-	{ID: "3", Name: "Turd Furguson", Motto: "I'm supre close let's party!", LatLocation: 29.419922273698763, LongLocation: 98.48366872664229, Dogs: 2, Profile: "https://picsum.photos/250/250"},
-	{ID: "4", Name: "Don", Motto: "I want you Bigly", LatLocation: 38.898, LongLocation: 77.037, Dogs: 0, Profile: "https://www.whitehouse.gov/wp-content/uploads/2025/06/President-Donald-Trump-Official-Presidential-Portrait.png"},
+	{ID: "0", Name: "Bobby", Motto: "Always Ready", LatLocation: 29.534261019806404, LongLocation: 98.47049550692051, Profile: "https://picsum.photos/200/200"},
+	{ID: "1", Name: "Joe", Motto: "Always Faithful", LatLocation: 29.52016959410149, LongLocation: 98.49401109752402, Profile: "https://picsum.photos/150/300"},
+	{ID: "2", Name: "Fred", Motto: "Always Prepared", LatLocation: 29.453596593823395, LongLocation: 98.47166788793534, Profile: "https://picsum.photos/250/250"},
+	{ID: "3", Name: "Turd Furguson", Motto: "I'm supre close let's party!", LatLocation: 29.419922273698763, LongLocation: 98.48366872664229, Profile: "https://picsum.photos/250/250"},
+	{ID: "4", Name: "Don", Motto: "I want you Bigly", LatLocation: 38.898, LongLocation: 77.037, Profile: "https://www.whitehouse.gov/wp-content/uploads/2025/06/President-Donald-Trump-Official-Presidential-Portrait.png"},
 }
 
 var locationOrigin = geodist.Point{Lat: 29.42618, Long: 98.48618}
@@ -130,9 +110,13 @@ var messages = []string{
 	"Yes, it is working. I can see your messages.",
 	"I don't think it is. Can you see what I'm typing? Try again?",
 }
+var isme = []string{
+	"Me",
+	"Them",
+}
 
 func dummyMessages(num int) chatMessage {
-	var message = chatMessage{ID: int64(num), IsMe: num%2 == 0, Message: messages[num%len(messages)]}
+	var message = chatMessage{ID: int64(num), Who: isme[num%len(isme)], Message: messages[num%len(messages)]}
 	return message
 }
 
@@ -167,7 +151,6 @@ func getProcessedPeople(c *gin.Context) {
 			Name:     p.Name,
 			Motto:    p.Motto,
 			Distance: roundedDistance,
-			Dogs:     p.Dogs,
 			Profile:  p.Profile,
 		})
 
@@ -232,4 +215,70 @@ func postPeople(c *gin.Context) {
 func login(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, "TODO: Implement Auth!")
 	return
+}
+
+func websocketDummy (c *gin.Context) {
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+
+	i := 0
+	for {
+		i++
+		// Marshal messages to JSON
+		msgBytes, err := json.Marshal(dummyMessages(i))
+		if err != nil {
+			conn.WriteMessage(websocket.TextMessage, []byte("Error marshaling messages"))
+			return
+		}
+		conn.WriteMessage(websocket.TextMessage, msgBytes)
+		time.Sleep(time.Second * 10)
+	}
+}
+
+func websocketListener(c *gin.Context) {
+    conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+    if err != nil {
+        return
+    }
+    defer conn.Close()
+
+    i := 0
+    for {
+        // Read message from the client
+        _, msg, err := conn.ReadMessage()
+        if err != nil {
+            fmt.Printf("Error reading message: %v\n", err)
+            break
+        }
+
+        // Log the received message
+        fmt.Printf("Received message: %s\n", string(msg))
+
+        // Echo the message back to the client
+        response := chatMessage{
+            ID:      int64(i),
+            Who:     "Me", // You can customize this based on the sender
+            Message: string(msg),
+        }
+        i++
+
+        // Marshal the response to JSON
+        msgBytes, err := json.Marshal(response)
+        if err != nil {
+            fmt.Printf("Error marshaling response: %v\n", err)
+            conn.WriteMessage(websocket.TextMessage, []byte("Error processing message"))
+            continue
+        }
+
+        // Send the response back to the client
+        err = conn.WriteMessage(websocket.TextMessage, msgBytes)
+        if err != nil {
+            fmt.Printf("Error writing message: %v\n", err)
+            break
+        }
+    }
 }

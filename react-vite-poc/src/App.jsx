@@ -3,7 +3,7 @@ import NavBar from './components/navbar';
 import MatchList from './components/matchlist';
 import FormTextExample from './components/login';
 import WebSocketChat from './components/WebSocketChat';
-import { BasicExample } from './components/login';
+import { SignUpProfile } from './components/login';
 import ChatModal from './components/chatmodal';
 import verbiage from '../../verbiage.json';
 
@@ -44,7 +44,7 @@ function App() {
         <FormTextExample/>
       </div>
       <h2 className='m-3 p-3 text-center'>People Add</h2>
-      <BasicExample />
+      <SignUpProfile />
 
     </div>
   );

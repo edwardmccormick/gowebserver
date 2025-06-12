@@ -17,6 +17,11 @@ function ChatModal() {
   useEffect(() => {
     ws.current = new WebSocket('ws://localhost:8080/ws');
 
+    ws.current.onopen = () => {
+      setMessages((prev) => [...prev, { message: 'Connection opened.', who: 'System', id: Date.now() }]);
+      console.log('WebSocket connection established');
+    };
+
     ws.current.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
@@ -27,31 +32,33 @@ function ChatModal() {
           setMessages((prev) => [...prev, data]);
         } else {
           // If it's not JSON, treat as a status message
-          setMessages((prev) => [...prev, { message: event.data, isme: false, id: Date.now() }]);
+          setMessages((prev) => [...prev, { message: event.data, who: 'System', id: Date.now() }]);
         }
       } catch (e) {
         // Not JSON, treat as a status message
-        setMessages((prev) => [...prev, { message: event.data, isme: false, id: Date.now() }]);
+        setMessages((prev) => [...prev, { message: event.data, who: 'System', id: Date.now() }]);
       }
     };
 
     ws.current.onclose = () => {
-      setMessages((prev) => [...prev, { message: 'Connection closed', isme: false, id: Date.now() }]);
+      setMessages((prev) => [...prev, { message: 'Connection closed', who: 'System', id: Date.now() }]);
     };
 
     ws.current.onerror = (err) => {
-      setMessages((prev) => [...prev, { message: 'WebSocket error', isme: false, id: Date.now() }]);
+      setMessages((prev) => [...prev, { message: 'WebSocket error', who: 'System', id: Date.now() }]);
     };
 
     return () => {
+    if (ws.current) {
       ws.current.close();
-    };
+    }
+  };
   }, []);
   
     const sendMessage = () => {
       if (ws.current && input) {
         ws.current.send(input);
-        setInput('');
+        setInput( {message: 'WebSocket error', who: 'System', id: Date.now() });
       }
     };
 
@@ -61,7 +68,7 @@ function ChatModal() {
         Chat
       </NavLink>
 
-      <Modal className='h-50' show={show} onHide={handleClose}
+      <Modal className='h-75' show={show} onHide={handleClose}
             size="lg"
             aria-labelledby="contained-modal-title-vcenter"
             centered>
@@ -69,15 +76,22 @@ function ChatModal() {
           <Modal.Title>Chat with The Other Person</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className='overflow-scroll h-75'>
+          <div className='overflow-scroll'>
             <Stack gap={1}>
-            {messages.map((msg, idx) => (
-              <div key={msg.id || idx}
-              // {msg.isme ? "className='text-end bg-primary text-white'" : "className='text-start bg-secondary text-white'"}
-              >
-                {msg.isme ? "Me" : "Them"} - {msg.message}
-              </div>
-            ))}
+              {messages.map((msg, idx) => (
+                <div
+                  key={msg.id || idx}
+                  className={
+                    msg.who == 'System'
+                      ? 'text-center bg-warning text-white'
+                      : msg.who == 'Them'
+                      ? 'text-end bg-primary text-white'
+                      : 'text-start bg-secondary text-white'
+                  }
+                >
+                  {msg.who} - {msg.message}
+                </div>
+              ))}
             </Stack>
           </div>
           <Form>            
