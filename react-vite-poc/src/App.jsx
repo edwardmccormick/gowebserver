@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import NavBar from './components/navbar';
 import MatchList from './components/matchlist';
 import FormTextExample from './components/login';
-import WebSocketChat from './components/WebSocketChat';
 import { SignUpProfile } from './components/login';
-import ChatModal from './components/chatmodal';
 import verbiage from '../../verbiage.json';
+import FAQ from './components/faq';
+import 'bootstrap/dist/css/bootstrap.min.css';    
 
 function App() {
   const [people, setPeople] = useState([]);
@@ -30,6 +30,7 @@ function App() {
       <NavBar
         profile='https://avatars.githubusercontent.com/u/102410?v=4'
         username='urmid'
+
       />
       <h1 className='m-3 p-3 text-center'>Found {people.length} matches for you!</h1>
       <>
@@ -45,7 +46,9 @@ function App() {
       </div>
       <h2 className='m-3 p-3 text-center'>People Add</h2>
       <SignUpProfile />
-
+      <div className='m-3 p-3'>
+        <FAQ className='p-2 m-2'/>
+      </div>
     </div>
   );
 }

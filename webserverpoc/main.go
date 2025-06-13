@@ -16,22 +16,22 @@ import (
 )
 
 type person struct {
-	ID           string  `json:"id"`
-	Name         string  `json:"name"`
-	Motto        string  `json:"motto"`
-	LatLocation  float64 `json:"lat"`
-	LongLocation float64 `json:"long"`
-	Profile      string  `json:"profile"`
+	ID           string         `json:"id"`
+	Name         string         `json:"name"`
+	Motto        string         `json:"motto"`
+	LatLocation  float64        `json:"lat"`
+	LongLocation float64        `json:"long"`
+	Profile      string         `json:"profile"`
 	Verbiage     map[string]int `json:"verbiage"` // Add this to store rankings for each category
 }
 
 type processedProfile struct {
-	ID       string  `json:"id"`
-	Name     string  `json:"name"`
-	Motto    string  `json:"motto"`
-	Distance float64 `json:"distance"`
-	Profile  string  `json:"profile"`
-	Verbiage     map[string]int `json:"verbiage"`
+	ID       string         `json:"id"`
+	Name     string         `json:"name"`
+	Motto    string         `json:"motto"`
+	Distance float64        `json:"distance"`
+	Profile  string         `json:"profile"`
+	Verbiage map[string]int `json:"verbiage"`
 }
 
 type profilePhoto struct {
@@ -113,6 +113,7 @@ var messages = []string{
 var isme = []string{
 	"Me",
 	"Them",
+	"Admin",
 }
 
 func dummyMessages(num int) chatMessage {
@@ -217,7 +218,7 @@ func login(c *gin.Context) {
 	return
 }
 
-func websocketDummy (c *gin.Context) {
+func websocketDummy(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 
 	if err != nil {
@@ -240,45 +241,45 @@ func websocketDummy (c *gin.Context) {
 }
 
 func websocketListener(c *gin.Context) {
-    conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-    if err != nil {
-        return
-    }
-    defer conn.Close()
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
 
-    i := 0
-    for {
-        // Read message from the client
-        _, msg, err := conn.ReadMessage()
-        if err != nil {
-            fmt.Printf("Error reading message: %v\n", err)
-            break
-        }
+	i := 0
+	for {
+		// Read message from the client
+		_, msg, err := conn.ReadMessage()
+		if err != nil {
+			fmt.Printf("Error reading message: %v\n", err)
+			break
+		}
 
-        // Log the received message
-        fmt.Printf("Received message: %s\n", string(msg))
+		// Log the received message
+		fmt.Printf("Received message: %s\n", string(msg))
 
-        // Echo the message back to the client
-        response := chatMessage{
-            ID:      int64(i),
-            Who:     "Me", // You can customize this based on the sender
-            Message: string(msg),
-        }
-        i++
+		// Echo the message back to the client
+		response := chatMessage{
+			ID:      int64(i),
+			Who:     "Me", // You can customize this based on the sender
+			Message: string(msg),
+		}
+		i++
 
-        // Marshal the response to JSON
-        msgBytes, err := json.Marshal(response)
-        if err != nil {
-            fmt.Printf("Error marshaling response: %v\n", err)
-            conn.WriteMessage(websocket.TextMessage, []byte("Error processing message"))
-            continue
-        }
+		// Marshal the response to JSON
+		msgBytes, err := json.Marshal(response)
+		if err != nil {
+			fmt.Printf("Error marshaling response: %v\n", err)
+			conn.WriteMessage(websocket.TextMessage, []byte("Error processing message"))
+			continue
+		}
 
-        // Send the response back to the client
-        err = conn.WriteMessage(websocket.TextMessage, msgBytes)
-        if err != nil {
-            fmt.Printf("Error writing message: %v\n", err)
-            break
-        }
-    }
+		// Send the response back to the client
+		err = conn.WriteMessage(websocket.TextMessage, msgBytes)
+		if err != nil {
+			fmt.Printf("Error writing message: %v\n", err)
+			break
+		}
+	}
 }

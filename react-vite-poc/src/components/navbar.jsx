@@ -8,6 +8,7 @@ import Button from 'react-bootstrap/esm/Button';
 import ChatModal from './chatmodal';
 import Form from 'react-bootstrap/Form';
 import Badge from 'react-bootstrap/Badge';
+import ChatSelect from './chatselect';
 
 function NavBar({profile, username}) {
   return (
@@ -18,8 +19,9 @@ function NavBar({profile, username}) {
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
             <Nav.Link href="#features">Match</Nav.Link>
-            <Nav.Item> <ChatModal /> </Nav.Item>
-
+            <Nav.Item> <ChatModal name="Chat"/> </Nav.Item>
+            <Nav.Link href="#features">FAQ</Nav.Link>
+            <ChatSelect/>
           </Nav>
           <Nav className="d.flex justify-content-around align-items-center">
             <Nav.Item>
