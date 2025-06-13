@@ -6,7 +6,44 @@ import nonlinear from '../../../nonlinear.json';
 import VerbiageSelections from './verbiageselections';
 import verbiage from '../../../verbiage.json';
 
-function FormTextExample() {
+function SignIn({ setLoggedInUser , setJWT}) {
+    const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLoggedInUser(data.person); // Update the logged-in user in App.jsx
+        setJWT(data.token);
+        alert('Login successful!');
+      } else {
+        alert('Invalid email or password.');
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      alert('An error occurred while logging in.');
+    }
+  };
+
   return (
     <>     
     <div className='text-center'>
@@ -16,6 +53,8 @@ function FormTextExample() {
             id="email"
             type='text'
             placeholder='yourmom@issofat.com'
+            value={formData.email}
+            onChange={handleChange}
             aria-label="Default"
             aria-describedby="email"
           />
@@ -24,14 +63,17 @@ function FormTextExample() {
         <Form.Label htmlFor="inputPassword" >Password</Form.Label>
         <Form.Control
           type="password"
-          id="inputPassword"
+          id="password"
+          placeholder="Enter your password"
+          value={formData.password}
+          onChange={handleChange}
           aria-describedby="passwordHelpBlock"
         />
         <Form.Control.Feedback type="invalid" tooltip>
           Your password is 8-20 characters long, contains letters and numbers, and does not contain spaces, special characters, or emoji.
         </Form.Control.Feedback>
         <br />
-        <Button variant="primary">Login</Button>
+        <Button variant="primary" onClick={handleSubmit}>Login</Button>
       </div>
     </>
   );
@@ -159,4 +201,4 @@ export function SignUpProfile() {
   );
 }
 
-export default FormTextExample;
+export default SignIn;

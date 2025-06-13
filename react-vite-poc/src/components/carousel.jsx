@@ -37,7 +37,7 @@ function ControlledCarousel() {
             <Image src={photo.url}  text="First slide" className='text-center' height='450' width='450'/>
             <Carousel.Caption key={photo.url+1000}>
             {/* <h3>First slide label</h3> */}
-            <p>{photo.caption}</p>
+            <span className='bg-secondary m-2 p-2 rounded' style={{ '--bs-bg-opacity': '.7' }}>{photo.caption}</span>
             </Carousel.Caption>
         </Carousel.Item>
         ))}

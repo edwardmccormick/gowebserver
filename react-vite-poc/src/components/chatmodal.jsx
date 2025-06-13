@@ -1,16 +1,26 @@
+import { number } from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
-import NavLink from 'react-bootstrap/esm/NavLink';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Modal from 'react-bootstrap/Modal';
+import Badge from 'react-bootstrap/Badge';
 
-function ChatModal({person}) {
+export function ChatModal({person, show, setShow}) {
+  
+  if (!person) {person = [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "motto": "I love to chat!",
+      "lat": 40.7128,
+      "long": -74.0060,
+      "profile": "I'm a software engineer."
+    }
+  ]}
   console.log(person);
-  const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const ws = useRef(null);
@@ -65,27 +75,7 @@ function ChatModal({person}) {
 
   return (
   <>
-    {!person ? (
-      <div>
-        <span>Kind of empty in here, isn't it?</span>
-      </div>
-    ) : (
-      <Button
-        variant="outline-success"
-        className="p-2 fs-5 m-2 text-right d-flex flex-row justify-content-around"
-        onClick={handleShow}
-      >
-        <img
-          src={person.profile ? person.profile : '/profile.svg'}
-          style={{ borderRadius: '50%' }}
-          className="m-1 p-1"
-          height="50"
-          width="50"
-          alt={`${person.name}'s profile`}
-        />
-        {person.name ? `Chat with ${person.name}` : 'Chat'}
-      </Button>
-    )}
+
 
     <Modal
       show={show}
@@ -96,7 +86,7 @@ function ChatModal({person}) {
       scrollable={true}
     >
       <Modal.Header closeButton>
-        <Modal.Title>Chat with The Other Person</Modal.Title>
+        <Modal.Title>Chat with {person.name}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <div className="overflow-scroll">
@@ -139,7 +129,13 @@ function ChatModal({person}) {
             </Button>
           </InputGroup>
         </Form>
-
+        <Button
+          variant="secondary"
+          onClick={handleClose}
+          className="col-3 mx-5"
+        >
+          Vibe Chat ❤️
+        </Button>
         <Button
           variant="secondary"
           onClick={handleClose}
@@ -151,6 +147,40 @@ function ChatModal({person}) {
     </Modal>
   </>
 );
+}
+
+export function ChatModalButton({ person, setSelectedPerson, setShow, message }) {
+  const handleShow = () => {
+    setSelectedPerson(person); // Set the selected person
+    setShow(true); // Open the modal
+  };
+
+  return (
+    <>
+    <Button
+      variant="outline-success"
+      className="p-2 fs-5 m-2 text-right d-flex flex-row justify-content-between align-items-center"
+      onClick={handleShow}
+    >
+      <img
+        src={person.profile ? person.profile : '/profile.svg'}
+        style={{ borderRadius: '50%' }}
+        className="m-1 p-1"
+        height="50"
+        width="50"
+        alt={`${person.name}'s profile`}
+      />
+      {person.name ? `Chat with ${person.name}` : 'Chat'}
+      {message ?
+      <>
+      <Badge bg="secondary" className='align-self-start'>{message}</Badge>
+        <span className="visually-hidden">unread messages</span>
+      </>
+      : null}
+    </Button>
+    
+    </>
+  );
 }
 
 export default ChatModal;

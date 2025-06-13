@@ -3,14 +3,13 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Image from 'react-bootstrap/Image';
-import FormTextExample from './login';
+import SignIn from './login';
 import Button from 'react-bootstrap/esm/Button';
 import ChatModal from './chatmodal';
 import Form from 'react-bootstrap/Form';
-import Badge from 'react-bootstrap/Badge';
 import ChatSelect from './chatselect';
 
-function NavBar({profile, username}) {
+function NavBar({profile, username, setLoggedInUser, setJWT}) {
   return (
     <Navbar collapseOnSelect expand="sm" className="bg-body-tertiary">
       <Container>
@@ -44,25 +43,25 @@ function NavBar({profile, username}) {
                         />
                     </div>
                 }  id="collapsible-nav-dropdown" >
-              <NavDropdown.Item href="#action/3.1" className='text-center'>Currently logged in as: <br /> {username}</NavDropdown.Item>
+             
               {username == undefined && profile == undefined ? (
                 <>
                   
                   <NavDropdown.Item>It's free to look but....no touching, okay?</NavDropdown.Item>
                   <NavDropdown.Item>Have an account? Why don't you...</NavDropdown.Item>
                   <div className='m-2 p-2'>
-                    <FormTextExample />      
+                    <SignIn 
+                    setLoggedInUser={setLoggedInUser} 
+                    setJWT={setJWT}
+                    />      
                   </div>
                 </>
               ) : (
                 <>
                   <NavDropdown.Item className='text-center'>    
-                    <Button variant="primary" className='w-100'>
-                        Chat
-                      <Badge bg="secondary">9</Badge>
-                      <span className="visually-hidden">unread messages</span>
-                    </Button>
+                  
                   </NavDropdown.Item>
+                  <NavDropdown.Item href="#action/3.1" className='text-center'>Currently logged in as: <br /> {username}</NavDropdown.Item>
                   <NavDropdown.Item>
                     Update Profile
                   </NavDropdown.Item>
