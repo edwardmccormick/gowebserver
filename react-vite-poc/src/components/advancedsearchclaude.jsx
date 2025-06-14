@@ -134,7 +134,6 @@ function ClaudeAdvancedSearch({ onSearch }) {
         }
         .filter-card:hover {
           box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-          transform: translateY(-2px);
         }
         .distance-slider {
           background: linear-gradient(to right, #28a745, #ffc107, #dc3545);
@@ -210,7 +209,7 @@ function ClaudeAdvancedSearch({ onSearch }) {
           <div className="mb-4 pb-4 border-bottom">
             <div className="d-flex align-items-center mb-3">
               <MapPin size={20} className="text-primary me-2" />
-              <h5 className="mb-0">Distance: {distance} miles - I am {gender} interested in {preference} for a {relationship}</h5>
+              <h5 className="mb-0">I am {gender} interested in {preference} for {relationship} no further than {distance} miles away.</h5>
             </div>
             
             {/* <Form.Range
@@ -226,50 +225,60 @@ function ClaudeAdvancedSearch({ onSearch }) {
               <Badge bg={getDistanceColor()}>{distance} miles</Badge>
               <small className="text-muted">500 miles</small>
             </div> */}
-            <div className="d-flex flex-row justify-content-between align-items-center">
-                <Form.Select
-                value={distance}
-                onChange={(e) => setDistance(e.target.value)}
-                className="mb-2 col-3">
-                    <option value="1">How far would you go for love?</option>
-                    <option value="10">10 miles</option>
-                    <option value="25">25 miles</option>
-                    <option value="50">50 miles</option>
-                    <option value="100">100 miles</option>
-                    <option value="250">250 miles</option>
-                    <option value="500">500 miles</option>
-                </Form.Select>
-                <Form.Select
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-                className="mb-2 col-3">
-                    <option value="?">I am....</option>
-                    <option value="a woman">a woman</option>
-                    <option value="a man">a man</option>
-                    <option value="nonbinary">nonbinary</option>
-                    <option value="who cares">does it matter?</option>
-                </Form.Select>
-                <Form.Select
-                value={preference}
-                onChange={(e) => setPreference(e.target.value)}
-                className="mb-2 col-3">
-                    <option value="?">I am interested in....</option>
-                    <option value="woman">women</option>
-                    <option value="man">men</option>
-                    <option value="nonbinary folks">nonbinary folks</option>
-                    <option value="anybody">does it matter?</option>
-                </Form.Select>
-                <Form.Select
-                value={relationship}
-                onChange={(e) => setRelationship(e.target.value)}
-                className="mb-2 col-3">
-                    <option value="?">I want....</option>
-                    <option value="something casual">something casual</option>
-                    <option value="dating">dating</option>
-                    <option value="something serious">something serious</option>
-                    <option value="something kinky">something kinky</option>
-                    <option value="who cares">does it matter?</option>
-                </Form.Select>
+            <div className="d-flex flex-column flex-md-row justify-content-around align-items-center">
+                <div className='col-12 col-sm-6 col-md-3 m-1 p-1'>
+                    <Form.Select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className="mb-2 m-1 p-1">
+                        <option value="?">I am....</option>
+                        <option value="a woman">a woman</option>
+                        <option value="a man">a man</option>
+                        <option value="nonbinary">nonbinary</option>
+                        <option value="who cares">does it matter?</option>
+                    </Form.Select>
+                </div>
+                <div className='col-12 col-sm-6 col-md-3 m-1 p-1'>
+                    <Form.Select
+                    value={preference}
+                    onChange={(e) => setPreference(e.target.value)}
+                    className="mb-2 m-1 p-1">
+                        <option value="?">I am interested in....</option>
+                        <option value="women">women</option>
+                        <option value="men">men</option>
+                        <option value="nonbinary folks">nonbinary folks</option>
+                        <option value="anybody">does it matter?</option>
+                    </Form.Select>
+                </div>
+                <div className='col-12 col-sm-6 col-md-3 m-1 p-1'>
+                    <Form.Select
+                    value={relationship}
+                    onChange={(e) => setRelationship(e.target.value)}
+                    className="mb-2 m-1 p-1">
+                        <option value="?">I want....</option>
+                        <option value="friendship">friendship</option>
+                        <option value="something casual">something casual</option>
+                        <option value="dating">dating</option>
+                        <option value="something serious">something serious</option>
+                        <option value="something kinky">something kinky</option>
+                        <option value="who cares">does it matter?</option>
+                    </Form.Select>
+                </div>
+                <div className='col-12 col-sm-6 col-md-2 m-1 p-1'>
+                    <Form.Select
+                    value={distance}
+                    onChange={(e) => setDistance(e.target.value)}
+                    className="mb-2 m-1 p-1">
+                        <option value="1">How far away?</option>
+                        <option value="10">10 miles</option>
+                        <option value="25">25 miles</option>
+                        <option value="50">50 miles</option>
+                        <option value="100">100 miles</option>
+                        <option value="250">250 miles</option>
+                        <option value="500">500 miles</option>
+                        <option value="1000">Custom</option>
+                    </Form.Select>
+                </div>
             </div>
           </div>
 
@@ -429,7 +438,7 @@ function ClaudeAdvancedSearch({ onSearch }) {
             size="lg"
           >
             <Search size={20} className="me-2" />
-            Find My Matches
+            Makes sense! Let me find them for you!
           </Button>
         </Card.Body>
       </Card>

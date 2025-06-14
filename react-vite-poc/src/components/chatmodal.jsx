@@ -1,4 +1,3 @@
-import { number } from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -75,7 +74,53 @@ export function ChatModal({person, show, setShow}) {
 
   return (
   <>
+<style jsx>{`
+        .vibe-chat-btn {
+  position: relative;
+  background: linear-gradient(45deg, #ff4500, #ff8c00, #ffd700);
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  box-shadow: 0 0 15px rgba(255, 69, 0, 0.8), 0 0 30px rgba(255, 140, 0, 0.6);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
 
+.vibe-chat-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 25px rgba(255, 69, 0, 1), 0 0 50px rgba(255, 140, 0, 0.8);
+}
+
+.vibe-chat-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 69, 0, 0.6), rgba(255, 140, 0, 0.4), transparent);
+  animation: flame 1.5s infinite ease-in-out;
+  z-index: -1;
+}
+
+@keyframes flame {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+      `}</style>
 
     <Modal
       show={show}
@@ -132,7 +177,7 @@ export function ChatModal({person, show, setShow}) {
         <Button
           variant="secondary"
           onClick={handleClose}
-          className="col-3 mx-5"
+          className="col-3 mx-5 vibe-chat-btn"
         >
           Vibe Chat ❤️
         </Button>
