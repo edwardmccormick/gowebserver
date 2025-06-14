@@ -1,0 +1,918 @@
+{
+    "key_definitions": {
+        "sexual_preference": {
+            "Attraction to Male (AM)": "Degree of attraction to individuals identifying as male (0=none, 10=exclusive).",
+            "Attraction to Female (AF)": "Degree of attraction to individuals identifying as female (0=none, 10=exclusive).",
+            "Attraction to Other Genders/Non-Binary (AONB)": "Degree of attraction to non-binary/other gender identities (0=none, 10=exclusive).",
+            "Romantic vs. Sexual Distinction (RSD)": "Degree to which romantic and sexual attraction are differentiated (0=no distinction, 10=clear distinction).",
+            "Fluidity/Change Over Time (FCT)": "Degree of stated or implied fluidity in preference (0=fixed, 10=highly fluid)."
+        },
+        "gender_identity": {
+            "Identification with Maleness (IM)": "Degree of identification with concepts, roles, or expressions traditionally associated with 'maleness' (0=none, 10=exclusive).",
+            "Identification with Femaleness (IF)": "Degree of identification with concepts, roles, or expressions traditionally associated with 'femaleness' (0=none, 10=exclusive).",
+            "Identification with Androgyny/Non-Binary (IANB)": "Degree of identification with gender identities that blend elements or exist outside male/female (0=none, 10=exclusive).",
+            "Gender Expression (GE)": "Outward presentation of gender (0=very feminine, 5=androgynous/not specified, 10=very masculine)."
+        },
+        "political_beliefs": {
+            "Economic Ideology (EI)": "From 0 (extreme socialism/communism) to 10 (extreme capitalism/laissez-faire).",
+            "Social/Cultural Ideology (SCI)": "From 0 (progressive/liberal) to 10 (conservative/traditional).",
+            "Authoritarianism vs. Libertarianism (AVL)": "From 0 (authoritarian) to 10 (libertarian).",
+            "Environmentalism/Sustainability (ES)": "From 0 (low priority/disregard) to 10 (high priority/strong advocacy).",
+            "Foreign Policy/Internationalism vs. Nationalism (FIN)": "From 0 (strong nationalism/isolationism) to 10 (strong internationalism/global cooperation)."
+        },
+        "relationship_goals": {
+            "Commitment Level (CL)": "From 0 (casual/short-term) to 10 (long-term/lifelong commitment).",
+            "Monogamy vs. Non-Monogamy (MVNM)": "From 0 (strict monogamy) to 10 (highly non-monogamous/polyamorous).",
+            "Family/Children Orientation (FCO)": "From 0 (no interest in family/children) to 10 (strong desire for family/children).",
+            "Independence vs. Interdependence (IVI)": "From 0 (strong interdependence/enmeshment) to 10 (strong independence/autonomy).",
+            "Shared Activities/Interests (SAI)": "From 0 (low importance of shared activities) to 10 (high importance of shared activities).",
+            "Emotional Intimacy Depth (EID)": "From 0 (low emotional intimacy) to 10 (deep emotional intimacy)."
+        }
+    },
+    "scored_statements": {
+        "sexual_preference": [
+            {
+                "statement": "Straight (heterosexual)",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 0,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 0
+                }
+            },
+            {
+                "statement": "Gay",
+                "scores": {
+                    "Attraction to Male (AM)": 10,
+                    "Attraction to Female (AF)": 0,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 0,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 0
+                }
+            },
+            {
+                "statement": "Lesbian",
+                "scores": {
+                    "Attraction to Male (AM)": 0,
+                    "Attraction to Female (AF)": 10,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 0,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 0
+                }
+            },
+            {
+                "statement": "Bisexual",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 5,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 5
+                }
+            },
+            {
+                "statement": "Pansexual",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 10,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 5
+                }
+            },
+            {
+                "statement": "Queer",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 10,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 5
+                }
+            },
+            {
+                "statement": "Asexual",
+                "scores": {
+                    "Attraction to Male (AM)": 0,
+                    "Attraction to Female (AF)": 0,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 5,
+                    "Romantic vs. Sexual Distinction (RSD)": 10,
+                    "Fluidity/Change Over Time (FCT)": 0
+                }
+            },
+            {
+                "statement": "Demisexual",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 5,
+                    "Romantic vs. Sexual Distinction (RSD)": 10,
+                    "Fluidity/Change Over Time (FCT)": 5
+                }
+            },
+            {
+                "statement": "Sapiosexual (yep, I said it)",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 5,
+                    "Romantic vs. Sexual Distinction (RSD)": 10,
+                    "Fluidity/Change Over Time (FCT)": 5
+                }
+            },
+            {
+                "statement": "Homoflexible",
+                "scores": {
+                    "Attraction to Male (AM)": 10,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 5,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 10
+                }
+            },
+            {
+                "statement": "Heteroflexible",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 5,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 10
+                }
+            },
+            {
+                "statement": "Polysexual",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 10,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 10
+                }
+            },
+            {
+                "statement": "Graysexual",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 5,
+                    "Romantic vs. Sexual Distinction (RSD)": 10,
+                    "Fluidity/Change Over Time (FCT)": 5
+                }
+            },
+            {
+                "statement": "Questioning (and curious)",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 5,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 10
+                }
+            },
+            {
+                "statement": "I\u2019m on vibes and chemistry, honestly",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 10,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 10
+                }
+            },
+            {
+                "statement": "I like who I like\u2014good luck categorizing me",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 5,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 10
+                }
+            },
+            {
+                "statement": "T4T, anyone?",
+                "scores": {
+                    "Attraction to Male (AM)": 10,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 10,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 5
+                }
+            },
+            {
+                "statement": "No preference, just connection",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 10,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 5
+                }
+            },
+            {
+                "statement": "Situationally flirty",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 5,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 10
+                }
+            },
+            {
+                "statement": "None of your business, but thanks for asking politely",
+                "scores": {
+                    "Attraction to Male (AM)": 5,
+                    "Attraction to Female (AF)": 5,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 5,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 5
+                }
+            },
+            {
+                "statement": "Exclusively heterosexual, no interest otherwise.",
+                "scores": {
+                    "Attraction to Male (AM)": 10,
+                    "Attraction to Female (AF)": 0,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 0,
+                    "Romantic vs. Sexual Distinction (RSD)": 5,
+                    "Fluidity/Change Over Time (FCT)": 0
+                }
+            },
+            {
+                "statement": "Aromantic asexual \u2013 not really interested in romantic or sexual relationships.",
+                "scores": {
+                    "Attraction to Male (AM)": 0,
+                    "Attraction to Female (AF)": 0,
+                    "Attraction to Other Genders/Non-Binary (AONB)": 0,
+                    "Romantic vs. Sexual Distinction (RSD)": 10,
+                    "Fluidity/Change Over Time (FCT)": 0
+                }
+            }
+        ],
+        "gender_identity": [
+            {
+                "statement": "Male",
+                "scores": {
+                    "Identification with Maleness (IM)": 10,
+                    "Identification with Femaleness (IF)": 0,
+                    "Identification with Androgyny/Non-Binary (IANB)": 0,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Female",
+                "scores": {
+                    "Identification with Maleness (IM)": 10,
+                    "Identification with Femaleness (IF)": 10,
+                    "Identification with Androgyny/Non-Binary (IANB)": 0,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Transgender Male",
+                "scores": {
+                    "Identification with Maleness (IM)": 10,
+                    "Identification with Femaleness (IF)": 0,
+                    "Identification with Androgyny/Non-Binary (IANB)": 0,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Transgender Female",
+                "scores": {
+                    "Identification with Maleness (IM)": 10,
+                    "Identification with Femaleness (IF)": 10,
+                    "Identification with Androgyny/Non-Binary (IANB)": 0,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Non-binary",
+                "scores": {
+                    "Identification with Maleness (IM)": 5,
+                    "Identification with Femaleness (IF)": 5,
+                    "Identification with Androgyny/Non-Binary (IANB)": 10,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Genderqueer",
+                "scores": {
+                    "Identification with Maleness (IM)": 5,
+                    "Identification with Femaleness (IF)": 5,
+                    "Identification with Androgyny/Non-Binary (IANB)": 10,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Genderfluid",
+                "scores": {
+                    "Identification with Maleness (IM)": 5,
+                    "Identification with Femaleness (IF)": 5,
+                    "Identification with Androgyny/Non-Binary (IANB)": 10,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Agender",
+                "scores": {
+                    "Identification with Maleness (IM)": 5,
+                    "Identification with Femaleness (IF)": 5,
+                    "Identification with Androgyny/Non-Binary (IANB)": 10,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Bigender",
+                "scores": {
+                    "Identification with Maleness (IM)": 5,
+                    "Identification with Femaleness (IF)": 5,
+                    "Identification with Androgyny/Non-Binary (IANB)": 10,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Two-Spirit",
+                "scores": {
+                    "Identification with Maleness (IM)": 5,
+                    "Identification with Femaleness (IF)": 5,
+                    "Identification with Androgyny/Non-Binary (IANB)": 10,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Femboy",
+                "scores": {
+                    "Identification with Maleness (IM)": 10,
+                    "Identification with Femaleness (IF)": 0,
+                    "Identification with Androgyny/Non-Binary (IANB)": 7,
+                    "Gender Expression (GE)": 10
+                }
+            },
+            {
+                "statement": "Tomboy",
+                "scores": {
+                    "Identification with Maleness (IM)": 0,
+                    "Identification with Femaleness (IF)": 10,
+                    "Identification with Androgyny/Non-Binary (IANB)": 7,
+                    "Gender Expression (GE)": 0
+                }
+            },
+            {
+                "statement": "Drag King",
+                "scores": {
+                    "Identification with Maleness (IM)": 10,
+                    "Identification with Femaleness (IF)": 0,
+                    "Identification with Androgyny/Non-Binary (IANB)": 5,
+                    "Gender Expression (GE)": 10
+                }
+            },
+            {
+                "statement": "Drag Queen",
+                "scores": {
+                    "Identification with Maleness (IM)": 0,
+                    "Identification with Femaleness (IF)": 10,
+                    "Identification with Androgyny/Non-Binary (IANB)": 5,
+                    "Gender Expression (GE)": 0
+                }
+            },
+            {
+                "statement": "Soft Masculine",
+                "scores": {
+                    "Identification with Maleness (IM)": 5,
+                    "Identification with Femaleness (IF)": 5,
+                    "Identification with Androgyny/Non-Binary (IANB)": 7,
+                    "Gender Expression (GE)": 10
+                }
+            },
+            {
+                "statement": "High Femme",
+                "scores": {
+                    "Identification with Maleness (IM)": 0,
+                    "Identification with Femaleness (IF)": 10,
+                    "Identification with Androgyny/Non-Binary (IANB)": 7,
+                    "Gender Expression (GE)": 0
+                }
+            },
+            {
+                "statement": "Demiboy",
+                "scores": {
+                    "Identification with Maleness (IM)": 10,
+                    "Identification with Femaleness (IF)": 0,
+                    "Identification with Androgyny/Non-Binary (IANB)": 7,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Demigirl",
+                "scores": {
+                    "Identification with Maleness (IM)": 0,
+                    "Identification with Femaleness (IF)": 10,
+                    "Identification with Androgyny/Non-Binary (IANB)": 7,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Androgynous Icon",
+                "scores": {
+                    "Identification with Maleness (IM)": 5,
+                    "Identification with Femaleness (IF)": 5,
+                    "Identification with Androgyny/Non-Binary (IANB)": 10,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Masculine-presenting",
+                "scores": {
+                    "Identification with Maleness (IM)": 10,
+                    "Identification with Femaleness (IF)": 0,
+                    "Identification with Androgyny/Non-Binary (IANB)": 5,
+                    "Gender Expression (GE)": 10
+                }
+            },
+            {
+                "statement": "Feminine-presenting",
+                "scores": {
+                    "Identification with Maleness (IM)": 0,
+                    "Identification with Femaleness (IF)": 10,
+                    "Identification with Androgyny/Non-Binary (IANB)": 5,
+                    "Gender Expression (GE)": 0
+                }
+            },
+            {
+                "statement": "Still figuring it out (and that\u2019s valid!)",
+                "scores": {
+                    "Identification with Maleness (IM)": 5,
+                    "Identification with Femaleness (IF)": 5,
+                    "Identification with Androgyny/Non-Binary (IANB)": 5,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Something super cool that you haven\u2019t even heard of yet",
+                "scores": {
+                    "Identification with Maleness (IM)": 5,
+                    "Identification with Femaleness (IF)": 5,
+                    "Identification with Androgyny/Non-Binary (IANB)": 5,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "None of your business, but thanks for asking politely",
+                "scores": {
+                    "Identification with Maleness (IM)": 5,
+                    "Identification with Femaleness (IF)": 5,
+                    "Identification with Androgyny/Non-Binary (IANB)": 5,
+                    "Gender Expression (GE)": 5
+                }
+            },
+            {
+                "statement": "Male-identified, but enjoys traditionally feminine expression.",
+                "scores": {
+                    "Identification with Maleness (IM)": 10,
+                    "Identification with Femaleness (IF)": 0,
+                    "Identification with Androgyny/Non-Binary (IANB)": 3,
+                    "Gender Expression (GE)": 0
+                }
+            },
+            {
+                "statement": "Female-identified, but prefers masculine clothing and presentation.",
+                "scores": {
+                    "Identification with Maleness (IM)": 0,
+                    "Identification with Femaleness (IF)": 10,
+                    "Identification with Androgyny/Non-Binary (IANB)": 3,
+                    "Gender Expression (GE)": 10
+                }
+            }
+        ],
+        "political_beliefs": [
+            {
+                "statement": "Progressive lefty with a love for community gardens and mutual aid",
+                "scores": {
+                    "Economic Ideology (EI)": 0,
+                    "Social/Cultural Ideology (SCI)": 0,
+                    "Authoritarianism vs. Libertarianism (AVL)": 5,
+                    "Environmentalism/Sustainability (ES)": 7,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Liberal-ish, with strong feelings about healthcare, housing, and iced coffee access",
+                "scores": {
+                    "Economic Ideology (EI)": 3,
+                    "Social/Cultural Ideology (SCI)": 0,
+                    "Authoritarianism vs. Libertarianism (AVL)": 5,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Moderate\u2014just trying to keep it civil while reading both sides",
+                "scores": {
+                    "Economic Ideology (EI)": 6,
+                    "Social/Cultural Ideology (SCI)": 7,
+                    "Authoritarianism vs. Libertarianism (AVL)": 5,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Politically homeless but emotionally caffeinated",
+                "scores": {
+                    "Economic Ideology (EI)": 5,
+                    "Social/Cultural Ideology (SCI)": 5,
+                    "Authoritarianism vs. Libertarianism (AVL)": 5,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Left-leaning centrist with a subscription to The Atlantic and a backup plan",
+                "scores": {
+                    "Economic Ideology (EI)": 3,
+                    "Social/Cultural Ideology (SCI)": 5,
+                    "Authoritarianism vs. Libertarianism (AVL)": 5,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Libertarian: Don\u2019t tread on me, unless it\u2019s in a consensual way",
+                "scores": {
+                    "Economic Ideology (EI)": 10,
+                    "Social/Cultural Ideology (SCI)": 4,
+                    "Authoritarianism vs. Libertarianism (AVL)": 10,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Green party vibes\u2014save the bees, the trees, and my emotional well-being",
+                "scores": {
+                    "Economic Ideology (EI)": 5,
+                    "Social/Cultural Ideology (SCI)": 0,
+                    "Authoritarianism vs. Libertarianism (AVL)": 5,
+                    "Environmentalism/Sustainability (ES)": 10,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Center-right, mostly fiscally conservative but chill about brunch rights",
+                "scores": {
+                    "Economic Ideology (EI)": 10,
+                    "Social/Cultural Ideology (SCI)": 7,
+                    "Authoritarianism vs. Libertarianism (AVL)": 5,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Traditional conservative with sharp suits and sharper opinions",
+                "scores": {
+                    "Economic Ideology (EI)": 5,
+                    "Social/Cultural Ideology (SCI)": 10,
+                    "Authoritarianism vs. Libertarianism (AVL)": 3,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Anarchist but with spreadsheets",
+                "scores": {
+                    "Economic Ideology (EI)": 10,
+                    "Social/Cultural Ideology (SCI)": 5,
+                    "Authoritarianism vs. Libertarianism (AVL)": 10,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Socialist with a soft spot for free libraries and spicy group chats",
+                "scores": {
+                    "Economic Ideology (EI)": 0,
+                    "Social/Cultural Ideology (SCI)": 5,
+                    "Authoritarianism vs. Libertarianism (AVL)": 3,
+                    "Environmentalism/Sustainability (ES)": 7,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Marx-curious but also emotionally exhausted",
+                "scores": {
+                    "Economic Ideology (EI)": 0,
+                    "Social/Cultural Ideology (SCI)": 5,
+                    "Authoritarianism vs. Libertarianism (AVL)": 3,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "I believe in voting, volunteering, and vibe-based revolution",
+                "scores": {
+                    "Economic Ideology (EI)": 5,
+                    "Social/Cultural Ideology (SCI)": 0,
+                    "Authoritarianism vs. Libertarianism (AVL)": 5,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Anti-authoritarian. I say 'no' professionally and recreationally.",
+                "scores": {
+                    "Economic Ideology (EI)": 5,
+                    "Social/Cultural Ideology (SCI)": 4,
+                    "Authoritarianism vs. Libertarianism (AVL)": 10,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Politically fluid\u2014depends on the week, the weather, and the memes",
+                "scores": {
+                    "Economic Ideology (EI)": 5,
+                    "Social/Cultural Ideology (SCI)": 0,
+                    "Authoritarianism vs. Libertarianism (AVL)": 5,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "I avoid labels, but I\u2019ll protest like it\u2019s a full-time job",
+                "scores": {
+                    "Economic Ideology (EI)": 5,
+                    "Social/Cultural Ideology (SCI)": 5,
+                    "Authoritarianism vs. Libertarianism (AVL)": 5,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Staunch socialist, believes in strong state control for social good.",
+                "scores": {
+                    "Economic Ideology (EI)": 0,
+                    "Social/Cultural Ideology (SCI)": 0,
+                    "Authoritarianism vs. Libertarianism (AVL)": 0,
+                    "Environmentalism/Sustainability (ES)": 5,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 5
+                }
+            },
+            {
+                "statement": "Traditional conservative, believes in strong law and order and national sovereignty.",
+                "scores": {
+                    "Economic Ideology (EI)": 10,
+                    "Social/Cultural Ideology (SCI)": 10,
+                    "Authoritarianism vs. Libertarianism (AVL)": 0,
+                    "Environmentalism/Sustainability (ES)": 3,
+                    "Foreign Policy/Internationalism vs. Nationalism (FIN)": 0
+                }
+            }
+        ],
+        "relationship_goals": [
+            {
+                "statement": "Just looking to pound it out\u2014let\u2019s not pretend this is a book club",
+                "scores": {
+                    "Commitment Level (CL)": 0,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 5,
+                    "Family/Children Orientation (FCO)": 0,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 10,
+                    "Emotional Intimacy Depth (EID)": 0
+                }
+            },
+            {
+                "statement": "Friends with benefits (emphasis on the benefits)",
+                "scores": {
+                    "Commitment Level (CL)": 0,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 5,
+                    "Family/Children Orientation (FCO)": 0,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 0
+                }
+            },
+            {
+                "statement": "Flirty fun with no pressure",
+                "scores": {
+                    "Commitment Level (CL)": 0,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 5,
+                    "Family/Children Orientation (FCO)": 0,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 0,
+                    "Emotional Intimacy Depth (EID)": 0
+                }
+            },
+            {
+                "statement": "Casual dating\u2014low expectations, high emotional intelligence",
+                "scores": {
+                    "Commitment Level (CL)": 0,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 5,
+                    "Family/Children Orientation (FCO)": 0,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 5
+                }
+            },
+            {
+                "statement": "I want to meet people and see if we click",
+                "scores": {
+                    "Commitment Level (CL)": 5,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 5,
+                    "Family/Children Orientation (FCO)": 5,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 5
+                }
+            },
+            {
+                "statement": "Emotionally available, but calendar unavailable",
+                "scores": {
+                    "Commitment Level (CL)": 5,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 5,
+                    "Family/Children Orientation (FCO)": 5,
+                    "Independence vs. Interdependence (IVI)": 10,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 3
+                }
+            },
+            {
+                "statement": "I believe in commitment, but I don\u2019t know if I believe in marriage",
+                "scores": {
+                    "Commitment Level (CL)": 5,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 0,
+                    "Family/Children Orientation (FCO)": 5,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 5
+                }
+            },
+            {
+                "statement": "I\u2019m sort of exploring polyamory and what relationships even are",
+                "scores": {
+                    "Commitment Level (CL)": 5,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 10,
+                    "Family/Children Orientation (FCO)": 5,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 5
+                }
+            },
+            {
+                "statement": "Ethical non-monogamy enthusiast",
+                "scores": {
+                    "Commitment Level (CL)": 5,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 10,
+                    "Family/Children Orientation (FCO)": 5,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 5
+                }
+            },
+            {
+                "statement": "Ride-or-die long-term partnership type",
+                "scores": {
+                    "Commitment Level (CL)": 10,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 0,
+                    "Family/Children Orientation (FCO)": 5,
+                    "Independence vs. Interdependence (IVI)": 0,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 5
+                }
+            },
+            {
+                "statement": "Looking for someone to emotionally co-op life with",
+                "scores": {
+                    "Commitment Level (CL)": 10,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 5,
+                    "Family/Children Orientation (FCO)": 5,
+                    "Independence vs. Interdependence (IVI)": 0,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 10
+                }
+            },
+            {
+                "statement": "Do you hear that? It\u2019s wedding bells. Want to see my idea book?",
+                "scores": {
+                    "Commitment Level (CL)": 10,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 0,
+                    "Family/Children Orientation (FCO)": 8,
+                    "Independence vs. Interdependence (IVI)": 0,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 5
+                }
+            },
+            {
+                "statement": "Divorced, reformed, and manifesting a soft place to land",
+                "scores": {
+                    "Commitment Level (CL)": 10,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 0,
+                    "Family/Children Orientation (FCO)": 5,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 5
+                }
+            },
+            {
+                "statement": "Open to love, but not chasing it",
+                "scores": {
+                    "Commitment Level (CL)": 5,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 5,
+                    "Family/Children Orientation (FCO)": 5,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 5
+                }
+            },
+            {
+                "statement": "I want someone to raise chickens and existential questions with",
+                "scores": {
+                    "Commitment Level (CL)": 5,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 5,
+                    "Family/Children Orientation (FCO)": 7,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 10,
+                    "Emotional Intimacy Depth (EID)": 5
+                }
+            },
+            {
+                "statement": "Monogam-ish",
+                "scores": {
+                    "Commitment Level (CL)": 5,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 10,
+                    "Family/Children Orientation (FCO)": 5,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 5
+                }
+            },
+            {
+                "statement": "Curious about kink and connection",
+                "scores": {
+                    "Commitment Level (CL)": 5,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 5,
+                    "Family/Children Orientation (FCO)": 5,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 10
+                }
+            },
+            {
+                "statement": "Solo poly: I date me first",
+                "scores": {
+                    "Commitment Level (CL)": 5,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 10,
+                    "Family/Children Orientation (FCO)": 0,
+                    "Independence vs. Interdependence (IVI)": 10,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 5
+                }
+            },
+            {
+                "statement": "Let\u2019s just vibe. No labels. Maybe a brunch date.",
+                "scores": {
+                    "Commitment Level (CL)": 5,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 5,
+                    "Family/Children Orientation (FCO)": 5,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 5
+                }
+            },
+            {
+                "statement": "Still healing, still hoping",
+                "scores": {
+                    "Commitment Level (CL)": 5,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 5,
+                    "Family/Children Orientation (FCO)": 5,
+                    "Independence vs. Interdependence (IVI)": 5,
+                    "Shared Activities/Interests (SAI)": 5,
+                    "Emotional Intimacy Depth (EID)": 10
+                }
+            },
+            {
+                "statement": "Seeking a lifelong, monogamous marriage with children and shared traditional values.",
+                "scores": {
+                    "Commitment Level (CL)": 10,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 0,
+                    "Family/Children Orientation (FCO)": 10,
+                    "Independence vs. Interdependence (IVI)": 0,
+                    "Shared Activities/Interests (SAI)": 8,
+                    "Emotional Intimacy Depth (EID)": 8
+                }
+            },
+            {
+                "statement": "Strictly casual encounters, no emotional attachment or shared life.",
+                "scores": {
+                    "Commitment Level (CL)": 0,
+                    "Monogamy vs. Non-Monogamy (MVNM)": 10,
+                    "Family/Children Orientation (FCO)": 0,
+                    "Independence vs. Interdependence (IVI)": 10,
+                    "Shared Activities/Interests (SAI)": 0,
+                    "Emotional Intimacy Depth (EID)": 0
+                }
+            }
+        ]
+    }
+}

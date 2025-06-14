@@ -2,9 +2,9 @@ import { useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Button from 'react-bootstrap/Button';
-import nonlinear from '../../../nonlinear.json';
-import VerbiageSelections from './verbiageselections';
-import verbiage from '../../../verbiage.json';
+import humanity from '../../../humanity.json';
+import DetailsSelections from './detailsselections';
+import details from '../../../details.json';
 
 function SignIn({ setLoggedInUser , setJWT}) {
     const [formData, setFormData] = useState({
@@ -86,7 +86,7 @@ export function SignUpProfile() {
     latitude: '',
     longitude: '',
     profile: '',
-    verbiage: Object.keys(verbiage).reduce((acc, key) => ({ ...acc, [key]: 0 }), {}),
+    details: Object.keys(details).reduce((acc, key) => ({ ...acc, [key]: 0 }), {}),
   });
 
   const handleChange = (e) => {
@@ -94,10 +94,10 @@ export function SignUpProfile() {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleVerbiageChange = (key, value) => {
+  const handleDetailsChange = (key, value) => {
     setFormData((prev) => ({
       ...prev,
-      verbiage: { ...prev.verbiage, [key]: parseInt(value, 10) },
+      details: { ...prev.details, [key]: parseInt(value, 10) },
     }));
   };
 
@@ -108,7 +108,7 @@ export function SignUpProfile() {
       lat: parseFloat(formData.latitude),
       long: parseFloat(formData.longitude),
       profile: formData.profile,
-      verbiage: formData.verbiage,
+      details: formData.details,
     };
 
     try {
@@ -190,8 +190,8 @@ export function SignUpProfile() {
         </div>
       </div>
 
-      <VerbiageSelections
-        onChange={(key, value) => handleVerbiageChange(key, value)}
+      <DetailsSelections
+        onChange={(key, value) => handleDetailsChange(key, value)}
       />
 
       <Button variant="primary" onClick={handleSubmit}>

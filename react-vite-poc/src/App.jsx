@@ -3,15 +3,18 @@ import NavBar from './components/navbar';
 import MatchList from './components/matchlist';
 import SignIn from './components/login';
 import { SignUpProfile } from './components/login';
-import verbiage from '../../verbiage.json';
+import AdvancedSearch from './components/advancedsearch';
+import GeminiAdvancedSearch from './components/advancedsearchgemini';
 import FAQ from './components/faq';
 import 'bootstrap/dist/css/bootstrap.min.css';    
+import ClaudeAdvancedSearch from './components/advancedsearchclaude';
 
 function App() {
   const [people, setPeople] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loggedInUser, setLoggedInUser] = useState(null); // State to store the logged-in user
   const [jwt, setJWT] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
     fetch('http://localhost:8080/people')
@@ -23,8 +26,63 @@ function App() {
       .catch(() => setLoading(false));
   }, []);
 
-  console.log(people);
-  console.log(loading);
+  // The Chat GPT component
+  // const handleSearch = ({ distance, criteria }) => {
+  //   const results = people.filter((person) => {
+  //     const withinDistance = person.distance <= distance;
+  //     const matchesCriteria = Object.entries(criteria).every(
+  //       ([key, value]) => person[key] === parseInt(value)
+  //     );
+  //     return withinDistance && matchesCriteria;
+  //   });
+  //   setSearchResults(results);
+  // };
+
+  const handleSearch = (searchState) => {
+    const { distance, criteria } = searchState;
+
+    // This console.log is helpful for debugging!
+    console.log("Searching with:", { distance, criteria });
+
+    const results = people.filter((person) => {
+      // 1. Check distance
+      // Make sure the person object has a 'distance' property
+      const personDistance = person.distance || Infinity;
+      if (personDistance > distance) {
+        return false;
+      }
+
+      // 2. Check all enabled criteria
+      for (const key in criteria) {
+        const setting = criteria[key];
+
+        // Only filter if the criterion is enabled by the user
+        if (setting.enabled) {
+          const personValue = person[key]; // The person's value for this trait (e.g., 7)
+
+          // If the person doesn't have this trait defined, they can't match.
+          if (personValue === undefined) {
+            return false;
+          }
+
+          const min = setting.preference - setting.flexibility;
+          const max = setting.preference + setting.flexibility;
+
+          // Check if the person's value is within the user's desired range
+          if (personValue < min || personValue > max) {
+            return false; // This person is outside the range, so we exclude them.
+          }
+        }
+      }
+
+      // 3. If the person passed the distance and all enabled criteria checks, include them!
+      return true;
+    });
+
+    setSearchResults(results);
+    // You might want to update the main people list to show only search results
+    // setPeople(results); 
+  };
 
   return (
 
@@ -35,7 +93,19 @@ function App() {
         setLoggedInUser={setLoggedInUser}
         setJWT={setJWT}
       />
+
+      <h1 className="m-3 p-3 text-center">Advanced Search</h1>
+      <AdvancedSearch onSearch={handleSearch} />
+      <br />
+      <br />
+      <h1 className="m-3 p-3 text-center">Advanced Search - Gemini Remix</h1>
+      <GeminiAdvancedSearch onSearch={handleSearch} />
       <h1 className='m-3 p-3 text-center'>Found {people.length} matches for you!</h1>
+      <br />
+      <br />
+      <h1 className="m-3 p-3 text-center">Advanced Search - Claude Remix</h1>
+      <ClaudeAdvancedSearch onSearch={handleSearch} />
+      <br />
       <>
       <div className='container text-center'>
         <MatchList 

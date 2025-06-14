@@ -16,7 +16,7 @@ function SelectionFormat({ array, subject }) {
   );
 }
 
-export function NonLinearSelectionFormat({ array, subject }) {
+export function HumanitySelectionFormat({ array, subject }) {
   return (
     <>
       <Form.Label htmlFor={`create${subject}`}>So it turns out {subject} doesn't exist on a scale - pick what makes sense to you.</Form.Label>

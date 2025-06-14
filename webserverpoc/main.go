@@ -1,45 +1,45 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
 	"sort"
 	"strconv"
-	"encoding/json"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
-    "golang.org/x/crypto/bcrypt"
 	"github.com/asmarques/geodist"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/websocket"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type person struct {
-	ID           int         `json:"id"`
+	ID           int            `json:"id"`
 	Name         string         `json:"name"`
 	Motto        string         `json:"motto"`
 	LatLocation  float64        `json:"lat"`
 	LongLocation float64        `json:"long"`
 	Profile      string         `json:"profile"`
-	Verbiage     map[string]int `json:"verbiage"` // Add this to store rankings for each category
+	Details      map[string]int `json:"details"` // Add this to store rankings for each category
 }
 
 type user struct {
-	ID       int `json:"id"`
-	Email string `json:"email"`
+	ID           int    `json:"id"`
+	Email        string `json:"email"`
 	PasswordHash string `json:"-"`
 }
 
 type processedProfile struct {
-	ID       int         `json:"id"`
+	ID       int            `json:"id"`
 	Name     string         `json:"name"`
 	Motto    string         `json:"motto"`
 	Distance float64        `json:"distance"`
 	Profile  string         `json:"profile"`
-	Verbiage map[string]int `json:"verbiage"`
+	Details  map[string]int `json:"details"`
 }
 
 type profilePhoto struct {
@@ -137,7 +137,7 @@ func dummyMessages(num int) chatMessage {
 	return message
 }
 
-var jwtSecret = []byte("supersecretkey") // Use a secure random key in production!
+var jwtSecret = []byte("supersecretkey")    // Use a secure random key in production!
 var refreshTokens = make(map[string]string) // Map user ID to refresh token
 
 // 29.456001687343456, -98.471976423337 DoSeum?
@@ -187,15 +187,15 @@ func getPeopleByLocation(c *gin.Context) {
 	var processedPeople []processedProfile
 	jwtMiddleware(c)
 	var req struct {
-        Lat  string `json:"lat"`
-        Long string `json:"long"`
-    }
+		Lat  string `json:"lat"`
+		Long string `json:"long"`
+	}
 	fmt.Println(c)
 	fmt.Println(req)
-    if err := c.BindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-        return
-    }
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
 
 	lat, err := strconv.ParseFloat(req.Lat, 64)
 	if err != nil {
@@ -303,108 +303,107 @@ func postPeople(c *gin.Context) {
 }
 
 func login(c *gin.Context) {
-    var req struct {
-        Email    string `json:"email"`
-        Password string `json:"password"`
-    }
-    if err := c.BindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-        return
-    }
+	var req struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
 
-    // Find the user by email
-    var user *user
-    for i := range users {
-        if users[i].Email == req.Email {
-            user = &users[i]
-            break
-        }
-    }
-    if user == nil {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
-        return
-    }
+	// Find the user by email
+	var user *user
+	for i := range users {
+		if users[i].Email == req.Email {
+			user = &users[i]
+			break
+		}
+	}
+	if user == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		return
+	}
 
-    // Check password
-    if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
-        return
-    }
+	// Check password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		return
+	}
 
-    // Create JWT token
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-        "sub": user.ID,
-        "exp": time.Now().Add(time.Hour * 72).Unix(),
-        "email": user.Email,
-    })
-    tokenString, err := token.SignedString(jwtSecret)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create token"})
-        return
-    }
+	// Create JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub":   user.ID,
+		"exp":   time.Now().Add(time.Hour * 72).Unix(),
+		"email": user.Email,
+	})
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create token"})
+		return
+	}
 
-    // Return token and user info (excluding password hash)
-    resp := struct {
-        Token  string  `json:"token"`
-        Person person  `json:"person"`
-    }{
-        Token:  tokenString,
-        Person: people[user.ID],
-    }
+	// Return token and user info (excluding password hash)
+	resp := struct {
+		Token  string `json:"token"`
+		Person person `json:"person"`
+	}{
+		Token:  tokenString,
+		Person: people[user.ID],
+	}
 
-    c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, resp)
 }
 
 func hashPassword(pw string) string {
-    hash, _ := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
-    return string(hash)
+	hash, _ := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
+	return string(hash)
 }
 
 func signout(c *gin.Context) {
-    token := c.GetHeader("Authorization")
-    if token == "" {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "No token provided"})
-        return
-    }
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No token provided"})
+		return
+	}
 
-    // Parse and validate the token
-    parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
-        return jwtSecret, nil
-    })
-    if err != nil || !parsedToken.Valid {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-        return
-    }
+	// Parse and validate the token
+	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		return jwtSecret, nil
+	})
+	if err != nil || !parsedToken.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
 
-    claims := parsedToken.Claims.(jwt.MapClaims)
-    userID := claims["sub"].(string)
+	claims := parsedToken.Claims.(jwt.MapClaims)
+	userID := claims["sub"].(string)
 
-    // Remove the refresh token
-    delete(refreshTokens, userID)
-    c.JSON(http.StatusOK, gin.H{"message": "Signed out successfully"})
+	// Remove the refresh token
+	delete(refreshTokens, userID)
+	c.JSON(http.StatusOK, gin.H{"message": "Signed out successfully"})
 }
 
 func jwtMiddleware(c *gin.Context) {
-    token := c.GetHeader("Authorization")
-    if token == "" {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "No token provided"})
-        c.Abort()
-        return
-    }
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "No token provided"})
+		c.Abort()
+		return
+	}
 
-    // Validate the token
-    parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
-        return jwtSecret, nil
-    })
-    if err != nil || !parsedToken.Valid {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-        c.Abort()
-        return
-    }
+	// Validate the token
+	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		return jwtSecret, nil
+	})
+	if err != nil || !parsedToken.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		c.Abort()
+		return
+	}
 
-    c.Next()
+	c.Next()
 }
-
 
 func websocketDummy(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
