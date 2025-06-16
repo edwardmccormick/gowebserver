@@ -88,13 +88,12 @@ function App() {
 
     <div className='mx-auto p-3 text-center'>
       <NavBar
-        profile={loggedInUser?.profile}
-        username={loggedInUser?.name}
+        User={loggedInUser}
         setLoggedInUser={setLoggedInUser}
         setJWT={setJWT}
       />
 
-      <h1 className="m-3 p-3 text-center">Advanced Search</h1>
+      {/* <h1 className="m-3 p-3 text-center">Advanced Search</h1>
       <AdvancedSearch onSearch={handleSearch} />
       <br />
       <br />
@@ -102,7 +101,7 @@ function App() {
       <GeminiAdvancedSearch onSearch={handleSearch} />
       <h1 className='m-3 p-3 text-center'>Found {people.length} matches for you!</h1>
       <br />
-      <br />
+      <br /> */}
       <h1 className="m-3 p-3 text-center">Advanced Search - Claude Remix</h1>
       <ClaudeAdvancedSearch onSearch={handleSearch} />
       <br />

@@ -5,7 +5,7 @@ import NavLink from 'react-bootstrap/esm/NavLink';
 import ChatModal from './chatmodal';
 import { ChatModalButton } from './chatmodal';
 
-function ChatSelect() {
+function ChatSelect({User}) {
   const [showOffcanvas, setShowOffcanvas] = useState(false); // Controls the Offcanvas visibility
   const [showModal, setShowModal] = useState(false); // Controls the ChatModal visibility
   const [selectedPerson, setSelectedPerson] = useState(null); // Tracks the currently selected person
@@ -81,6 +81,7 @@ function ChatSelect() {
             show={showModal}
             setShow={setShowModal}
             person={selectedPerson} // Pass the currently selected person to the modal
+            User={User} // Pass the User prop to the ChatModal
           />
         </Offcanvas.Body>
       </Offcanvas>

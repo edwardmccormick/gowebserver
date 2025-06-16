@@ -5,7 +5,7 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import Modal from 'react-bootstrap/Modal';
 import Badge from 'react-bootstrap/Badge';
 
-export function ChatModal({person, show, setShow}) {
+export function ChatModal({person, show, setShow, User}) {
   
   if (!person) {person = [
     {
@@ -23,7 +23,16 @@ export function ChatModal({person, show, setShow}) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const ws = useRef(null);
+  const messagesEndRef = useRef(null); // Ref for the last message
   
+    // Scroll to the bottom whenever messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
+
   useEffect(() => {
     ws.current = new WebSocket('ws://localhost:8080/ws');
 
@@ -65,12 +74,13 @@ export function ChatModal({person, show, setShow}) {
   };
   }, []);
   
-    const sendMessage = () => {
-      if (ws.current && input) {
-        ws.current.send(input);
-        setInput( {message: 'WebSocket error', who: 'System', id: Date.now() });
-      }
-    };
+  const sendMessage = () => {
+    if (ws.current && input) {
+      ws.current.send(JSON.stringify({ message: input, who: 'Me', id: Date.now() })); // Send the message as a JSON object
+      setMessages((prev) => [...prev, { message: input, who: 'Me', id: Date.now() }]); // Add the message to the chat
+      setInput(''); // Reset the input field to an empty string
+    }
+  };
 
   return (
   <>
@@ -146,9 +156,9 @@ export function ChatModal({person, show, setShow}) {
                     ? 'text-center bg-danger text-white rounded m-2 p-2 flex-item'
                     : msg.who === 'Connection'
                     ? 'text-center bg-success text-white rounded m-2 p-2 flex-item'
-                    : msg.who === 'Admin'
+                    : msg.who === 'Admin' || msg.who === 'Moderator' || msg.who === "AI Host"
                     ? 'align-self-center bg-info text-white rounded m-2 p-2 flex-item'
-                    : msg.who === 'Them'
+                    : msg.who == `${person.id}` || msg.who === 'Them'
                     ? 'align-self-start bg-light text-black rounded m-2 p-2 flex-item'
                     : 'align-self-end bg-primary text-white rounded m-2 p-2 flex-item'
                 }
@@ -156,11 +166,12 @@ export function ChatModal({person, show, setShow}) {
                 {msg.who} - {msg.message}
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
         </div>
       </Modal.Body>
-      <Modal.Footer className="d-flex flex-row justify-content-around mx-3">
-        <Form className="flex-grow-1">
+      <Modal.Footer className="d-flex flex-row justify-content-around mx-3 flex-wrap">
+        <div className='flex-grow-1'>
           <InputGroup>
             <Form.Control
               type="text"
@@ -168,12 +179,18 @@ export function ChatModal({person, show, setShow}) {
               autoFocus
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault(); // Prevent the default behavior of the Enter key
+                  sendMessage(); // Call the sendMessage function
+                }
+              }}
             />
             <Button variant="success" onClick={sendMessage}>
               Send
             </Button>
           </InputGroup>
-        </Form>
+        </div>
         <Button
           variant="secondary"
           onClick={handleClose}

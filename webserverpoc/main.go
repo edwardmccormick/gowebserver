@@ -79,7 +79,7 @@ func main() {
 	router.GET("/login", login)
 	router.POST("login", login)
 	router.GET("/photos/:id", getPhotosByID)
-	router.GET("/ws", websocketDummy)
+	router.GET("/ws", websocketListener)
 	router.GET("/logout", signout)
 	router.Run("localhost:8080")
 }
@@ -446,11 +446,20 @@ func websocketListener(c *gin.Context) {
 		// Log the received message
 		fmt.Printf("Received message: %s\n", string(msg))
 
-		// Echo the message back to the client
+		// Parse the received message as JSON
+		var receivedMessage chatMessage
+		err = json.Unmarshal(msg, &receivedMessage)
+		if err != nil {
+			fmt.Printf("Error unmarshaling message: %v\n", err)
+			conn.WriteMessage(websocket.TextMessage, []byte("Invalid message format"))
+			continue
+		}
+
+		// Prepare the response
 		response := chatMessage{
 			ID:      int64(i),
-			Who:     "Me", // You can customize this based on the sender
-			Message: string(msg),
+			Who:     "Them", // Echo the sender
+			Message: receivedMessage.Message,
 		}
 		i++
 
