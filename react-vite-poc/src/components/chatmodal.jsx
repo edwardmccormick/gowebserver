@@ -6,18 +6,7 @@ import Modal from 'react-bootstrap/Modal';
 import Badge from 'react-bootstrap/Badge';
 
 export function ChatModal({person, show, setShow, User}) {
-  
-  if (!person) {person = [
-    {
-      "id": 1,
-      "name": "John Doe",
-      "motto": "I love to chat!",
-      "lat": 40.7128,
-      "long": -74.0060,
-      "profile": "I'm a software engineer."
-    }
-  ]}
-  console.log(person);
+
 
   const handleClose = () => setShow(false);
   const [messages, setMessages] = useState([]);
@@ -34,7 +23,7 @@ export function ChatModal({person, show, setShow, User}) {
 
 
   useEffect(() => {
-    ws.current = new WebSocket('ws://localhost:8080/ws');
+    ws.current = new WebSocket('ws://localhost:8080/ws?id=testing1');
 
     ws.current.onopen = () => {
       setMessages((prev) => [...prev, { message: ' opened.', who: 'Connection', id: Date.now() }]);
@@ -76,8 +65,9 @@ export function ChatModal({person, show, setShow, User}) {
   
   const sendMessage = () => {
     if (ws.current && input) {
-      ws.current.send(JSON.stringify({ message: input, who: 'Me', id: Date.now() })); // Send the message as a JSON object
-      setMessages((prev) => [...prev, { message: input, who: 'Me', id: Date.now() }]); // Add the message to the chat
+      let date = new Date();
+      ws.current.send(JSON.stringify({ message: input, who: User.name, id: Date.now() })); // Send the message as a JSON object
+      setMessages((prev) => [...prev, { message: input, who: 'Me', id: Date.now(), time: date.toLocaleTimeString() }]); // Add the message to the chat
       setInput(''); // Reset the input field to an empty string
     }
   };
@@ -140,8 +130,18 @@ export function ChatModal({person, show, setShow, User}) {
       centered
       scrollable={true}
     >
+
+      {person ? (
+      <>
       <Modal.Header closeButton>
-        <Modal.Title>Chat with {person.name}</Modal.Title>
+        <Modal.Title>Chat with {person.name} <img
+              src={person.profile ? person.profile : '/profile.svg'}
+              style={{ borderRadius: '50%' }}
+              className="m-1 p-1"
+              height="50"
+              width="50"
+              alt={`${person.name}'s profile`}
+            /></Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <div className="overflow-scroll">
@@ -158,12 +158,12 @@ export function ChatModal({person, show, setShow, User}) {
                     ? 'text-center bg-success text-white rounded m-2 p-2 flex-item'
                     : msg.who === 'Admin' || msg.who === 'Moderator' || msg.who === "AI Host"
                     ? 'align-self-center bg-info text-white rounded m-2 p-2 flex-item'
-                    : msg.who == `${person.id}` || msg.who === 'Them'
-                    ? 'align-self-start bg-light text-black rounded m-2 p-2 flex-item'
-                    : 'align-self-end bg-primary text-white rounded m-2 p-2 flex-item'
+                    : msg.who == `${User.id}` || msg.who === 'Me'
+                    ? 'align-self-end bg-primary text-white rounded m-2 p-2 flex-item'
+                    : 'align-self-start bg-light text-black rounded m-2 p-2 flex-item'
                 }
               >
-                {msg.who} - {msg.message}
+                {msg.who} - {msg.time} - {msg.message}
               </div>
             ))}
             <div ref={messagesEndRef} />
@@ -206,8 +206,21 @@ export function ChatModal({person, show, setShow, User}) {
           Close
         </Button>
       </Modal.Footer>
+      </>
+      ) :
+      (
+        <>
+        <Modal.Body>
+          <div className="d-flex justify-content-center align-items-center">
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </Modal.Body>
+        </>
+      )}
     </Modal>
-  </>
+    </>
 );
 }
 

@@ -191,7 +191,7 @@ export function SignUpProfile() {
       </div>
 
       <DetailsSelections
-        onChange={(key, value) => handleDetailsChange(key, value)}
+        onChange={handleDetailsChange}
       />
 
       <Button variant="primary" onClick={handleSubmit}>
