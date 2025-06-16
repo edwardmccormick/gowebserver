@@ -99,12 +99,21 @@ func GetPeople(c *gin.Context) {
 
 func PostPeople(c *gin.Context) {
 	var newPerson Person
+	// var newDetails Details
 
 	// Call BindJSON to bind the received JSON to
 	// newAlbum.
 	if err := c.BindJSON(&newPerson); err != nil {
 		return
 	}
+
+	// // Ensure the Details field is initialized if it's missing
+    // if newPerson.Details == nil {
+    //     newPerson.Details = c.BindJSON(&newDetails); 
+	// 	err != nil {
+	// 		return
+	// 	}
+    // }
 
 	// Add the new album to the slice.
 	people = append(people, newPerson)
