@@ -165,9 +165,11 @@ func GetPeopleByLocation(c *gin.Context) {
 		processedPeople = append(processedPeople, ProcessedProfile{
 			ID:       p.ID,
 			Name:     p.Name,
+			Age:      p.Age,
 			Motto:    p.Motto,
 			Distance: roundedDistance,
 			Profile:  p.Profile,
+			Details:  p.Details,
 		})
 
 		sort.Slice(processedPeople, func(i, j int) bool {
@@ -198,9 +200,11 @@ func GetProcessedPeople(c *gin.Context) {
 		processedPeople = append(processedPeople, ProcessedProfile{
 			ID:       p.ID,
 			Name:     p.Name,
+			Age:      p.Age,
 			Motto:    p.Motto,
 			Distance: roundedDistance,
 			Profile:  p.Profile,
+			Details: p.Details,
 		})
 
 		sort.Slice(processedPeople, func(i, j int) bool {

@@ -24,10 +24,11 @@ type User struct {
 type ProcessedProfile struct {
     ID       int            `json:"id"`
     Name     string         `json:"name"`
+    Age      int            `json:"age"`
     Motto    string         `json:"motto"`
     Distance float64        `json:"distance"`
     Profile  string         `json:"profile"`
-    Details  Details `json:"details"`
+    Details  Details        `json:"details"`
 }
 
 type ProfilePhoto struct {
