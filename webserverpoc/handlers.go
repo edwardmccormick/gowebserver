@@ -267,7 +267,7 @@ func GreetUserByName(c *gin.Context) {
 }
 
 func GetFaviconIco(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, "Stop hitting endpoints with your stupid browser ya goof!🤣🤷‍♂️")
+	c.IndentedJSON(http.StatusOK, "./urmid.svg")
 }
 
 func GetMatches(c *gin.Context) {
@@ -309,21 +309,24 @@ func GetMatchByPersonID(c *gin.Context) {
 	// Find the match with the given ID
 	for _, match := range Matches {
 		if match.Offered == id || match.Accepted == id {
-			if !match.AcceptedTime.IsZero() { // Check if AcceptedTime is not null
+			// if !match.AcceptedTime.IsZero() { // Check if AcceptedTime is not null
 				// Determine the other person's ID
 				otherPersonID := match.Offered
 				if match.Offered == id {
+					fmt.Println("Second person switch")
+					
 					otherPersonID = match.Accepted
 				}
-
+				fmt.Println(otherPersonID)
 				// Find the person in the people array
 				for _, person := range people {
 					if person.ID == otherPersonID {
-						match.Person = person // Add the person to match.Profile
+						match.Person = person // Add the person to match.Person
+						fmt.Println("Match found:", match)
 						break
 					}
 				}
-			}
+			// }
 			matchesForPerson = append(matchesForPerson, match)
 		}
 	}
