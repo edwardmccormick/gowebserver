@@ -306,9 +306,24 @@ func GetMatchByPersonID(c *gin.Context) {
 
 	// Find the match with the given ID
 
+	// Find the match with the given ID
 	for _, match := range Matches {
 		if match.Offered == id || match.Accepted == id {
+			if !match.AcceptedTime.IsZero() { // Check if AcceptedTime is not null
+				// Determine the other person's ID
+				otherPersonID := match.Offered
+				if match.Offered == id {
+					otherPersonID = match.Accepted
+				}
 
+				// Find the person in the people array
+				for _, person := range people {
+					if person.ID == otherPersonID {
+						match.Person = person // Add the person to match.Profile
+						break
+					}
+				}
+			}
 			matchesForPerson = append(matchesForPerson, match)
 		}
 	}

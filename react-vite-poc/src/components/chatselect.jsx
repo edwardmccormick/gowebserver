@@ -16,7 +16,7 @@ function ChatSelect({User}) {
   const toggleOffcanvasShow = () => setShowOffcanvas((s) => !s);
 
   useEffect(() => {
-    fetch('http://localhost:8080/people')
+    fetch(`http://localhost:8080/matches/${User.id}`)
       .then((res) => res.json())
       .then((data) => {
         setMatches(data);
@@ -43,14 +43,16 @@ function ChatSelect({User}) {
         <Offcanvas.Body>
           <h4 className='text-center'>Active matches:</h4>
             <div className='d-flex flex-column'>
-                {matches.map((person) => (
-                <ChatModalButton
-                  key={person.id}
-                  person={person}
-                  setSelectedPerson={setSelectedPerson} // Pass the setter for the selected person
-                  setShow={setShowModal} // Pass the setter for modal visibility
-                  message={person.motto ? person.motto.length : 0}
-              />
+                {matches.map((match) => (
+                  {match.acceptedtime == undefined ? null : (
+                  <ChatModalButton
+                    key={match.person.id}
+                    person={match.person}
+                    setSelectedPerson={setSelectedPerson} // Pass the setter for the selected person
+                    setShow={setShowModal} // Pass the setter for modal visibility
+                    message={match.person.motto ? person.motto.length : 0}
+                  />
+                  )}
                 ))}
             </div>
 

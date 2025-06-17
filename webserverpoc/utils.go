@@ -74,6 +74,8 @@ var Matches = []Match{
 	{MatchID: 1000, MatchesIDs: []int{3, 5}, Offered: 3, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5, AcceptedTime: mustParseTime("2025-06-16T21:03:59.5225862-05:00"), VibeChat: true},
 	{MatchID: 1001, MatchesIDs: []int{4, 5}, Offered: 4, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5, AcceptedTime: mustParseTime("2025-06-16T21:03:59.5225862-05:00"), VibeChat: true},
 	{MatchID: 1002, MatchesIDs: []int{1, 3}, Offered: 3, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 1, AcceptedTime: mustParseTime("2025-06-16T21:03:59.5225862-05:00"), VibeChat: true},
+	{MatchID: 1003, MatchesIDs: []int{0, 5}, Offered: 3, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5, VibeChat: true},
+	{MatchID: 1004, MatchesIDs: []int{1, 5}, Offered: 5, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 1, VibeChat: true},
 }
 
 // mustParseTime is a helper to parse time or panic if invalid
