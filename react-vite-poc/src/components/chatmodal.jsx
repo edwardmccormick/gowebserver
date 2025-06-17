@@ -5,6 +5,20 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import Modal from 'react-bootstrap/Modal';
 import Badge from 'react-bootstrap/Badge';
 
+function convertISODateToLocal(dateString) {
+  const date = new Date(dateString);
+
+
+  const localTime = date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
+  return localTime; // Output: "09:03:56 PM"
+
+}
+
 export function ChatModal({person, show, setShow, User}) {
 
 
@@ -147,23 +161,41 @@ export function ChatModal({person, show, setShow, User}) {
         <div className="overflow-scroll">
           <div className="m-1 p-1 d-flex flex-column">
             {messages.map((msg, idx) => (
-              <div
-                key={msg.id || idx}
-                className={
-                  msg.who === 'System'
-                    ? 'text-center bg-warning text-white rounded m-2 p-2 flex-item'
-                    : msg.who === 'Alert'
-                    ? 'text-center bg-danger text-white rounded m-2 p-2 flex-item'
-                    : msg.who === 'Connection'
-                    ? 'text-center bg-success text-white rounded m-2 p-2 flex-item'
-                    : msg.who === 'Admin' || msg.who === 'Moderator' || msg.who === "AI Host"
-                    ? 'align-self-center bg-info text-white rounded m-2 p-2 flex-item'
-                    : msg.who == `${User.id}` || msg.who === 'Me'
-                    ? 'align-self-end bg-primary text-white rounded m-2 p-2 flex-item'
-                    : 'align-self-start bg-light text-black rounded m-2 p-2 flex-item'
-                }
-              >
-                {msg.who} - {msg.time} - {msg.message}
+              <div className={
+                      msg.who === 'System'
+                      ? 'text-center bg-warning text-white rounded m-2 p-2 flex-item'
+                      : msg.who === 'Alert'
+                      ? 'text-center bg-danger text-white rounded m-2 p-2 flex-item'
+                      : msg.who === 'Connection'
+                      ? 'text-center bg-success text-white rounded m-2 p-2 flex-item'
+                      : msg.who === 'Admin' || msg.who === 'Moderator' || msg.who === "AI Host"
+                      ? 'align-self-center bg-info text-white rounded m-2 p-2 flex-item'
+                      : msg.who === msg.who == `${User.id}` || msg.who === 'Me'
+                      ? 'd-flex flex-row justify-content-end align-items-center'
+                      : 'd-flex flex-row justify-content-start align-items-center'
+                  }
+                  key={`${person.id}${idx}`}>
+                  {msg.who == `${User.id}` || msg.who === "Me" ?<span className="text-body-tertiary fs-6">{msg.time}</span> : null}
+                  <span className={
+                    msg.who === 'System'
+                      ? 'text-center bg-warning text-white rounded m-2 p-2 flex-item'
+                      : msg.who === 'Alert'
+                      ? 'text-center bg-danger text-white rounded m-2 p-2 flex-item'
+                      : msg.who === 'Connection'
+                      ? 'text-center bg-success text-white rounded m-2 p-2 flex-item'
+                      : msg.who === 'Admin' || msg.who === 'Moderator' || msg.who === "AI Host"
+                      ? 'align-self-center bg-info text-white rounded m-2 p-2 flex-item'
+                      : msg.who == `${User.id}` || msg.who === 'Me'
+                      ? 'bg-primary text-white rounded m-2 p-2 flex-item'
+                      : 'bg-light text-black rounded m-2 p-2 flex-item'
+                  }
+                >
+                  {msg.who} - {msg.message} 
+                  </span>
+                  {msg.who == `${person.id}` || msg.who == "Them" || msg.who == `${person.name}` || msg.who !=="Me" 
+                  ?<span className="text-body-tertiary fs-6">  {
+                    convertISODateToLocal(msg.time)                    
+                    }</span> : null}
               </div>
             ))}
             <div ref={messagesEndRef} />

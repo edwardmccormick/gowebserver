@@ -1,13 +1,16 @@
 import Accordion from 'react-bootstrap/Accordion';
 import ControlledCarousel from './carousel'
+import { getPreciseDistance } from 'geolib';
+import { User } from 'lucide-react';
 
 function MatchList({
     peopleObject, 
-    loading
+    loading,
+    User
 }) {let people = peopleObject.people;
     console.log(people);
     return (
-      loading ? (
+      loading || User==undefined ? (
         <div className="d-flex align-items-center">
           <strong role="status">Loading...</strong>
           <div className="spinner-border ms-auto" aria-hidden="true"></div>
@@ -25,7 +28,7 @@ function MatchList({
               width="50"
               alt={`${person.name}'s profile`}
             />
-            <strong>{person.name}</strong> — {person.motto} - Distance: {person.distance} miles</Accordion.Header>
+            <strong>{person.name}</strong> — {person.motto} - Distance: { Math.round(getPreciseDistance( {latitude: User.lat, longitude: User.long}, {latitude: person.lat, longitude: person.long})/1609.34*10)/10} miles</Accordion.Header>
           <Accordion.Body key={person.id+10000}>
             <div className='text-start'>
               <img src={person.profile} className='m-1 p-1 rounded float-start' height={'250'} width={'250'} />

@@ -3,8 +3,6 @@ import NavBar from './components/navbar';
 import MatchList from './components/matchlist';
 import SignIn from './components/login';
 import { SignUpProfile } from './components/login';
-import AdvancedSearch from './components/advancedsearch';
-import GeminiAdvancedSearch from './components/advancedsearchgemini';
 import FAQ from './components/faq';
 import 'bootstrap/dist/css/bootstrap.min.css';    
 import ClaudeAdvancedSearch from './components/advancedsearchclaude';
@@ -109,7 +107,9 @@ function App() {
       <div className='container text-center'>
         <MatchList 
           peopleObject={{ people }} 
-          loading={loading} />
+          loading={loading}
+          User = {loggedInUser}  
+        />
       </div>
       </>
       {/* <WebSocketChat /> */}

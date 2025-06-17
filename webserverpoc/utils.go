@@ -1,13 +1,15 @@
 package main
 
 import (
-        "golang.org/x/crypto/bcrypt"
-        "github.com/asmarques/geodist"
+	"time"
+
+	"github.com/asmarques/geodist"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func HashPassword(pw string) string {
-    hash, _ := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
-    return string(hash)
+	hash, _ := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
+	return string(hash)
 }
 
 var people = []Person{
@@ -58,4 +60,22 @@ var isme = []string{
 	"Admin",
 }
 
-var jwtSecret = []byte("supersecretkey")    // Use a secure random key in production!
+var Matches = []Match{
+	{MatchID: 1000, MatchesIDs: []int{3, 5}, Offered: 3, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5, AcceptedTime: mustParseTime("2025-06-16T21:03:59.5225862-05:00"), VibeChat: true},
+	{MatchID: 1001, MatchesIDs: []int{4, 5}, Offered: 4, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5, AcceptedTime: mustParseTime("2025-06-16T21:03:59.5225862-05:00"), VibeChat: true},
+	{MatchID: 1002, MatchesIDs: []int{1, 3}, Offered: 3, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 1, AcceptedTime: mustParseTime("2025-06-16T21:03:59.5225862-05:00"), VibeChat: true},
+}
+
+// mustParseTime is a helper to parse time or panic if invalid
+func mustParseTime(value string) time.Time {
+	t, err := time.Parse(time.RFC3339Nano, value)
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
+
+// varOfferedChat: []ChatMessage{
+// 	{ID: 0, Time: time.Now(), Who: "Me", Message: "Hey, how's it going?"},
+
+var jwtSecret = []byte("supersecretkey") // Use a secure random key in production!
