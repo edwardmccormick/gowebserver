@@ -44,7 +44,10 @@ function MatchList({
                 <p>(Fry)I did do the nasty in the pasty!</p>
 
               <div height='450' width='450' className='text-center w-fill'>
-                <ControlledCarousel key={person.id+1000000}/>
+                <ControlledCarousel
+                  key={`${person.id}1000000`}
+                  id={person.id}
+                />
               </div>
             </div>
             </Accordion.Body>

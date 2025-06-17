@@ -28,12 +28,22 @@ var users = []User{
 
 var locationOrigin = geodist.Point{Lat: 29.42618, Long: 98.48618} // The Stupid Alamo
 var PictureArray = []string{"https://picsum.photos/250/250", "https://picsum.photos/300/300", "https://picsum.photos/450/300", "https://picsum.photos/450/450", "https://picsum.photos/500/500"}
-var photoArray = []ProfilePhoto{
+var PhotoArray = []ProfilePhoto{
 	{Url: "https://picsum.photos/250/250", Caption: "Just me and the boys"},
 	{Url: "https://picsum.photos/300/300", Caption: "haha look at their faces"},
 	{Url: "https://picsum.photos/450/300", Caption: "omg I can't believe we got away with this"},
 	{Url: "https://picsum.photos/450/450", Caption: "life is good man"},
 	{Url: "https://picsum.photos/500/500", Caption: "idk haha"},
+}
+
+var PhotoArray2 = []ProfilePhoto{
+	{Url: "https://picsum.photos/600/600", Caption: "Just me and the boys"},
+	{Url: "https://picsum.photos/300/300", Caption: "haha look at their faces"},
+	{Url: "https://picsum.photos/450/300", Caption: "omg I can't believe we got away with this"},
+	{Url: "https://picsum.photos/450/450", Caption: "life is good man"},
+	{Url: "https://picsum.photos/500/500", Caption: "idk haha"},
+	{Url: "https://picsum.photos/600/600", Caption: "Just chilling"},
+	{Url: "https://picsum.photos/700/700", Caption: "Having a great time"},
 }
 
 var locations = []geodist.Point{

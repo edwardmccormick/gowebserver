@@ -244,8 +244,12 @@ func GetPhotosByID(c *gin.Context) {
 		return
 	}
 	fmt.Println(id)
-	if id == 0 || id == 1 || id == 2 || id == 3 || id == 4 || id == 5 || id == 6 || id == 7 || id == 8 || id == 9 || id == 10 {
-		c.IndentedJSON(http.StatusOK, PictureArray)
+	if id == 0 || id == 1 || id == 2 || id == 3 {
+		c.IndentedJSON(http.StatusOK, PhotoArray2)
+		return
+	}
+	if id == 4 || id == 5 || id == 6 || id == 7 || id == 8 || id == 9 || id == 10 {
+		c.IndentedJSON(http.StatusOK, PhotoArray)
 		return
 	}
 	// TODO: Implement a Document DB instance and associated call
