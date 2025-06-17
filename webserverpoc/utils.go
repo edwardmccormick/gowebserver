@@ -20,7 +20,8 @@ var people = []Person{
 	{ID: 4, Name: "Don", Age: 79, Motto: "I want you Bigly", LatLocation: 38.898, LongLocation: 77.037, Profile: "https://www.whitehouse.gov/wp-content/uploads/2025/06/President-Donald-Trump-Official-Presidential-Portrait.png"},
 	{ID: 5, Name: "The Founder", Age: 42, Motto: "I just want this fucking thing to work", LatLocation: 48.858, LongLocation: -2.294, Profile: "https://ted.mccormickhub.com/img/tedProfilePicture.jpg"},
 	{ID: 6, Name: "Training Data", Age: 32, Motto: "Somebody has to carry this fucking site", LatLocation: 48.858, LongLocation: -2.859, Profile: "https://wallpaperheart.com/wp-content/uploads/2018/04/image-Scarlett-Johansson-Images.jpg"},
-	{ID: 7, Name: "Scale is Hard", Age: 32, Motto: "I'm famous! Yay!", LatLocation: 50, LongLocation: 0.123, Profile: "./natalie.jpg"},
+	{ID: 7, Name: "Scale is Hard", Age: 32, Motto: "I'm famous! Yay!", LatLocation: 50, LongLocation: 0.123, Profile: "./Lenna.jpg"},
+	{ID: 8, Name: "Natalie", Age: 39, Motto: "Yes, that one", LatLocation: 49, LongLocation: -1, Profile: "./natalie.jpg"},
 }
 
 var users = []User{
