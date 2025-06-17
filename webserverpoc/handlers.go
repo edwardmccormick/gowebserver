@@ -1,18 +1,18 @@
 package main
 
 import (
-    // "encoding/json"
-    "fmt"
-    "math"
-    "net/http"
-    "sort"
-    "strconv"
-    "time"
+	// "encoding/json"
+	"fmt"
+	"math"
+	"net/http"
+	"sort"
+	"strconv"
+	"time"
 
-    "github.com/asmarques/geodist"
-    "github.com/gin-gonic/gin"
-    "github.com/golang-jwt/jwt/v5"
-    "golang.org/x/crypto/bcrypt"
+	"github.com/asmarques/geodist"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Add your route handlers here
@@ -99,12 +99,21 @@ func GetPeople(c *gin.Context) {
 
 func PostPeople(c *gin.Context) {
 	var newPerson Person
+	// var newDetails Details
 
 	// Call BindJSON to bind the received JSON to
 	// newAlbum.
 	if err := c.BindJSON(&newPerson); err != nil {
 		return
 	}
+
+	// // Ensure the Details field is initialized if it's missing
+	// if newPerson.Details == nil {
+	//     newPerson.Details = c.BindJSON(&newDetails);
+	// 	err != nil {
+	// 		return
+	// 	}
+	// }
 
 	// Add the new album to the slice.
 	people = append(people, newPerson)
@@ -156,9 +165,11 @@ func GetPeopleByLocation(c *gin.Context) {
 		processedPeople = append(processedPeople, ProcessedProfile{
 			ID:       p.ID,
 			Name:     p.Name,
+			Age:      p.Age,
 			Motto:    p.Motto,
 			Distance: roundedDistance,
 			Profile:  p.Profile,
+			Details:  p.Details,
 		})
 
 		sort.Slice(processedPeople, func(i, j int) bool {
@@ -189,9 +200,11 @@ func GetProcessedPeople(c *gin.Context) {
 		processedPeople = append(processedPeople, ProcessedProfile{
 			ID:       p.ID,
 			Name:     p.Name,
+			Age:      p.Age,
 			Motto:    p.Motto,
 			Distance: roundedDistance,
 			Profile:  p.Profile,
+			Details:  p.Details,
 		})
 
 		sort.Slice(processedPeople, func(i, j int) bool {
@@ -231,8 +244,12 @@ func GetPhotosByID(c *gin.Context) {
 		return
 	}
 	fmt.Println(id)
-	if id == 0 || id == 1 || id == 2 || id == 3 || id == 4 || id == 5 || id == 6 || id == 7 || id == 8 || id == 9 || id == 10 {
-		c.IndentedJSON(http.StatusOK, PictureArray)
+	if id == 0 || id == 1 || id == 2 || id == 3 {
+		c.IndentedJSON(http.StatusOK, PhotoArray2)
+		return
+	}
+	if id == 4 || id == 5 || id == 6 || id == 7 || id == 8 || id == 9 || id == 10 {
+		c.IndentedJSON(http.StatusOK, PhotoArray)
 		return
 	}
 	// TODO: Implement a Document DB instance and associated call
@@ -250,5 +267,57 @@ func GreetUserByName(c *gin.Context) {
 }
 
 func GetFaviconIco(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK,"Stop hitting endpoints with your stupid browser ya goof!🤣🤷‍♂️")
+	c.IndentedJSON(http.StatusOK, "Stop hitting endpoints with your stupid browser ya goof!🤣🤷‍♂️")
+}
+
+func GetMatches(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, Matches)
+}
+
+func GetMatchByID(c *gin.Context) {
+	// Extract the ID from the URL parameter
+	str := c.Param("id")
+	id, err := strconv.Atoi(str)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	// Find the match with the given ID
+	for _, match := range Matches {
+		if match.MatchID == id {
+			c.IndentedJSON(http.StatusOK, match)
+			return
+		}
+	}
+
+	// If no match is found, return a 404 Not Found response
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Match not found"})
+}
+
+func GetMatchByPersonID(c *gin.Context) {
+	// Extract the ID from the URL parameter
+	str := c.Param("id")
+	id, err := strconv.Atoi(str)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	matchesForPerson := []Match{}
+
+	// Find the match with the given ID
+
+	for _, match := range Matches {
+		if match.Offered == id || match.Accepted == id {
+
+			matchesForPerson = append(matchesForPerson, match)
+		}
+	}
+
+	if len(matchesForPerson) == 0 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "No matches found for this person"})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, matchesForPerson)
+
 }

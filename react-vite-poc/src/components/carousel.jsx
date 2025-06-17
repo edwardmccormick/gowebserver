@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Carousel from 'react-bootstrap/Carousel';
 import Image from 'react-bootstrap/Image';
 
-function ControlledCarousel() {
+function ControlledCarousel({id}) {
 //   const [index, setIndex] = useState(0);
 
 //   const handleSelect = (selectedIndex) => {
@@ -13,7 +13,7 @@ function ControlledCarousel() {
     const [loading, setLoading] = useState(true);
   
     useEffect(() => {
-      fetch('http://localhost:8080/photos/1')
+      fetch(`http://localhost:8080/photos/${id}`)
         .then((res) => res.json())
         .then((data) => {
           setPhotos(data);
