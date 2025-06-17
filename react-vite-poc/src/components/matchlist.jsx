@@ -8,7 +8,21 @@ function MatchList({
     loading,
     User
 }) {let people = peopleObject.people;
-    console.log(people);
+      // Add distance to each person and sort by distance
+  if (!loading && User) {
+    people = people.map((person) => ({
+      ...person,
+      distance: Math.round(
+        getPreciseDistance(
+          { latitude: User.lat, longitude: User.long },
+          { latitude: person.lat, longitude: person.long }
+        ) / 1609.34 * 10
+      ) / 10, // Convert meters to miles and round to 1 decimal place
+    }));
+
+    // Sort people by distance (smallest to largest)
+    people.sort((a, b) => a.distance - b.distance);
+  }
     return (
       loading || User==undefined ? (
         <div className="d-flex align-items-center">
@@ -28,7 +42,7 @@ function MatchList({
               width="50"
               alt={`${person.name}'s profile`}
             />
-            <strong>{person.name}</strong> — {person.motto} - Distance: { Math.round(getPreciseDistance( {latitude: User.lat, longitude: User.long}, {latitude: person.lat, longitude: person.long})/1609.34*10)/10} miles</Accordion.Header>
+            <strong>{person.name}</strong> — {person.motto} - Distance: { person.distance } miles</Accordion.Header>
           <Accordion.Body key={person.id+10000}>
             <div className='text-start'>
               <img src={person.profile} className='m-1 p-1 rounded float-start' height={'250'} width={'250'} />
