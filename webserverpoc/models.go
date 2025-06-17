@@ -68,5 +68,5 @@ type Match struct {
 	VibeChat     bool          `json:"vibe_chat"`
 	OfferedChat  []ChatMessage `json:"offered_chat"`
 	AcceptedChat []ChatMessage `json:"accepted_chat"`
-	Person       Person        `json:"profile"`
+	Person       Person        `json:"person"`
 }
