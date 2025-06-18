@@ -10,6 +10,8 @@ import Form from 'react-bootstrap/Form';
 import ChatSelect from './chatselect';
 
 function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pendings, offereds}) {
+  console.log("navbar", User);
+  console.log("navbar", matches);
   return (
     <Navbar collapseOnSelect expand="sm" className="bg-body-tertiary">
       <Container>

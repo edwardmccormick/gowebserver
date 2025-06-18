@@ -40,10 +40,8 @@ function ChatSelect({User, refreshMatches, matches, pendings, offereds}) {
   // if (offeredsObject !== null || offeredsObject !== undefined) {offereds = offeredsObject?.offereds;}
 
   useEffect(() => {
-      refreshMatches();
-  }, [User]);
-
-  console.log(matches);
+    console.log("Matches updated:", matches);
+  }, [matches]);
 
   return (
     <>
