@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from 'react-bootstrap/esm/Button';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import NavLink from 'react-bootstrap/esm/NavLink';
@@ -20,36 +20,30 @@ function convertISODateToLocal(dateString) {
 
 }
 
-function ChatSelect({User}) {
+function ChatSelect({User, refreshMatches, matches, pendings, offereds}) {
   const [showOffcanvas, setShowOffcanvas] = useState(false); // Controls the Offcanvas visibility
   const [showModal, setShowModal] = useState(false); // Controls the ChatModal visibility
   const [selectedPerson, setSelectedPerson] = useState(null); // Tracks the currently selected person
-  const [matches, setMatches] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pendings, setPendings] = useState([]);
-  const [offereds, setOffereds] = useState([]);
-
   const handleOffcanvasClose = () => setShowOffcanvas(false);
   const toggleOffcanvasShow = () => setShowOffcanvas((s) => !s);
+  
+  // console.log(matchesObject);
+  // console.log(pendingsObject);
+  // console.log(offeredsObject);
+
+
+  // let matches 
+  // { (matchesObject !== null || matchesObject !== undefined) ? matches= matchesObject?.matches : null; }
+  // let pendings 
+  // if (pendingsObject !== null || pendingsObject !== undefined) {pendings = pendingsObject?.pendings;}
+  // let offereds
+  // if (offeredsObject !== null || offeredsObject !== undefined) {offereds = offeredsObject?.offereds;}
 
   useEffect(() => {
-      if (User == null || User == undefined) return; 
-    fetch(`http://localhost:8080/matches/${User.id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        const offered = data.filter((match) => match.accepted_time == "0001-01-01T00:00:00Z"); // This is what a null date looks like in Go
-        const accepted = data.filter((match) => match.accepted_time != "0001-01-01T00:00:00Z"); // A non-null date
-        const pending = offered.filter((match) => match.offered != User.id)
-        setMatches(accepted);
-        setPendings(pending);
-        setOffereds(offered);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [User]); // Run the effect only when User changes
+      refreshMatches();
+  }, [User]);
 
   console.log(matches);
-  console.log(loading);
 
   return (
     <>
@@ -66,7 +60,12 @@ function ChatSelect({User}) {
         <Offcanvas.Body>
           <h4 className='text-center'>Chat with your active matches:</h4>
             <div className='d-flex flex-column'>
-                {matches.map((match) => (
+              {(matches == undefined || matches == null) 
+                ? <div className="d-flex align-items-center">
+                    <strong role="status">Loading...</strong>
+                    <div className="spinner-border ms-auto" aria-hidden="true"></div>
+                  </div>
+                : matches.map((match) => (
                   // {match.accepted_time == undefined ? null : (
                   <ChatModalButton
                     key={match.person.id}
@@ -76,11 +75,14 @@ function ChatSelect({User}) {
                     message={match.person.motto ? match.person.motto.length : 69}
                   />
                   // )}
-                ))}
+                ))
+              }
             </div>
-
-          <h4 className='text-center'>Matches to review:</h4>
-            <div className='d-flex flex-column'>
+          { pendings == undefined || pendings == null || offereds == undefined || offereds == null
+            ? null
+            : <>
+            <h4 className='text-center'>Matches to review:</h4>
+              <div className='d-flex flex-column'>
                 {pendings.map((pending) => (
                 <Button       
                   variant="outline-warning"
@@ -119,6 +121,8 @@ function ChatSelect({User}) {
                   </Button>
                 ))}
             </div>
+            </>
+          }
           <ChatModal
             show={showModal}
             setShow={setShowModal}

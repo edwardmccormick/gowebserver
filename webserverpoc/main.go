@@ -32,6 +32,7 @@ func main() {
 	router.GET("/favicon.ico", GetFaviconIco)
 	router.GET("/matches", GetMatches)
 	router.GET("/matches/:id", GetMatchByPersonID)
+	router.POST("/matches", PostMatch)
 
 	router.Run("localhost:8080")
 }
