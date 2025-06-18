@@ -310,22 +310,22 @@ func GetMatchByPersonID(c *gin.Context) {
 	for _, match := range Matches {
 		if match.Offered == id || match.Accepted == id {
 			// if !match.AcceptedTime.IsZero() { // Check if AcceptedTime is not null
-				// Determine the other person's ID
-				otherPersonID := match.Offered
-				if match.Offered == id {
-					fmt.Println("Second person switch")
-					
-					otherPersonID = match.Accepted
+			// Determine the other person's ID
+			otherPersonID := match.Offered
+			if match.Offered == id {
+				fmt.Println("Second person switch")
+
+				otherPersonID = match.Accepted
+			}
+			fmt.Println(otherPersonID)
+			// Find the person in the people array
+			for _, person := range people {
+				if person.ID == otherPersonID {
+					match.Person = person // Add the person to match.Person
+					fmt.Println("Match found:", match)
+					break
 				}
-				fmt.Println(otherPersonID)
-				// Find the person in the people array
-				for _, person := range people {
-					if person.ID == otherPersonID {
-						match.Person = person // Add the person to match.Person
-						fmt.Println("Match found:", match)
-						break
-					}
-				}
+			}
 			// }
 			matchesForPerson = append(matchesForPerson, match)
 		}
@@ -338,4 +338,22 @@ func GetMatchByPersonID(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusOK, matchesForPerson)
 
+}
+
+func PostMatch(c *gin.Context) {
+	var newMatch Match
+
+	// Call BindJSON to bind the received JSON to
+	// newAlbum.
+	if err := c.BindJSON(&newMatch); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	newMatch.MatchID = len(Matches) + 1000 // Assign a new ID based on the length of the slice
+	newMatch.OfferedTime = time.Now()      // Set the OfferedTime to the current time
+	fmt.Println(newMatch)
+	// Add the new album to the slice.
+	Matches = append(Matches, newMatch)
+	c.IndentedJSON(http.StatusCreated, newMatch)
 }

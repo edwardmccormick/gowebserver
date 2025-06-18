@@ -1,14 +1,19 @@
+import { useState } from 'react';
 import Accordion from 'react-bootstrap/Accordion';
 import ControlledCarousel from './carousel'
 import { getPreciseDistance } from 'geolib';
-import { User } from 'lucide-react';
+import Button from 'react-bootstrap/Button';
 
 function MatchList({
     peopleObject, 
     loading,
-    User
-}) {let people = peopleObject.people;
-      // Add distance to each person and sort by distance
+    User,
+    refreshMatches
+  }) {
+
+  const [submittedLikes, setSubmittedLikes] = useState({}); // Track submitted likes
+  let people = peopleObject.people;
+  // Add distance to each person and sort by distance
   if (!loading && User) {
     people = people.map((person) => ({
       ...person,
@@ -21,8 +26,40 @@ function MatchList({
     }));
 
     // Sort people by distance (smallest to largest)
-    people.sort((a, b) => a.distance - b.distance);
+  people.sort((a, b) => a.distance - b.distance);
   }
+
+  const handleSubmit = async (User, person) => {
+    const now = new Date();
+    const payload = {
+      id: 1000,
+      match_ids: [User.id, person.id],
+      offered: User.id,
+      offered_time: now.toISOString(),
+      accepted: person.id,
+      person: person
+    };
+    try {
+      const response = await fetch('http://localhost:8080/matches', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        alert('Match added successfully!');
+        setSubmittedLikes((prev) => ({ ...prev, [person.id]: true })); // Mark as submitted
+        refreshMatches(); // Refresh matches in ChatSelect
+      } else {
+        alert('Failed to add match.');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('An error occurred while submitting the form.');
+    }
+  };
     return (
       loading || User==undefined ? (
         <div className="d-flex align-items-center">
@@ -42,7 +79,8 @@ function MatchList({
               width="50"
               alt={`${person.name}'s profile`}
             />
-            <strong>{person.name}</strong> — {person.motto} - Distance: { person.distance } miles</Accordion.Header>
+            <strong>{person.name}</strong> — {person.motto} - Distance: { person.distance } miles
+          </Accordion.Header>
           <Accordion.Body key={person.id+10000}>
             <div className='text-start'>
               <img src={person.profile} className='m-1 p-1 rounded float-start' height={'250'} width={'250'} />
@@ -63,6 +101,24 @@ function MatchList({
                   id={person.id}
                 />
               </div>
+              <div className="mx-auto w-50 d-flex flex-row justify-content-around align-items-center">
+                {submittedLikes[person.id] ? (
+                  <p className="text-success">Like submitted!</p>
+                ) : (
+                  <>
+                    <Button
+                      variant="primary"
+                      className="m-2"
+                      onClick={() => handleSubmit(User, person)}
+                    >
+                      Oh yeah, that's what I like! Match!
+                    </Button>
+                    <button className="btn btn-danger m-2">
+                      Show me less like this person
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
             </Accordion.Body>
         </Accordion.Item>
@@ -71,6 +127,7 @@ function MatchList({
       )
     
     )
+  
 }
 
 export default MatchList

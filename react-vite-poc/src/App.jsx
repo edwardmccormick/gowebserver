@@ -13,6 +13,10 @@ function App() {
   const [loggedInUser, setLoggedInUser] = useState(null); // State to store the logged-in user
   const [jwt, setJWT] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
+  const [matches, setMatches] = useState([]);
+  const [matchLoading, setMatchLoading] = useState(true);
+  const [pendings, setPendings] = useState([]);
+  const [offereds, setOffereds] = useState([]);
 
   useEffect(() => {
     fetch('http://localhost:8080/people')
@@ -23,6 +27,26 @@ function App() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  const refreshMatches = () => {
+      if (loggedInUser == null || loggedInUser == undefined) return; 
+    fetch(`http://localhost:8080/matches/${loggedInUser.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        const offered = data.filter((match) => (match.accepted_time == "0001-01-01T00:00:00Z" && match.offered == loggedInUser.id)); // This is what a null date looks like in Go
+        console.log(offered);
+        const accepted = data.filter((match) => match.accepted_time != "0001-01-01T00:00:00Z"); // A non-null date
+        console.log(accepted);
+        const pending = data.filter((match) => (match.accepted_time == "0001-01-01T00:00:00Z" && match.offered != loggedInUser.id))
+        console.log(pending);
+        setMatches(accepted);
+        setPendings(pending);
+        setOffereds(offered);
+        setMatchLoading(false);
+      })
+      .catch(() => setMatchLoading(false));
+  }; 
 
   // The Chat GPT component
   // const handleSearch = ({ distance, criteria }) => {
@@ -89,6 +113,10 @@ function App() {
         User={loggedInUser}
         setLoggedInUser={setLoggedInUser}
         setJWT={setJWT}
+        refreshMatches={refreshMatches}
+        matches={matches}
+        pendings={pendings}
+        offereds={offereds}
       />
 
       {/* <h1 className="m-3 p-3 text-center">Advanced Search</h1>
@@ -108,7 +136,9 @@ function App() {
         <MatchList 
           peopleObject={{ people }} 
           loading={loading}
-          User = {loggedInUser}  
+          User = {loggedInUser}
+          refreshMatches= {refreshMatches
+          }
         />
       </div>
       </>
