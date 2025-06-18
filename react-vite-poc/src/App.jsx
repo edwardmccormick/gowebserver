@@ -28,6 +28,14 @@ function App() {
       .catch(() => setLoading(false));
   }, []);
 
+    // Add this useEffect hook
+  useEffect(() => {
+    if (loggedInUser) { // Only call refreshMatches if loggedInUser is not null
+      refreshMatches();
+    }
+  }, [loggedInUser]); // Dependency array: this effect runs when loggedInUser changes
+
+
   const refreshMatches = () => {
       if (loggedInUser == null || loggedInUser == undefined) return; 
     fetch(`http://localhost:8080/matches/${loggedInUser.id}`)

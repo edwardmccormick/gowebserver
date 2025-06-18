@@ -29,9 +29,9 @@ function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pending
             <ChatSelect
               User={User}
               refreshMatches={refreshMatches}
-              matchesObject={matches}
-              pendingsObject={pendings}
-              offeredsObject={offereds}
+              matches={matches}
+              pendings={pendings}
+              offereds={offereds}
             />
           </Nav>
           <Nav className="d.flex justify-content-around align-items-center">
