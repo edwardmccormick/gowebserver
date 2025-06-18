@@ -19,10 +19,10 @@ function convertISODateToLocal(dateString) {
 
 }
 
-export function ChatModal({person, show, setShow, User}) {
+export function ChatModal({match, person, User, unreadmessages}) {
 
-
-  const handleClose = () => setShow(false);
+  const [showModal, setShowModal] = useState(false); // Controls the ChatModal visibility
+  const handleClose = () => setShowModal(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const ws = useRef(null);
@@ -37,15 +37,19 @@ export function ChatModal({person, show, setShow, User}) {
 
 
   useEffect(() => {
-    ws.current = new WebSocket('ws://localhost:8080/ws?id=testing1');
+    if (!match || !person || !User || !showModal) {
+      return;
+    }
+    ws.current = new WebSocket(`ws://localhost:8080/ws?id=${match.id}`);
 
     ws.current.onopen = () => {
-      setMessages((prev) => [...prev, { message: ' opened.', who: 'Connection', id: Date.now() }]);
+      setMessages((prev) => [...prev, { message: ' opened.', who: 'Connection', id: Date.now(), time: Date.now() }]);
       console.log('WebSocket connection established');
     };
 
     ws.current.onmessage = (event) => {
       try {
+        let date = new Date()
         const data = JSON.parse(event.data);
         // If the server sends an array of messages
         if (Array.isArray(data)) {
@@ -54,20 +58,20 @@ export function ChatModal({person, show, setShow, User}) {
           setMessages((prev) => [...prev, data]);
         } else {
           // If it's not JSON, treat as a status message
-          setMessages((prev) => [...prev, { message: event.data, who: 'System', id: Date.now() }]);
+          setMessages((prev) => [...prev, { message: event.data, who: 'System', id: Date.now(), time: Date.now()}]);
         }
       } catch (e) {
         // Not JSON, treat as a status message
-        setMessages((prev) => [...prev, { message: event.data, who: 'System', id: Date.now() }]);
+        setMessages((prev) => [...prev, { message: event.data, who: 'System', id: Date.now(), time: Date.now() }]);
       }
     };
 
     ws.current.onclose = () => {
-      setMessages((prev) => [...prev, { message: 'Connection closed', who: 'Alert', id: Date.now() }]);
+      setMessages((prev) => [...prev, { message: 'Connection closed', who: 'Alert', id: Date.now(), time: Date.now() }]);
     };
 
     ws.current.onerror = (err) => {
-      setMessages((prev) => [...prev, { message: 'WebSocket error', who: 'System', id: Date.now() }]);
+      setMessages((prev) => [...prev, { message: 'WebSocket error', who: 'System', id: Date.now(), time: Date.now() }]);
     };
 
     return () => {
@@ -75,7 +79,7 @@ export function ChatModal({person, show, setShow, User}) {
       ws.current.close();
     }
   };
-  }, []);
+  }, [showModal]);
   
   const sendMessage = () => {
     if (ws.current && input) {
@@ -86,7 +90,9 @@ export function ChatModal({person, show, setShow, User}) {
     }
   };
 
-  return (
+  return (!person || !User || !match 
+    ? <div>Sign in to see your matches and chat.</div>
+    :
   <>
 <style jsx>{`
         .vibe-chat-btn {
@@ -136,8 +142,34 @@ export function ChatModal({person, show, setShow, User}) {
 }
       `}</style>
 
+    <>
+    <Button
+      key={`openchatwith${match.person.name}-${match.id}`}
+      variant="outline-success"
+      className="p-2 fs-5 m-2 text-right d-flex flex-row justify-content-between align-items-center"
+      onClick={() => setShowModal(true)}
+    >
+      <img
+        src={person.profile ? person.profile : '/profile.svg'}
+        style={{ borderRadius: '50%' }}
+        className="m-1 p-1"
+        height="50"
+        width="50"
+        alt={`${person.name}'s profile`}
+      />
+      {person.name ? `Chat with ${person.name}` : 'Chat'}
+      {unreadmessages ?
+      <>
+      <Badge bg="secondary" className='align-self-start'>{unreadmessages}</Badge>
+        <span className="visually-hidden">unread messages</span>
+      </>
+      : null}
+    </Button>
+    </>
+    <>
     <Modal
-      show={show}
+      key={`chatwindowwith${match.person.name}-${match.id}`}
+      show={showModal}
       onHide={handleClose}
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"
@@ -145,8 +177,6 @@ export function ChatModal({person, show, setShow, User}) {
       scrollable={true}
     >
 
-      {person ? (
-      <>
       <Modal.Header closeButton>
         <Modal.Title>Chat with {person.name} <img
               src={person.profile ? person.profile : '/profile.svg'}
@@ -238,26 +268,15 @@ export function ChatModal({person, show, setShow, User}) {
           Close
         </Button>
       </Modal.Footer>
-      </>
-      ) :
-      (
-        <>
-        <Modal.Body>
-          <div className="d-flex justify-content-center align-items-center">
-            <div className="spinner-border" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </Modal.Body>
-        </>
-      )}
     </Modal>
     </>
-);
+  </>    
+  );
 }
 
-export function ChatModalButton({ person, setSelectedPerson, setShow, message }) {
+export function ChatModalButton({ match, person, setSelectedPerson, setSelectedMatch, setShow, message }) {
   const handleShow = () => {
+    setSelectedMatch(match)
     setSelectedPerson(person); // Set the selected person
     setShow(true); // Open the modal
   };

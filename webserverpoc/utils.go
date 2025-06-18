@@ -27,6 +27,7 @@ var people = []Person{
 var users = []User{
 	{ID: 3, Email: "turd@furguson.com", PasswordHash: HashPassword("password123")},
 	{ID: 5, Email: "ted@urmid.com", PasswordHash: HashPassword("password123")},
+	{ID: 6, Email: "training@data.com", PasswordHash: HashPassword("password123")},
 }
 
 var locationOrigin = geodist.Point{Lat: 29.42618, Long: 98.48618} // The Stupid Alamo
@@ -40,7 +41,7 @@ var PhotoArray = []ProfilePhoto{
 }
 
 var PhotoArray2 = []ProfilePhoto{
-	{Url: "https://picsum.photos/600/600", Caption: "Just me and the boys"},
+	{Url: "https://picsum.photos/610/610", Caption: "Just me and the boys"},
 	{Url: "https://picsum.photos/300/300", Caption: "haha look at their faces"},
 	{Url: "https://picsum.photos/450/300", Caption: "omg I can't believe we got away with this"},
 	{Url: "https://picsum.photos/450/450", Caption: "life is good man"},

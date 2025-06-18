@@ -9,7 +9,7 @@ import ChatModal from './chatmodal';
 import Form from 'react-bootstrap/Form';
 import ChatSelect from './chatselect';
 
-function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pendings, offereds}) {
+function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pendings, offereds, setShowConfirmMatch}) {
   console.log("navbar", User);
   console.log("navbar", matches);
   return (
@@ -20,11 +20,8 @@ function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pending
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
             <Nav.Link href="#features">Match</Nav.Link>
-            <Nav.Item> 
-              <ChatModal
-                name="Chat"
-
-                /> </Nav.Item>
+            <Nav.Link> 
+              Something Cool </Nav.Link>
             <Nav.Link href="#features">FAQ</Nav.Link>
             <ChatSelect
               User={User}
@@ -32,6 +29,7 @@ function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pending
               matches={matches}
               pendings={pendings}
               offereds={offereds}
+              setShowConfirmMatch={setShowConfirmMatch}
             />
           </Nav>
           <Nav className="d.flex justify-content-around align-items-center">

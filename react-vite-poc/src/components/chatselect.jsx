@@ -3,7 +3,6 @@ import Button from 'react-bootstrap/esm/Button';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import NavLink from 'react-bootstrap/esm/NavLink';
 import ChatModal from './chatmodal';
-import { ChatModalButton } from './chatmodal';
 
 function convertISODateToLocal(dateString) {
   const date = new Date(dateString);
@@ -20,10 +19,11 @@ function convertISODateToLocal(dateString) {
 
 }
 
-function ChatSelect({User, refreshMatches, matches, pendings, offereds}) {
+function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
   const [showOffcanvas, setShowOffcanvas] = useState(false); // Controls the Offcanvas visibility
-  const [showModal, setShowModal] = useState(false); // Controls the ChatModal visibility
-  const [selectedPerson, setSelectedPerson] = useState(null); // Tracks the currently selected person
+  // const [showModal, setShowModal] = useState(false); // Controls the ChatModal visibility
+  // const [selectedPerson, setSelectedPerson] = useState(null); // Tracks the currently selected person
+  // const [selectedMatch, setSelectedMatch] = useState(null);
   const handleOffcanvasClose = () => setShowOffcanvas(false);
   const toggleOffcanvasShow = () => setShowOffcanvas((s) => !s);
   
@@ -43,7 +43,9 @@ function ChatSelect({User, refreshMatches, matches, pendings, offereds}) {
     console.log("Matches updated:", matches);
   }, [matches]);
 
-  return (
+  return (!User || !matches 
+    ? null
+    :
     <>
       <NavLink
         to="/chat" // Specify the route you want to navigate to
@@ -63,15 +65,27 @@ function ChatSelect({User, refreshMatches, matches, pendings, offereds}) {
                     <strong role="status">Loading...</strong>
                     <div className="spinner-border ms-auto" aria-hidden="true"></div>
                   </div>
+                  
                 : matches.map((match) => (
                   // {match.accepted_time == undefined ? null : (
-                  <ChatModalButton
+                  <div key={`${match.person.name}-${match.id}-${match.person.id}`}>
+                  <ChatModal
+                    key={`chatwith${match.person.name}-${match.id}`}
+                    person={match.person} // Pass the currently selected person to the modal
+                    match={match}
+                    User={User} // Pass the User prop to the ChatModal
+                    unreadmessages={match.person.motto ? match.person.motto.length : 69}
+                  />
+                  {/* <ChatModalButton
                     key={match.person.id}
+                    match={match}
                     person={match.person}
                     setSelectedPerson={setSelectedPerson} // Pass the setter for the selected person
                     setShow={setShowModal} // Pass the setter for modal visibility
+                    setSelectedMatch={setSelectedMatch}
                     message={match.person.motto ? match.person.motto.length : 69}
-                  />
+                  /> */}
+                  </div>
                   // )}
                 ))
               }
@@ -82,7 +96,8 @@ function ChatSelect({User, refreshMatches, matches, pendings, offereds}) {
             <h4 className='text-center'>Matches to review:</h4>
               <div className='d-flex flex-column'>
                 {pendings.map((pending) => (
-                <Button       
+                <Button
+                  key={`pendingmatchfrom${pending.person.name}-${pending.id}`}     
                   variant="outline-warning"
                   className="p-2 fs-5 m-2 text-right d-flex flex-row justify-content-between align-items-center"
                 >
@@ -103,8 +118,13 @@ function ChatSelect({User, refreshMatches, matches, pendings, offereds}) {
             <div className='d-flex flex-column'>
                 {offereds.map((pending) => (
                   <Button 
-                   variant="outline-warning"
+                    key={`pendingmatchfrom${pending.person.name}-${pending.id}`}
+                    variant="outline-warning"
                     className="p-2 fs-5 m-2 text-right d-flex flex-row justify-content-between align-items-center"
+                    onClick={() => {
+                      setShowOffcanvas(false);
+                      setShowConfirmMatch(true)
+                    }}
                   >
                     <img
                       src={pending.person.profile ? pending.person.profile : '/profile.svg'}
@@ -121,12 +141,13 @@ function ChatSelect({User, refreshMatches, matches, pendings, offereds}) {
             </div>
             </>
           }
-          <ChatModal
+          {/* <ChatModal
             show={showModal}
             setShow={setShowModal}
             person={selectedPerson} // Pass the currently selected person to the modal
+            match={selectedMatch}
             User={User} // Pass the User prop to the ChatModal
-          />
+          /> */}
         </Offcanvas.Body>
       </Offcanvas>
     </>

@@ -6,6 +6,7 @@ import { SignUpProfile } from './components/login';
 import FAQ from './components/faq';
 import 'bootstrap/dist/css/bootstrap.min.css';    
 import ClaudeAdvancedSearch from './components/advancedsearchclaude';
+import ConfirmMatchList from './components/confirmmatch';
 
 function App() {
   const [people, setPeople] = useState([]);
@@ -17,6 +18,7 @@ function App() {
   const [matchLoading, setMatchLoading] = useState(true);
   const [pendings, setPendings] = useState([]);
   const [offereds, setOffereds] = useState([]);
+  const [showConfirmMatch, setShowConfirmMatch] = useState(false)
 
   useEffect(() => {
     fetch('http://localhost:8080/people')
@@ -38,6 +40,7 @@ function App() {
 
   const refreshMatches = () => {
       if (loggedInUser == null || loggedInUser == undefined) return; 
+      else if (matches == null || matches == undefined) {console.log("This needs a fetch from refreshMatches")}
     fetch(`http://localhost:8080/matches/${loggedInUser.id}`)
       .then((res) => res.json())
       .then((data) => {
@@ -125,6 +128,7 @@ function App() {
         matches={matches}
         pendings={pendings}
         offereds={offereds}
+        setShowConfirmMatch={setShowConfirmMatch}
       />
 
       {/* <h1 className="m-3 p-3 text-center">Advanced Search</h1>
@@ -136,13 +140,22 @@ function App() {
       <h1 className='m-3 p-3 text-center'>Found {people.length} matches for you!</h1>
       <br />
       <br /> */}
+
+      <ConfirmMatchList
+        key={'ConfirmMatchList'}
+        matches={pendings}
+        loading={matchLoading}
+        User={loggedInUser}
+        refreshMatches={refreshMatches}
+        showConfirmMatch={showConfirmMatch}
+      />
       <h1 className="m-3 p-3 text-center">Advanced Search - Claude Remix</h1>
       <ClaudeAdvancedSearch onSearch={handleSearch} />
       <br />
       <>
       <div className='container text-center'>
         <MatchList 
-          peopleObject={{ people }} 
+          people={people} 
           loading={loading}
           User = {loggedInUser}
           refreshMatches= {refreshMatches
