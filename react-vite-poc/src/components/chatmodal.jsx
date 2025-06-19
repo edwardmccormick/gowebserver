@@ -40,7 +40,7 @@ export function ChatModal({match, person, User, unreadmessages}) {
     if (!match || !person || !User || !showModal) {
       return;
     }
-    ws.current = new WebSocket(`ws://localhost:8080/ws?id=${match.id}`);
+    ws.current = new WebSocket(`ws://localhost:8080/ws?id=${match.id}&user_id=${User.id}`);
 
     ws.current.onopen = () => {
       setMessages((prev) => [...prev, { message: ' opened.', who: 'Connection', id: Date.now(), time: Date.now() }]);

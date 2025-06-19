@@ -16,12 +16,21 @@ function App() {
   const [jwt, setJWT] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [matches, setMatches] = useState([]);
-  const [matchLoading, setMatchLoading] = useState(true);
+  const [matchLoading, setMatchLoading] = useState(false);
   const [pendings, setPendings] = useState([]);
   const [offereds, setOffereds] = useState([]);
   const [showConfirmMatch, setShowConfirmMatch] = useState(false)
 
   useEffect(() => {
+    if (loggedInUser == null || loggedInUser == undefined) {
+      setLoading(false);
+      setMatchLoading(false);
+      setPeople([]);
+      setMatches([]);
+      setPendings([]);
+      setOffereds([]);
+        return;
+      }; 
     fetch('http://localhost:8080/people')
       .then((res) => res.json())
       .then((data) => {
@@ -29,7 +38,7 @@ function App() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [loggedInUser]);
 
     // Add this useEffect hook
   useEffect(() => {
@@ -125,11 +134,13 @@ function App() {
         User={loggedInUser}
         setLoggedInUser={setLoggedInUser}
         setJWT={setJWT}
+        jwt={jwt}
         refreshMatches={refreshMatches}
         matches={matches}
         pendings={pendings}
         offereds={offereds}
         setShowConfirmMatch={setShowConfirmMatch}
+
       />
 
       {/* <h1 className="m-3 p-3 text-center">Advanced Search</h1>

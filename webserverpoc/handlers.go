@@ -3,10 +3,12 @@ package main
 import (
 	// "encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/asmarques/geodist"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -27,12 +29,13 @@ func Login(c *gin.Context) {
 	var user *User
 	for i := range users {
 		if users[i].Email == req.Email {
+			users[i].LastLogin = time.Now()
 			user = &users[i]
 			break
 		}
 	}
 	if user == nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
 
@@ -82,11 +85,10 @@ func Signout(c *gin.Context) {
 		return
 	}
 
-	claims := parsedToken.Claims.(jwt.MapClaims)
-	userID := claims["sub"].(string)
+	// claims := parsedToken.Claims.(jwt.MapClaims)
 
 	// Remove the refresh token
-	delete(RefreshTokens, userID)
+	ExpiredTokens = append(ExpiredTokens, token)
 	c.JSON(http.StatusOK, gin.H{"message": "Signed out successfully"})
 }
 
@@ -101,26 +103,16 @@ func PostPeople(c *gin.Context) {
 	// Call BindJSON to bind the received JSON to
 	// newAlbum.
 	if err := c.BindJSON(&newPerson); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if newPerson.ID != 0 {
-		for i, person := range people {
-			if person.ID == newPerson.ID {
-				// Update the existing match
-				people[i].Name = newPerson.Name // Update the AcceptedTime
-				people[i].Age = newPerson.Age
-				people[i].Motto = newPerson.Motto
-				people[i].LatLocation = newPerson.LatLocation
-				people[i].LongLocation = newPerson.LongLocation
-				people[i].Profile = newPerson.Profile
-				people[i].Details = newPerson.Details
-				c.IndentedJSON(http.StatusOK, newPerson)
-				return
-			}
-		}
-	}
+	// // Ensure the Details field is initialized if it's missing
+	// if newPerson.Details == nil {
+	//     newPerson.Details = c.BindJSON(&newDetails);
+	// 	err != nil {
+	// 		return
+	// 	}
+	// }
 
 	// Add the new album to the slice.
 	people = append(people, newPerson)
@@ -128,7 +120,7 @@ func PostPeople(c *gin.Context) {
 }
 
 func GetPeopleByLocation(c *gin.Context) {
-
+	var processedPeople []Person
 	JwtMiddleware(c)
 	var req struct {
 		Lat  string `json:"lat"`
@@ -156,9 +148,49 @@ func GetPeopleByLocation(c *gin.Context) {
 		return
 	}
 	fmt.Println(long)
+	for _, p := range people {
+
+		// Calculate the distance from locationOrigin
+		distance, err := geodist.VincentyDistance(geodist.Point{Lat: p.LatLocation, Long: p.LongLocation}, geodist.Point{Lat: lat, Long: long})
+		if err != nil {
+			fmt.Printf("Error calculating distance for person %s: %v\n", p.ID, err)
+			continue
+		}
+
+		// Round the distance to two decimal places
+		roundedDistance := math.Round(distance*100) / 100
+		fmt.Println(roundedDistance)
+		// Create a processedProfile and append it to the processedPeople slice
+		processedPeople = append(processedPeople, p)
+
+	}
 
 	// Return the processedPeople array as JSON
-	c.IndentedJSON(http.StatusOK, "TODO: Unfuck this")
+	c.IndentedJSON(http.StatusOK, processedPeople)
+}
+
+func GetProcessedPeople(c *gin.Context) {
+	var processedPeople []Person
+
+	for _, p := range people {
+
+		// Calculate the distance from locationOrigin
+		distance, err := geodist.VincentyDistance(locationOrigin, geodist.Point{Lat: p.LatLocation, Long: p.LongLocation})
+		if err != nil {
+			fmt.Printf("Error calculating distance for person %s: %v\n", p.ID, err)
+			continue
+		}
+
+		// Round the distance to two decimal places
+		roundedDistance := math.Round(distance*100) / 100
+		fmt.Println(roundedDistance)
+		// Create a processedProfile and append it to the processedPeople slice
+		processedPeople = append(processedPeople, p)
+
+	}
+
+	// Return the processedPeople array as JSON
+	c.IndentedJSON(http.StatusOK, processedPeople)
 }
 
 func GetPeopleByID(c *gin.Context) {
@@ -253,11 +285,11 @@ func GetMatchByPersonID(c *gin.Context) {
 
 	// Find the match with the given ID
 	for _, match := range Matches {
-		if match.Offered == id || match.Accepted == id {
+		if match.Offered == uint(id) || match.Accepted == uint(id) {
 			// if !match.AcceptedTime.IsZero() { // Check if AcceptedTime is not null
 			// Determine the other person's ID
 			otherPersonID := match.Offered
-			if match.Offered == id {
+			if match.Offered == uint(id) {
 				fmt.Println("Second person switch")
 
 				otherPersonID = match.Accepted
@@ -265,7 +297,7 @@ func GetMatchByPersonID(c *gin.Context) {
 			fmt.Println(otherPersonID)
 			// Find the person in the people array
 			for _, person := range people {
-				if person.ID == uint(otherPersonID) {
+				if person.ID == otherPersonID {
 					match.Person = person // Add the person to match.Person
 					fmt.Println("Match found:", match)
 					break
@@ -294,27 +326,25 @@ func PostMatch(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	if newMatch.MatchID != 0 {
-		for i, match := range Matches {
-			if match.MatchID == newMatch.MatchID {
-				// Update the existing match
-				Matches[i].AcceptedTime = time.Now() // Update the AcceptedTime
-				Matches[i].Offered = newMatch.Offered
-				Matches[i].Accepted = newMatch.Accepted
-				Matches[i].Person = newMatch.Person
-				c.IndentedJSON(http.StatusOK, Matches)
-				return
-			}
-		}
+        for i, match := range Matches {
+            if match.MatchID == newMatch.MatchID {
+                // Update the existing match
+                Matches[i].AcceptedTime = time.Now() // Update the AcceptedTime
+                Matches[i].Offered = newMatch.Offered
+                Matches[i].Accepted = newMatch.Accepted
+                Matches[i].Person = newMatch.Person
+                c.IndentedJSON(http.StatusOK, Matches)
+                return
+            }
+        }
 	}
 
-	newMatch.MatchID = len(Matches) + 1000 // Assign a new ID based on the length of the slice
-	newMatch.OfferedTime = time.Now()      // Set the OfferedTime to the current time
-	fmt.Println(newMatch)
-	// Add the new album to the slice.
-	Matches = append(Matches, newMatch)
-	c.IndentedJSON(http.StatusCreated, newMatch)
+		newMatch.MatchID = len(Matches) + 1000 // Assign a new ID based on the length of the slice
+		newMatch.OfferedTime = time.Now() // Set the OfferedTime to the current time
+		Matches = append(Matches, newMatch)
+		c.IndentedJSON(http.StatusCreated, newMatch)
+
 }
 
 func Signup(c *gin.Context) {

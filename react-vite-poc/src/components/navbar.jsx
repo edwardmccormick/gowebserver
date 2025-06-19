@@ -4,12 +4,22 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Image from 'react-bootstrap/Image';
 import SignIn from './login';
-import Button from 'react-bootstrap/esm/Button';
-import ChatModal from './chatmodal';
 import Form from 'react-bootstrap/Form';
 import ChatSelect from './chatselect';
+import Logout from './logout';
 
-function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pendings, offereds, setShowConfirmMatch}) {
+function NavBar({
+  User,
+  setLoggedInUser, 
+  setJWT, 
+  jwt,
+  refreshMatches, 
+  matches, 
+  pendings, 
+  offereds, 
+  setShowConfirmMatch,
+
+  }) {
 
   
   return (
@@ -85,7 +95,11 @@ function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pending
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
                   <NavDropdown.Item href="#action/3.2" className='text-center'>
-                    <Button>Logout</Button>
+                    <Logout 
+                    setLoggedInUser={setLoggedInUser} 
+                    setJWT={setJWT}
+                    jwt={jwt}
+                    />  
                   </NavDropdown.Item>
                 </>
               )}

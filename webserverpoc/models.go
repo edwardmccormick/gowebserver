@@ -31,6 +31,7 @@ type User struct {
 	ID           uint   `json:"id" db:"id" gorm:"uniqueIndex;not null"`
 	Email        string `json:"email" db:"email" gorm:"type:varchar(255);not null"`
 	PasswordHash string `json:"-" db:"password_hash" gorm:"type:varchar(255);not null"`
+	LastLogin    time.Time `json:"last_login" db:"last_login"`
 }
 
 type DatabaseConfig struct {
@@ -71,9 +72,9 @@ type Details struct {
 type Match struct {
 	MatchID      int           `json:"id"`
 	MatchesIDs   []int         `json:"matches_ids"`
-	Offered      int           `json:"offered"`
+	Offered      uint           `json:"offered"`
 	OfferedTime  time.Time     `json:"offered_time"`
-	Accepted     int           `json:"accepted"`
+	Accepted     uint           `json:"accepted"`
 	AcceptedTime time.Time     `json:"accepted_time"`
 	VibeChat     bool          `json:"vibe_chat"`
 	OfferedChat  []ChatMessage `json:"offered_chat"`
