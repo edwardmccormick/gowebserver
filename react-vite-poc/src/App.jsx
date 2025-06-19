@@ -7,6 +7,7 @@ import FAQ from './components/faq';
 import 'bootstrap/dist/css/bootstrap.min.css';    
 import ClaudeAdvancedSearch from './components/advancedsearchclaude';
 import ConfirmMatchList from './components/confirmmatch';
+import SignUp from './components/signup'; 
 
 function App() {
   const [people, setPeople] = useState([]);
@@ -179,6 +180,8 @@ function App() {
       <div className='m-3 p-3'>
         <FAQ className='p-2 m-2'/>
       </div>
+      <h1>Welcome to urmid. Hurry up and signup so you can go away.</h1>
+        <SignUp />
       { jwt ? <p>JWT: {jwt}</p> : null}
     </div>
   );

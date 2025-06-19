@@ -33,6 +33,7 @@ func main() {
 	router.GET("/matches", GetMatches)
 	router.GET("/matches/:id", GetMatchByPersonID)
 	router.POST("/matches", PostMatch)
+	router.POST("/signup", Signup)
 
 	router.Run("localhost:8080")
 }

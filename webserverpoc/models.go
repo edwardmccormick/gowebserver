@@ -21,14 +21,12 @@ type User struct {
 	PasswordHash string `json:"-"`
 }
 
-type ProcessedProfile struct {
-	ID       int     `json:"id"`
-	Name     string  `json:"name"`
-	Age      int     `json:"age"`
-	Motto    string  `json:"motto"`
-	Distance float64 `json:"distance"`
-	Profile  string  `json:"profile"`
-	Details  Details `json:"details"`
+type DatabaseConfig struct {
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Database string `json:"database"`
 }
 
 type ProfilePhoto struct {

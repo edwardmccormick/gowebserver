@@ -10,8 +10,8 @@ import Form from 'react-bootstrap/Form';
 import ChatSelect from './chatselect';
 
 function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pendings, offereds, setShowConfirmMatch}) {
-  console.log("navbar", User);
-  console.log("navbar", matches);
+
+  
   return (
     <Navbar collapseOnSelect expand="sm" className="bg-body-tertiary">
       <Container>
@@ -42,7 +42,9 @@ function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pending
               </Form>
             </Nav.Item>
             {/* <Nav.Link eventKey={2} href="#memes" /> */}
-              <NavDropdown align={'end'} title={
+              <NavDropdown 
+              align={'end'} 
+              title={
                     <div>
                         <img className="focus-ring" 
                             src={User?.profile}

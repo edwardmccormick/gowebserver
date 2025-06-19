@@ -25,9 +25,15 @@ var people = []Person{
 }
 
 var users = []User{
+	{ID: 0, Email: "bobby@urmid.com", PasswordHash: HashPassword("password123")},
+	{ID: 1, Email: "joe@urmid.com", PasswordHash: HashPassword("password123")},
+	{ID: 2, Email: "fred@urmid.com", PasswordHash: HashPassword("password123")},
 	{ID: 3, Email: "turd@furguson.com", PasswordHash: HashPassword("password123")},
+	{ID: 4, Email: "don@furguson.com", PasswordHash: HashPassword("password123")},
 	{ID: 5, Email: "ted@urmid.com", PasswordHash: HashPassword("password123")},
 	{ID: 6, Email: "training@data.com", PasswordHash: HashPassword("password123")},
+	{ID: 7, Email: "scale@urmid.com", PasswordHash: HashPassword("password123")},
+	{ID: 8, Email: "natalie@urmid.com", PasswordHash: HashPassword("password123")},
 }
 
 var locationOrigin = geodist.Point{Lat: 29.42618, Long: 98.48618} // The Stupid Alamo

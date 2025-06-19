@@ -102,7 +102,7 @@ function ConfirmMatchList({
               width="50"
               alt={`${match.person.name}'s profile`}
             />
-            <strong>{match.person.name}</strong> — {match.person.motto} - Distance: { match.person.distance } miles - liked your profile on { convertISODateToLocal(match.offered)}
+            <strong>{match.person.name}</strong> — {match.person.motto} - Distance: { match.distance } miles - liked your profile on { convertISODateToLocal(match.offered)}
           </Accordion.Header>
           <Accordion.Body key={`${match.person.id}10000`}>
             <div className='text-start'>

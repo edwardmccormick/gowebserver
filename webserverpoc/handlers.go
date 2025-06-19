@@ -35,7 +35,7 @@ func Login(c *gin.Context) {
 		}
 	}
 	if user == nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email"})
 		return
 	}
 
@@ -104,16 +104,26 @@ func PostPeople(c *gin.Context) {
 	// Call BindJSON to bind the received JSON to
 	// newAlbum.
 	if err := c.BindJSON(&newPerson); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// // Ensure the Details field is initialized if it's missing
-	// if newPerson.Details == nil {
-	//     newPerson.Details = c.BindJSON(&newDetails);
-	// 	err != nil {
-	// 		return
-	// 	}
-	// }
+	if newPerson.ID != 0 {
+		for i, person := range people {
+			if person.ID == newPerson.ID {
+				// Update the existing match
+				people[i].Name = newPerson.Name // Update the AcceptedTime
+				people[i].Age = newPerson.Age
+				people[i].Motto = newPerson.Motto
+				people[i].LatLocation = newPerson.LatLocation
+				people[i].LongLocation = newPerson.LongLocation
+				people[i].Profile = newPerson.Profile
+				people[i].Details = newPerson.Details
+				c.IndentedJSON(http.StatusOK, newPerson)
+				return
+			}
+		}
+	}
 
 	// Add the new album to the slice.
 	people = append(people, newPerson)
@@ -349,23 +359,39 @@ func PostMatch(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
 	if newMatch.MatchID != 0 {
-        for i, match := range Matches {
-            if match.MatchID == newMatch.MatchID {
-                // Update the existing match
-                Matches[i].AcceptedTime = time.Now() // Update the AcceptedTime
-                Matches[i].Offered = newMatch.Offered
-                Matches[i].Accepted = newMatch.Accepted
-                Matches[i].Person = newMatch.Person
-                c.IndentedJSON(http.StatusOK, Matches)
-                return
-            }
-        }
+		for i, match := range Matches {
+			if match.MatchID == newMatch.MatchID {
+				// Update the existing match
+				Matches[i].AcceptedTime = time.Now() // Update the AcceptedTime
+				Matches[i].Offered = newMatch.Offered
+				Matches[i].Accepted = newMatch.Accepted
+				Matches[i].Person = newMatch.Person
+				c.IndentedJSON(http.StatusOK, Matches)
+				return
+			}
+		}
 	}
 
-		newMatch.MatchID = len(Matches) + 1000 // Assign a new ID based on the length of the slice
-		newMatch.OfferedTime = time.Now() // Set the OfferedTime to the current time
-		Matches = append(Matches, newMatch)
-		c.IndentedJSON(http.StatusCreated, newMatch)
+	newMatch.MatchID = len(Matches) + 1000 // Assign a new ID based on the length of the slice
+	newMatch.OfferedTime = time.Now()      // Set the OfferedTime to the current time
+	fmt.Println(newMatch)
+	// Add the new album to the slice.
+	Matches = append(Matches, newMatch)
+	c.IndentedJSON(http.StatusCreated, newMatch)
+}
+
+func Signup(c *gin.Context) {
+	var newUser User
+
+	if err := c.BindJSON(&newUser); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	newUser.ID = len(users)
+	newUser.PasswordHash = HashPassword(newUser.PasswordHash)
+	users = append(users, newUser)
+	c.IndentedJSON(http.StatusCreated, newUser)
 
 }

@@ -6,7 +6,9 @@ import humanity from '../../../humanity.json';
 import DetailsSelections from './detailsselections';
 import details from '../../../details.json';
 
-function SignIn({ setLoggedInUser , setJWT}) {
+function SignIn({ 
+  setLoggedInUser , 
+  setJWT}) {
     const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -34,6 +36,7 @@ function SignIn({ setLoggedInUser , setJWT}) {
         const data = await response.json();
         setLoggedInUser(data.person); // Update the logged-in user in App.jsx
         setJWT(data.token);
+        setShowDropdown(true);
         alert('Login successful!');
       } else {
         alert('Invalid email or password.');
@@ -103,6 +106,7 @@ export function SignUpProfile() {
 
   const handleSubmit = async () => {
     const payload = {
+      id: parseInt(formData.id),
       name: formData.name,
       motto: formData.motto,
       lat: parseFloat(formData.latitude),
@@ -134,6 +138,17 @@ export function SignUpProfile() {
  return (
     <>
       <div className="d-flex justify-content-center align-items-center flex-wrap">
+        <div className="col-1 m-1 p-1">
+          <Form.Label htmlFor="id">ID</Form.Label>
+          <Form.Control
+            id="id"
+            type="number"
+            placeholder="0"
+            value={formData.id}
+            onChange={handleChange}
+          />
+        </div>
+
         <div className="col-3 m-1 p-1">
           <Form.Label htmlFor="name">Name</Form.Label>
           <Form.Control
