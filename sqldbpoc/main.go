@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/go-sql-driver/mysql"
@@ -81,7 +81,7 @@ func ParseConfigJson() {
 	}
 	fmt.Println("Successfully Opened users.json")
 
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+	byteValue, _ := io.ReadAll(jsonFile)
 
 	// defer the closing of our jsonFile so that we can parse it later on
 	defer jsonFile.Close()
