@@ -16,6 +16,9 @@ var rooms = make(map[string]map[*websocket.Conn]bool)
 var roomsLock sync.Mutex // Protect access to the rooms map
 // Map to store chat history by MatchID
 var chatHistory = make(map[int][]ChatMessage)
+// Map to store active connections by user ID
+var activeConnections = make(map[uint]*websocket.Conn)
+var activeConnectionsLock sync.Mutex // Protect access to the activeConnections map
 
 func WebsocketListener(c *gin.Context) {
     conn, err := Upgrader.Upgrade(c.Writer, c.Request, nil)
@@ -24,16 +27,15 @@ func WebsocketListener(c *gin.Context) {
     }
     defer conn.Close()
 
-    // Parse room ID from query parameters
+    // Parse room ID and user ID from query parameters
     roomID := c.Query("id")
-	userID, _ := strconv.Atoi(c.Query("user_id")) // Assume user_id is passed as a query parameter
-    if roomID == "" {
-        conn.WriteMessage(websocket.TextMessage, []byte("Room ID is required"))
-        fmt.Println("Room ID is missing in WebSocket request")
+    userID, _ := strconv.Atoi(c.Query("user_id")) // Assume user_id is passed as a query parameter
+
+    if roomID == "" || userID == 0 {
+        conn.WriteMessage(websocket.TextMessage, []byte("Room ID and User ID are required"))
         return
     }
 
-    // Parse MatchID from room ID
     matchID, err := strconv.Atoi(roomID)
     if err != nil {
         conn.WriteMessage(websocket.TextMessage, []byte("Invalid room ID"))
@@ -48,17 +50,22 @@ func WebsocketListener(c *gin.Context) {
     rooms[roomID][conn] = true
     roomsLock.Unlock()
 
+    // Track the user's active connection
+    activeConnectionsLock.Lock()
+    activeConnections[uint(userID)] = conn
+    fmt.Printf("User %d connected to room %s\n", userID, roomID)
+    activeConnectionsLock.Unlock()
+
     defer func() {
         // Remove connection from the room when it disconnects
         roomsLock.Lock()
         delete(rooms[roomID], conn)
-        if len(rooms[roomID]) == 0 {
-            // Save chat history when both users disconnect
-            if history, exists := chatHistory[matchID]; exists {
-                fmt.Printf("Saving chat history for MatchID %d: %+v\n", matchID, history)
-            }
-        }
         roomsLock.Unlock()
+
+        // Remove the user's active connection
+        activeConnectionsLock.Lock()
+        delete(activeConnections, uint(userID))
+        activeConnectionsLock.Unlock()
     }()
 
     // Deliver undelivered messages
@@ -96,6 +103,7 @@ func WebsocketListener(c *gin.Context) {
             Message: receivedMessage.Message,
         }
         sessionChat = append(sessionChat, response)
+        fmt.Printf("Session chat: %v\n", sessionChat)
         i++
 
         // Marshal the response to JSON
@@ -131,7 +139,7 @@ func WebsocketListener(c *gin.Context) {
 }
 
 func deliverUndeliveredMessages(conn *websocket.Conn, matchID int, userID uint) {
-    for _, match := range Matches {
+    for i, match := range Matches {
         if match.MatchID == matchID {
             // Check if the user is the Offered or Accepted user
             var undeliveredMessages []ChatMessage
@@ -149,9 +157,9 @@ func deliverUndeliveredMessages(conn *websocket.Conn, matchID int, userID uint) 
 
             // Clear undelivered messages after sending
             if match.Offered == userID {
-                match.OfferedChat = nil
+                Matches[i].OfferedChat = nil
             } else if match.Accepted == userID {
-                match.AcceptedChat = nil
+                Matches[i].AcceptedChat = nil
             }
             break
         }
@@ -159,13 +167,16 @@ func deliverUndeliveredMessages(conn *websocket.Conn, matchID int, userID uint) 
 }
 
 func handleUndeliveredMessages(matchID int, message ChatMessage) {
+    fmt.Printf("Handling undelivered messages for matchID: %d\n", matchID)
     for i, match := range Matches {
         if match.MatchID == matchID {
             // Check if the sender is the Offered or Accepted user
-            if match.Offered == uint(message.ID) {
-                Matches[i].OfferedChat = append(Matches[i].OfferedChat, message)
-            } else if match.Accepted == uint(message.ID) {
+            if match.Offered == uint(message.Who) {
+                fmt.Printf("Adding message to OfferedChat for matchID: %d\n", matchID)
                 Matches[i].AcceptedChat = append(Matches[i].AcceptedChat, message)
+            } else if match.Accepted == uint(message.Who) {
+                fmt.Printf("Adding message to AcceptedChat for matchID: %d\n", matchID)
+                Matches[i].OfferedChat = append(Matches[i].OfferedChat, message)
             }
             break
         }

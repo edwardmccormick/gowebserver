@@ -50,7 +50,7 @@ type ProfilePhoto struct {
 type ChatMessage struct {
 	ID      int64     `json:"id"`
 	Time    time.Time `json:"time"`
-	Who     string    `json:"who"`
+	Who     uint    `json:"who"`
 	Message string    `json:"message"`
 }
 

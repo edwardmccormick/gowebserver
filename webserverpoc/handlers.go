@@ -290,7 +290,7 @@ func GetMatchByPersonID(c *gin.Context) {
 			// Determine the other person's ID
 			otherPersonID := match.Offered
 			if match.Offered == uint(id) {
-				fmt.Println("Second person switch")
+				// fmt.Println("Second person switch")
 
 				otherPersonID = match.Accepted
 			}
@@ -299,7 +299,7 @@ func GetMatchByPersonID(c *gin.Context) {
 			for _, person := range people {
 				if person.ID == otherPersonID {
 					match.Person = person // Add the person to match.Person
-					fmt.Println("Match found:", match)
+					// fmt.Println("Match found:", match)
 					break
 				}
 			}
