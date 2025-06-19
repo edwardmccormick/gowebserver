@@ -3,13 +3,10 @@ package main
 import (
 	// "encoding/json"
 	"fmt"
-	"math"
 	"net/http"
-	"sort"
 	"strconv"
 	"time"
 
-	"github.com/asmarques/geodist"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -131,7 +128,7 @@ func PostPeople(c *gin.Context) {
 }
 
 func GetPeopleByLocation(c *gin.Context) {
-	var processedPeople []ProcessedProfile
+
 	JwtMiddleware(c)
 	var req struct {
 		Lat  string `json:"lat"`
@@ -159,71 +156,9 @@ func GetPeopleByLocation(c *gin.Context) {
 		return
 	}
 	fmt.Println(long)
-	for _, p := range people {
-
-		// Calculate the distance from locationOrigin
-		distance, err := geodist.VincentyDistance(geodist.Point{Lat: p.LatLocation, Long: p.LongLocation}, geodist.Point{Lat: lat, Long: long})
-		if err != nil {
-			fmt.Printf("Error calculating distance for person %s: %v\n", p.ID, err)
-			continue
-		}
-
-		// Round the distance to two decimal places
-		roundedDistance := math.Round(distance*100) / 100
-
-		// Create a processedProfile and append it to the processedPeople slice
-		processedPeople = append(processedPeople, ProcessedProfile{
-			ID:       p.ID,
-			Name:     p.Name,
-			Age:      p.Age,
-			Motto:    p.Motto,
-			Distance: roundedDistance,
-			Profile:  p.Profile,
-			Details:  p.Details,
-		})
-
-		sort.Slice(processedPeople, func(i, j int) bool {
-			return processedPeople[i].Distance < processedPeople[j].Distance
-		})
-	}
 
 	// Return the processedPeople array as JSON
-	c.IndentedJSON(http.StatusOK, processedPeople)
-}
-
-func GetProcessedPeople(c *gin.Context) {
-	var processedPeople []ProcessedProfile
-
-	for _, p := range people {
-
-		// Calculate the distance from locationOrigin
-		distance, err := geodist.VincentyDistance(locationOrigin, geodist.Point{Lat: p.LatLocation, Long: p.LongLocation})
-		if err != nil {
-			fmt.Printf("Error calculating distance for person %s: %v\n", p.ID, err)
-			continue
-		}
-
-		// Round the distance to two decimal places
-		roundedDistance := math.Round(distance*100) / 100
-
-		// Create a processedProfile and append it to the processedPeople slice
-		processedPeople = append(processedPeople, ProcessedProfile{
-			ID:       p.ID,
-			Name:     p.Name,
-			Age:      p.Age,
-			Motto:    p.Motto,
-			Distance: roundedDistance,
-			Profile:  p.Profile,
-			Details:  p.Details,
-		})
-
-		sort.Slice(processedPeople, func(i, j int) bool {
-			return processedPeople[i].Distance < processedPeople[j].Distance
-		})
-	}
-
-	// Return the processedPeople array as JSON
-	c.IndentedJSON(http.StatusOK, processedPeople)
+	c.IndentedJSON(http.StatusOK, "TODO: Unfuck this")
 }
 
 func GetPeopleByID(c *gin.Context) {
@@ -238,7 +173,7 @@ func GetPeopleByID(c *gin.Context) {
 	// Loop over the list of albums, looking for
 	// an album whose ID value matches the parameter.
 	for _, a := range people {
-		if a.ID == id {
+		if a.ID == uint(id) {
 			c.IndentedJSON(http.StatusOK, a)
 			return
 		}
@@ -330,7 +265,7 @@ func GetMatchByPersonID(c *gin.Context) {
 			fmt.Println(otherPersonID)
 			// Find the person in the people array
 			for _, person := range people {
-				if person.ID == otherPersonID {
+				if person.ID == uint(otherPersonID) {
 					match.Person = person // Add the person to match.Person
 					fmt.Println("Match found:", match)
 					break
@@ -383,14 +318,30 @@ func PostMatch(c *gin.Context) {
 }
 
 func Signup(c *gin.Context) {
-	var newUser User
+	var req struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
 
-	if err := c.BindJSON(&newUser); err != nil {
+	// Bind the JSON payload to the struct
+	if err := c.BindJSON(&req); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	newUser.ID = len(users)
-	newUser.PasswordHash = HashPassword(newUser.PasswordHash)
+
+	// Generate the password hash
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Create a new user
+	newUser := User{
+		ID:           uint(len(users)),
+		Email:        req.Email,
+		PasswordHash: string(passwordHash),
+	}
 	users = append(users, newUser)
 	c.IndentedJSON(http.StatusCreated, newUser)
 

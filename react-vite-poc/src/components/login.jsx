@@ -36,7 +36,6 @@ function SignIn({
         const data = await response.json();
         setLoggedInUser(data.person); // Update the logged-in user in App.jsx
         setJWT(data.token);
-        setShowDropdown(true);
         alert('Login successful!');
       } else {
         alert('Invalid email or password.');
