@@ -174,3 +174,10 @@ func addAlbum(alb album) (int64, error) {
 	}
 	return id, nil
 }
+
+// func ConnectToMySQL() (*gorm.DB, error) {
+// 	dsn := "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+// 	db, err := gorm.Open(gorm.Open(dsn), &gorm.Config{})
+
+// 	return db, nil
+// }
