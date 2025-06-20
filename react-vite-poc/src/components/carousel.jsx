@@ -34,7 +34,7 @@ function ControlledCarousel({id}) {
     <Carousel height='450' width='450' className='img-fluid bg-dark-subtle'>
         {photos.map((photo) => (
         <Carousel.Item key={photo.url+id}>
-            <Image src={photo.url}  text="First slide" className='text-center' height='450' width='450'/>
+            <Image src={photo.url}  text="First slide" className='text-center' style={{ maxWidth: 'auto', maxHeight: '500px'}}/>
             <Carousel.Caption key={photo.url+1000}>
             {/* <h3>First slide label</h3> */}
             <span className='bg-secondary m-2 p-2 rounded' style={{ '--bs-bg-opacity': '.7' }}>{photo.caption}</span>

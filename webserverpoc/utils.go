@@ -13,10 +13,10 @@ func HashPassword(pw string) string {
 }
 
 var people = []Person{
-	{ID: 0, Name: "Bobby", Age: 25, Motto: "Always Ready", LatLocation: 29.534261019806404, LongLocation: 98.47049550692051, Profile: "https://picsum.photos/200/200"},
-	{ID: 1, Name: "Joe", Age: 31, Motto: "Always Faithful", LatLocation: 29.52016959410149, LongLocation: 98.49401109752402, Profile: "https://picsum.photos/150/300"},
-	{ID: 2, Name: "Fred", Age: 28, Motto: "Always Prepared", LatLocation: 29.453596593823395, LongLocation: 98.47166788793534, Profile: "https://picsum.photos/250/250"},
-	{ID: 3, Name: "Turd Furguson", Age: 41, Motto: "I'm supre close let's party!", LatLocation: 29.419922273698763, LongLocation: 98.48366872664229, Profile: "./pexels-kelvin809-810775.jpg"},
+	{ID: 0, Name: "Bobby", Age: 25, Motto: "Always Ready", LatLocation: 29.534261019806404, LongLocation: 98.47049550692051, Profile: "./man_square1.jpg"},
+	{ID: 1, Name: "Joe", Age: 31, Motto: "Always Faithful", LatLocation: 29.52016959410149, LongLocation: 98.49401109752402, Profile: "./man_square2.jpg"},
+	{ID: 2, Name: "Fred", Age: 28, Motto: "Always Prepared", LatLocation: 29.453596593823395, LongLocation: 98.47166788793534, Profile: "/pexels-kelvin809-810775.jpg"},
+	{ID: 3, Name: "Turd Furguson", Age: 41, Motto: "I'm supre close let's party!", LatLocation: 29.419922273698763, LongLocation: 98.48366872664229, Profile: "./turdfurguson.jpg"},
 	{ID: 4, Name: "Don", Age: 79, Motto: "I want you Bigly", LatLocation: 38.898, LongLocation: 77.037, Profile: "https://www.whitehouse.gov/wp-content/uploads/2025/06/President-Donald-Trump-Official-Presidential-Portrait.png"},
 	{ID: 5, Name: "The Founder", Age: 42, Motto: "I just want this fucking thing to work", LatLocation: 48.858, LongLocation: -2.294, Profile: "https://ted.mccormickhub.com/img/tedProfilePicture.jpg"},
 	{ID: 6, Name: "Training Data", Age: 32, Motto: "Somebody has to carry this fucking site", LatLocation: 48.858, LongLocation: -2.859, Profile: "https://wallpaperheart.com/wp-content/uploads/2018/04/image-Scarlett-Johansson-Images.jpg"},
@@ -37,23 +37,23 @@ var users = []User{
 }
 
 var locationOrigin = geodist.Point{Lat: 29.42618, Long: 98.48618} // The Stupid Alamo
-var PictureArray = []string{"https://picsum.photos/250/250", "https://picsum.photos/300/300", "https://picsum.photos/450/300", "https://picsum.photos/450/450", "https://picsum.photos/500/500"}
+var PictureArray = []string{"/man_square5.jpg", "./man_portrait3.jpg", "./man_landscape5.jpg", "./man_portrait6.jpg", "./man_landscape9.jpg"}
 var PhotoArray = []ProfilePhoto{
-	{Url: "https://picsum.photos/250/250", Caption: "Just me and the boys"},
-	{Url: "https://picsum.photos/300/300", Caption: "haha look at their faces"},
-	{Url: "https://picsum.photos/450/300", Caption: "omg I can't believe we got away with this"},
-	{Url: "https://picsum.photos/450/450", Caption: "life is good man"},
-	{Url: "https://picsum.photos/500/500", Caption: "idk haha"},
+	{Url: "/man_square5.jpg", Caption: "Just me and the boys"},
+	{Url: "./man_portrait3.jpg", Caption: "haha look at their faces"},
+	{Url: "./man_landscape5.jpg", Caption: "omg I can't believe we got away with this"},
+	{Url: "./man_portrait6.jpg", Caption: "life is good man"},
+	{Url: "./man_landscape9.jpg", Caption: "idk haha"},
 }
 
 var PhotoArray2 = []ProfilePhoto{
-	{Url: "https://picsum.photos/610/610", Caption: "Just me and the boys"},
-	{Url: "https://picsum.photos/300/300", Caption: "haha look at their faces"},
-	{Url: "https://picsum.photos/450/300", Caption: "omg I can't believe we got away with this"},
-	{Url: "https://picsum.photos/450/450", Caption: "life is good man"},
-	{Url: "https://picsum.photos/500/500", Caption: "idk haha"},
-	{Url: "https://picsum.photos/600/600", Caption: "Just chilling"},
-	{Url: "https://picsum.photos/700/700", Caption: "Having a great time"},
+	{Url: "./woman_square5.jpg", Caption: "Just me and the girls"},
+	{Url: "./woman_portrait3.jpg", Caption: "haha look at their faces"},
+	{Url: "./woman_landscape8.jpg", Caption: "omg I can't believe we got away with this"},
+	{Url: "./woman_portrait6.jpg", Caption: "life is good! ❤️"},
+	{Url: "./woman_square8.jpg", Caption: "idk haha"},
+	{Url: "./woman_landscape4.jpg", Caption: "Just chilling"},
+	{Url: "./woman_portrait10.jpg", Caption: "Having a great time"},
 }
 
 var locations = []geodist.Point{

@@ -48,32 +48,31 @@ function SignIn({
     <>     
     <div className='text-center'>
       <h4 className='text-center'>Login:</h4>
-        <Form.Label htmlFor="name">Email</Form.Label>
+        <div className="m-1 p-1">
+          <Form.Label htmlFor="name">Email</Form.Label>
+            <Form.Control
+              id="email"
+              type='text'
+              placeholder='yourmom@issofat.com'
+              value={formData.email}
+              onChange={handleChange}
+              aria-label="Default"
+              aria-describedby="email"
+            />
+        </div>
+        <div className="m-1 p-1">
+          <Form.Label htmlFor="inputPassword" >Password</Form.Label>
           <Form.Control
-            id="email"
-            type='text'
-            placeholder='yourmom@issofat.com'
-            value={formData.email}
+            type="password"
+            id="password"
+            placeholder="Your password is bad and you should feel bad"
+            value={formData.password}
             onChange={handleChange}
-            aria-label="Default"
-            aria-describedby="email"
+            
           />
-    
-
-        <Form.Label htmlFor="inputPassword" >Password</Form.Label>
-        <Form.Control
-          type="password"
-          id="password"
-          placeholder="Enter your password"
-          value={formData.password}
-          onChange={handleChange}
-          aria-describedby="passwordHelpBlock"
-        />
-        <Form.Control.Feedback type="invalid" tooltip>
-          Your password is 8-20 characters long, contains letters and numbers, and does not contain spaces, special characters, or emoji.
-        </Form.Control.Feedback>
-        <br />
-        <Button variant="primary" onClick={handleSubmit}>Login</Button>
+        </div>
+        
+        <Button variant="danger" className='w-50' onClick={handleSubmit}><span className='text-black'>Login</span></Button>
       </div>
     </>
   );
@@ -206,7 +205,7 @@ export function SignUpProfile() {
         onChange={handleDetailsChange}
       />
 
-      <Button variant="primary" onClick={handleSubmit}>
+      <Button variant="primary"  onClick={handleSubmit}>
         Sign up!
       </Button>
     </>

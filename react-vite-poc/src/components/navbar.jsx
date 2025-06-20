@@ -18,7 +18,9 @@ function NavBar({
   pendings, 
   offereds, 
   setShowConfirmMatch,
-
+  onSearchClick,
+  onMeetClick,
+  onFAQClick
   }) {
 
   
@@ -29,10 +31,9 @@ function NavBar({
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="#features">Match</Nav.Link>
-            <Nav.Link> 
-              Something Cool </Nav.Link>
-            <Nav.Link href="#features">FAQ</Nav.Link>
+            <Nav.Link onClick={onSearchClick}>Search</Nav.Link>
+            <Nav.Link onClick={onMeetClick}> Meet </Nav.Link>
+            <Nav.Link onClick={onFAQClick}>FAQ</Nav.Link>
             <ChatSelect
               User={User}
               refreshMatches={refreshMatches}
@@ -57,7 +58,7 @@ function NavBar({
               title={
                     <div>
                         <img className="focus-ring" 
-                            src={User?.profile}
+                            src={ User ? User.profile : './profile.svg'}
                             style={{borderRadius: '50%'}}
                             height='50'
                             width='50' 

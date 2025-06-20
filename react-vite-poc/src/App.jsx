@@ -8,6 +8,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import ClaudeAdvancedSearch from './components/advancedsearchclaude';
 import ConfirmMatchList from './components/confirmmatch';
 import SignUp from './components/signup'; 
+import { LogIn } from 'lucide-react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.css'; // Import your CSS file
 
 function App() {
   const [people, setPeople] = useState([]);
@@ -19,7 +22,23 @@ function App() {
   const [matchLoading, setMatchLoading] = useState(false);
   const [pendings, setPendings] = useState([]);
   const [offereds, setOffereds] = useState([]);
-  const [showConfirmMatch, setShowConfirmMatch] = useState(false)
+  const [showConfirmMatch, setShowConfirmMatch] = useState(true)
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false); // Toggle ClaudeAdvancedSearch visibility
+  const [showFAQ, setShowFAQ] = useState(false);
+  const [animationStarted, setAnimationStarted] = useState(false); // Controls the logo animation
+  const [showText, setShowText] = useState(false); // Controls the visibility of the <h1>
+  const [signUpFlow, setSignUpFlow] = useState(false); // Controls the visibility of the sign-up flow
+
+  useEffect(() => {
+    // Start the animation after 3 seconds
+    const timer = setTimeout(() => {
+      setAnimationStarted(true);
+      // Show the text after the animation starts
+      setTimeout(() => setShowText(true), 1000); // Delay for the text to appear
+    }, 3000);
+
+    return () => clearTimeout(timer); // Cleanup the timer
+  }, []);
 
   useEffect(() => {
     if (loggedInUser == null || loggedInUser == undefined) {
@@ -42,7 +61,11 @@ function App() {
 
     // Add this useEffect hook
   useEffect(() => {
-    if (loggedInUser) { // Only call refreshMatches if loggedInUser is not null
+    
+    if (loggedInUser) { 
+      // Scroll to the top of the page when the user logs in
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Only call refreshMatches if loggedInUser is not null
       refreshMatches();
     }
   }, [loggedInUser]); // Dependency array: this effect runs when loggedInUser changes
@@ -127,9 +150,49 @@ function App() {
     // setPeople(results); 
   };
 
-  return (
+  return ( !loggedInUser ? (
+    <>
+      <div className="mx-auto p-3 text-center bg-black h-100" style={{height: '100vh', width: '100vw'}}>
+      
+      
+        <img src={"./urmid.svg"} className={`w-50 mx-auto text-center frontlogo ${animationStarted ? 'swoop' : ''}`} /> 
+         {showText && (
+        <h1 className="text-white animated-text">
+          urmid - find love so you Go. Away.
+        </h1>
+      )}
+          <div className='m-2 p-2 w-50 bg-white mx-auto text-center rounded form-container'>
+            <div className="form-content">
+            <h1 className='bg-white'>And we all talk about it behind your back.</h1>
+              <h6 className='bg-white'>Look, no one is excited about this, so just make it quick. <br />
+              Two roads diverged in the woods....yadda yadda. Pick what fits you best:</h6>
+              <div className='d-flex justify-content-around align-items-center'>
+                <div className='col-5'>
+                  <SignIn 
+                    setLoggedInUser={setLoggedInUser} 
+                    setJWT={setJWT}
+                  />   
+                </div>   
+                <div><h4>Or</h4></div>
+                <div className='col-5'>
+                  <SignUp />
+                </div>
+              </div></div>
+          </div>
+                 <br />
+       <br />
+       <br />
+       <br />
+       <br />
+       <br />
+       <p className="text-black">God this shit is so stupid, does it even work? A free dating site. Yes, totally fucking free. We use ads because honestly, you kind of piss us off and we're hoping you find the love of your life and get married. Because then you'll leave us alone. Asshole.</p>
+       </div>
 
-    <div className='mx-auto p-3 text-center'>
+  </>
+  ) : (
+
+  <>
+    <div className='mx-auto text-center'>
       <NavBar
         User={loggedInUser}
         setLoggedInUser={setLoggedInUser}
@@ -140,62 +203,71 @@ function App() {
         pendings={pendings}
         offereds={offereds}
         setShowConfirmMatch={setShowConfirmMatch}
-
+        onSearchClick={() => {
+          setShowAdvancedSearch(true)
+          setShowConfirmMatch(false);
+          setShowFAQ(false);
+        }}
+        onMeetClick={() => {
+          setShowAdvancedSearch(false)
+          setShowConfirmMatch(true);
+          setShowFAQ(false);
+        }}
+        onFAQClick={() => {
+          setShowFAQ(true)
+          setShowConfirmMatch(false);
+          setShowAdvancedSearch(false);
+        }}
       />
 
-      {/* <h1 className="m-3 p-3 text-center">Advanced Search</h1>
-      <AdvancedSearch onSearch={handleSearch} />
-      <br />
-      <br />
-      <h1 className="m-3 p-3 text-center">Advanced Search - Gemini Remix</h1>
-      <GeminiAdvancedSearch onSearch={handleSearch} />
-      <h1 className='m-3 p-3 text-center'>Found {people.length} matches for you!</h1>
-      <br />
-      <br /> */}
+       <div className={`text-center mx-auto container m-4 p-2 fade-container ${!showConfirmMatch ? 'hidden' : 'visible'}`}>
+        <ConfirmMatchList
+          key='ConfirmMatchList'
+          matches={pendings}
+          loading={matchLoading}
+          User={loggedInUser}
+          refreshMatches={refreshMatches}
+          className='m-5 p-4'
+        />
 
-      <ConfirmMatchList
-        key={'ConfirmMatchList'}
-        matches={pendings}
-        loading={matchLoading}
-        User={loggedInUser}
-        refreshMatches={refreshMatches}
-        showConfirmMatch={showConfirmMatch}
-      />
-      <h1 className="m-3 p-3 text-center">Advanced Search - Claude Remix</h1>
-      <ClaudeAdvancedSearch onSearch={handleSearch} />
-      <br />
-      <>
-      <div className='container text-center'>
+        <br />
+        
+        <br />
+        
+        <br />
+
         <MatchList 
           people={people} 
           loading={loading}
           User = {loggedInUser}
-          refreshMatches= {refreshMatches
-          }
+          refreshMatches= {refreshMatches}
         />
       </div>
-      </>
-      {/* <WebSocketChat /> */}
-      <div className="w-50 p-3 m-3">
-        { loggedInUser ? 
-        <SignIn 
-          setLoggedInUser={setLoggedInUser} 
-          setJWT={setJWT} 
-          />
-          : null
-        }
-        
+
+
+
+        <>
+      <div className={`text-center mx-auto container m-5 p-4 fade-container ${!showAdvancedSearch ? 'hidden' : 'visible'}`}>
+        <h1 className='m-3 p-3 text-center'>Advanced Search - Claude Remix</h1>
+        <ClaudeAdvancedSearch onSearch={handleSearch} />
       </div>
+      </>
+
+    <>
       <h2 className='m-3 p-3 text-center'>People Add</h2>
       <SignUpProfile />
-      <div className='m-3 p-3'>
+      <div className={`m-3 p-3fade-container ${!showFAQ ? 'hidden' : 'visible'}`}>
+        
         <FAQ className='p-2 m-2'/>
       </div>
-      <h1>Welcome to urmid. Hurry up and signup so you can go away.</h1>
-        <SignUp />
-      { jwt ? <p>JWT: {jwt}</p> : null}
+      </>
+      { jwt ? <p>JWT: {jwt}</p> : null }
     </div>
-  );
+  </>
+  
+      
+    
+  ));
 }
 
 export default App;

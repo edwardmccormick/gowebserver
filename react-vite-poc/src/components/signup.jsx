@@ -15,8 +15,8 @@ export function SignUp() {
 
   const handleSubmit = async () => {
     const payload = {
-      email: formData.email,
-      password: formData.password
+      email: formData.signupEmail,
+      password: formData.signupPassword
     };
 
     try {
@@ -41,32 +41,33 @@ export function SignUp() {
 
  return (
     <>
-      <div className="d-flex w-75 mx-auto justify-content-around align-items-center ">
-        <div className="col-5 m-1 p-1">
-          <Form.Label htmlFor="email">Your email address</Form.Label>
+      <h4 className="text-center">Sign up</h4>
+      <div className="text-center ">
+        <div className=" m-1 p-1 ">
+          <Form.Label htmlFor="signupEmail">Your email address</Form.Label>
           <Form.Control
-            id="email"
+            id="signupEmail"
             type="text"
-            placeholder="urmom@issofat.com"
+            placeholder="urmom@iskindofaslut.com"
             value={formData.email}
             onChange={handleChange}
           />
         </div>
 
-        <div className="col-5 m-1 p-1">
+        <div className="m-1 p-1">
           <Form.Label htmlFor="password">Password</Form.Label>
           <Form.Control
-            id="password"
+            id="signupPassword"
             type="password"
-            placeholder="password123"
+            placeholder="password123...is a 𝘵𝘦𝘳𝘳𝘪𝘣𝘭𝘦 password"
             value={formData.password}
             onChange={handleChange}
           />
         </div>
       </div>
       <div className='px-auto text-center'>
-        <Button variant="outline-primary" className='w-25' onClick={handleSubmit}>
-            Sign up!
+        <Button variant="danger" className='w-50 ' onClick={handleSubmit}>
+            <span className='text-black'>Sign up</span>
         </Button>
       </div>
     </>

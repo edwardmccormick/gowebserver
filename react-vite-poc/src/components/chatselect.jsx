@@ -23,7 +23,7 @@ function countUndeliveredMessages(User, match) {
       let accepted_unread
       let offered_unread 
       (match.accepted_chat == undefined || match.accepted_chat == null || match.accepted_chat == {}) ? accepted_unread = 0 : accepted_unread = match.accepted_chat.length;
-      (match.offered_chat == null || match.offered_chat == undefined || match.offered_chat == {}) ? offered_unread = 0 : offered_unread = match.accepted_chat.length;
+      (match.offered_chat == null || match.offered_chat == undefined || match.offered_chat == {}) ? offered_unread = 0 : offered_unread = match.offered_chat.length;
       if (match.offered == User.id) {
         return offered_unread 
        } 
