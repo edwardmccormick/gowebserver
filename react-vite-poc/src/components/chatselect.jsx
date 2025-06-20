@@ -19,6 +19,19 @@ function convertISODateToLocal(dateString) {
 
 }
 
+function countUndeliveredMessages(User, match) {
+      let accepted_unread
+      let offered_unread 
+      (match.accepted_chat == undefined || match.accepted_chat == null || match.accepted_chat == {}) ? accepted_unread = 0 : accepted_unread = match.accepted_chat.length;
+      (match.offered_chat == null || match.offered_chat == undefined || match.offered_chat == {}) ? offered_unread = 0 : offered_unread = match.offered_chat.length;
+      if (match.offered == User.id) {
+        return offered_unread 
+       } 
+       else {
+        return accepted_unread;
+      }
+}
+
 function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
   const [showOffcanvas, setShowOffcanvas] = useState(false); // Controls the Offcanvas visibility
   // const [showModal, setShowModal] = useState(false); // Controls the ChatModal visibility
@@ -74,7 +87,7 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
                     person={match.person} // Pass the currently selected person to the modal
                     match={match}
                     User={User} // Pass the User prop to the ChatModal
-                    unreadmessages={match.person.motto ? match.person.motto.length : 69}
+                    unreadmessages={countUndeliveredMessages(User, match)}
                   />
                   {/* <ChatModalButton
                     key={match.person.id}

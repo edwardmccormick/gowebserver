@@ -17,7 +17,18 @@ var Upgrader = websocket.Upgrader{
 
 func main() {
 	router := gin.Default()
-	router.Use(cors.Default())
+
+	    // Custom CORS configuration
+    config := cors.Config{
+        AllowOrigins:     []string{"http://localhost:5173","http://localhost:5174","http://localhost:5172"}, // Replace with your frontend's origin
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+    }
+
+    router.Use(cors.New(config))
+
 	fmt.Println("Let's do the thing")
 	router.GET("/people", GetPeople)
 	router.POST("/peoplelocation", GetPeopleByLocation)
@@ -33,6 +44,7 @@ func main() {
 	router.GET("/matches", GetMatches)
 	router.GET("/matches/:id", GetMatchByPersonID)
 	router.POST("/matches", PostMatch)
+	router.POST("/signup", Signup)
 
 	router.Run("localhost:8080")
 }

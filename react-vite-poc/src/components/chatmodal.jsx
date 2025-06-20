@@ -40,7 +40,7 @@ export function ChatModal({match, person, User, unreadmessages}) {
     if (!match || !person || !User || !showModal) {
       return;
     }
-    ws.current = new WebSocket(`ws://localhost:8080/ws?id=${match.id}`);
+    ws.current = new WebSocket(`ws://localhost:8080/ws?id=${match.id}&user_id=${User.id}`);
 
     ws.current.onopen = () => {
       setMessages((prev) => [...prev, { message: ' opened.', who: 'Connection', id: Date.now(), time: Date.now() }]);
@@ -55,6 +55,7 @@ export function ChatModal({match, person, User, unreadmessages}) {
         if (Array.isArray(data)) {
           setMessages((prev) => [...prev, ...data]);
         } else if (typeof data === 'object' && data !== null) {
+          data.who == person.id ? data.who = person.name: null
           setMessages((prev) => [...prev, data]);
         } else {
           // If it's not JSON, treat as a status message
@@ -84,7 +85,7 @@ export function ChatModal({match, person, User, unreadmessages}) {
   const sendMessage = () => {
     if (ws.current && input) {
       let date = new Date();
-      ws.current.send(JSON.stringify({ message: input, who: User.name, id: Date.now() })); // Send the message as a JSON object
+      ws.current.send(JSON.stringify({ message: input, who: User.id, id: Date.now() })); // Send the message as a JSON object
       setMessages((prev) => [...prev, { message: input, who: 'Me', id: Date.now(), time: date.toLocaleTimeString() }]); // Add the message to the chat
       setInput(''); // Reset the input field to an empty string
     }

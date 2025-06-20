@@ -1,9 +1,4 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+
 
 .logo {
   height: 6em;
@@ -43,4 +38,44 @@
 
 ul {
   list-style-type: none; /* Removes the bullet points */
+}
+
+.fade-container {
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  height: 0;
+  overflow: hidden;
+}
+
+.fade-container.visible {
+  opacity: 1;
+  height: auto;
+}
+
+.fade-container.hidden {
+  opacity: 0;
+  height: 0;
+}
+
+/* Animated text */
+.animated-text {
+  position: absolute;
+  top: 90%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  text-align: center;
+  opacity: 0;
+  animation: fadeIn 1s ease forwards;
+  animation-delay: 1s; /* Delay to sync with the logo animation */
+  z-index: 5;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

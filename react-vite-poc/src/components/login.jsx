@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import Form from 'react-bootstrap/Form';
-import InputGroup from 'react-bootstrap/InputGroup';
 import Button from 'react-bootstrap/Button';
-import humanity from '../../../humanity.json';
 import DetailsSelections from './detailsselections';
 import details from '../../../details.json';
 
-function SignIn({ setLoggedInUser , setJWT}) {
+function SignIn({ 
+  setLoggedInUser , 
+  setJWT}) {
     const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -48,32 +48,31 @@ function SignIn({ setLoggedInUser , setJWT}) {
     <>     
     <div className='text-center'>
       <h4 className='text-center'>Login:</h4>
-        <Form.Label htmlFor="name">Email</Form.Label>
+        <div className="m-1 p-1">
+          <Form.Label htmlFor="name">Email</Form.Label>
+            <Form.Control
+              id="email"
+              type='text'
+              placeholder='yourmom@issofat.com'
+              value={formData.email}
+              onChange={handleChange}
+              aria-label="Default"
+              aria-describedby="email"
+            />
+        </div>
+        <div className="m-1 p-1">
+          <Form.Label htmlFor="inputPassword" >Password</Form.Label>
           <Form.Control
-            id="email"
-            type='text'
-            placeholder='yourmom@issofat.com'
-            value={formData.email}
+            type="password"
+            id="password"
+            placeholder="Your password is bad and you should feel bad"
+            value={formData.password}
             onChange={handleChange}
-            aria-label="Default"
-            aria-describedby="email"
+            
           />
-    
-
-        <Form.Label htmlFor="inputPassword" >Password</Form.Label>
-        <Form.Control
-          type="password"
-          id="password"
-          placeholder="Enter your password"
-          value={formData.password}
-          onChange={handleChange}
-          aria-describedby="passwordHelpBlock"
-        />
-        <Form.Control.Feedback type="invalid" tooltip>
-          Your password is 8-20 characters long, contains letters and numbers, and does not contain spaces, special characters, or emoji.
-        </Form.Control.Feedback>
-        <br />
-        <Button variant="primary" onClick={handleSubmit}>Login</Button>
+        </div>
+        
+        <Button variant="danger" className='w-50' onClick={handleSubmit}><span className='text-black'>Login</span></Button>
       </div>
     </>
   );
@@ -103,6 +102,7 @@ export function SignUpProfile() {
 
   const handleSubmit = async () => {
     const payload = {
+      id: parseInt(formData.id),
       name: formData.name,
       motto: formData.motto,
       lat: parseFloat(formData.latitude),
@@ -134,6 +134,17 @@ export function SignUpProfile() {
  return (
     <>
       <div className="d-flex justify-content-center align-items-center flex-wrap">
+        <div className="col-1 m-1 p-1">
+          <Form.Label htmlFor="id">ID</Form.Label>
+          <Form.Control
+            id="id"
+            type="number"
+            placeholder="0"
+            value={formData.id}
+            onChange={handleChange}
+          />
+        </div>
+
         <div className="col-3 m-1 p-1">
           <Form.Label htmlFor="name">Name</Form.Label>
           <Form.Control
@@ -194,7 +205,7 @@ export function SignUpProfile() {
         onChange={handleDetailsChange}
       />
 
-      <Button variant="primary" onClick={handleSubmit}>
+      <Button variant="primary"  onClick={handleSubmit}>
         Sign up!
       </Button>
     </>

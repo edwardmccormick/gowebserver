@@ -4,14 +4,26 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Image from 'react-bootstrap/Image';
 import SignIn from './login';
-import Button from 'react-bootstrap/esm/Button';
-import ChatModal from './chatmodal';
 import Form from 'react-bootstrap/Form';
 import ChatSelect from './chatselect';
+import Logout from './logout';
 
-function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pendings, offereds, setShowConfirmMatch}) {
-  console.log("navbar", User);
-  console.log("navbar", matches);
+function NavBar({
+  User,
+  setLoggedInUser, 
+  setJWT, 
+  jwt,
+  refreshMatches, 
+  matches, 
+  pendings, 
+  offereds, 
+  setShowConfirmMatch,
+  onSearchClick,
+  onMeetClick,
+  onFAQClick
+  }) {
+
+  
   return (
     <Navbar collapseOnSelect expand="sm" className="bg-body-tertiary">
       <Container>
@@ -19,10 +31,9 @@ function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pending
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="#features">Match</Nav.Link>
-            <Nav.Link> 
-              Something Cool </Nav.Link>
-            <Nav.Link href="#features">FAQ</Nav.Link>
+            <Nav.Link onClick={onSearchClick}>Search</Nav.Link>
+            <Nav.Link onClick={onMeetClick}> Meet </Nav.Link>
+            <Nav.Link onClick={onFAQClick}>FAQ</Nav.Link>
             <ChatSelect
               User={User}
               refreshMatches={refreshMatches}
@@ -42,10 +53,12 @@ function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pending
               </Form>
             </Nav.Item>
             {/* <Nav.Link eventKey={2} href="#memes" /> */}
-              <NavDropdown align={'end'} title={
+              <NavDropdown 
+              align={'end'} 
+              title={
                     <div>
                         <img className="focus-ring" 
-                            src={User?.profile}
+                            src={ User ? User.profile : './profile.svg'}
                             style={{borderRadius: '50%'}}
                             height='50'
                             width='50' 
@@ -83,7 +96,11 @@ function NavBar({User, setLoggedInUser, setJWT, refreshMatches, matches, pending
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
                   <NavDropdown.Item href="#action/3.2" className='text-center'>
-                    <Button>Logout</Button>
+                    <Logout 
+                    setLoggedInUser={setLoggedInUser} 
+                    setJWT={setJWT}
+                    jwt={jwt}
+                    />  
                   </NavDropdown.Item>
                 </>
               )}

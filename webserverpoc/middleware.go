@@ -17,6 +17,15 @@ func JwtMiddleware(c *gin.Context) {
         return
     }
 
+    //Ensure the token isn't in our expired list
+    for _, expiredToken := range ExpiredTokens {
+        if token == expiredToken {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Token has expired"})
+            c.Abort()
+            return
+        }
+    }
+
     // Validate the token
     parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
         return JwtSecret, nil
@@ -30,4 +39,4 @@ func JwtMiddleware(c *gin.Context) {
     c.Next()
 }
 
-var RefreshTokens = make(map[string]string) // Map user ID to refresh token
+var ExpiredTokens []string // Doing it the stupid way....for now. Wild that there's not a better solution out of the box than either generating a ton of api keys or keeping them in memory - neither of which work for a serverless application. Redis is a good answer but fiddly at POC stage.

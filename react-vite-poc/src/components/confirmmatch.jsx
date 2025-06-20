@@ -24,8 +24,7 @@ function ConfirmMatchList({
     matches, 
     loading,
     User,
-    refreshMatches,
-    showConfirmMatches
+    refreshMatches
   }) {
 
   const [submittedLikes, setSubmittedLikes] = useState({}); // Track submitted likes
@@ -47,7 +46,7 @@ function ConfirmMatchList({
 
   useEffect(() => {
     console.log("Pending updated:", matches);
-  }, [matches, showConfirmMatches]);
+  }, [matches]);
   
   const handleSubmit = async (User, person, match) => {
     const payload = {
@@ -88,7 +87,6 @@ function ConfirmMatchList({
       <>
       <h2>These cool folks liked your profile:</h2>
       <Accordion
-       show={showConfirmMatches}
        className='w-100'
       >
         {matches.map((match) => (
@@ -102,7 +100,7 @@ function ConfirmMatchList({
               width="50"
               alt={`${match.person.name}'s profile`}
             />
-            <strong>{match.person.name}</strong> — {match.person.motto} - Distance: { match.person.distance } miles - liked your profile on { convertISODateToLocal(match.offered)}
+            <strong>{match.person.name}</strong> — {match.person.motto} - Distance: { match.distance } miles - liked your profile on { convertISODateToLocal(match.offered)}
           </Accordion.Header>
           <Accordion.Body key={`${match.person.id}10000`}>
             <div className='text-start'>

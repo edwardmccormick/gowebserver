@@ -4,31 +4,42 @@ import (
 	"time"
 )
 
+type Tabler interface {
+	TableName() string
+}
+
+// TableName overrides the table name used by User to `profiles`
+func (Person) TableName() string {
+	return "people"
+}
+
 type Person struct {
-	ID           int     `json:"id"`
-	Name         string  `json:"name"`
-	Age          int     `json:"age"`
-	Motto        string  `json:"motto"`
-	LatLocation  float64 `json:"lat"`
-	LongLocation float64 `json:"long"`
-	Profile      string  `json:"profile"`
-	Details      Details `json:"details"`
+	ID           uint      `json:"id" db:"id" gorm:"primaryKey,AutoIncrement,not null,Unique"`
+	Name         string    `json:"name" db:"name" gorm:"type:varchar(255),not null"`
+	Age          int       `json:"age" db:"age" gorm:"type:int,not null"`
+	Motto        string    `json:"motto" db:"motto" gorm:"type:varchar(255)"`
+	LatLocation  float64   `json:"lat" db:"lat" gorm:"type:float,not null"`
+	LongLocation float64   `json:"long" db:"long" gorm:"type:float,not null"`
+	Profile      string    `json:"profile" db:"profile" gorm:"type:varchar(255)"`
+	Details      Details   `json:"details" db:"details" gorm:"embedded"`
+	Description  string    `json:"description" db:"description" gorm:"type:text"`
+	CreateTime   time.Time `json:"create_time" db:"create_time" gorm:"autoCreateTime"`
+	UpdateTime   time.Time `json:"update_time" db:"update_time" gorm:"autoUpdateTime"`
 }
 
 type User struct {
-	ID           int    `json:"id"`
-	Email        string `json:"email"`
-	PasswordHash string `json:"-"`
+	ID           uint   `json:"id" db:"id" gorm:"uniqueIndex;not null"`
+	Email        string `json:"email" db:"email" gorm:"type:varchar(255);not null"`
+	PasswordHash string `json:"-" db:"password_hash" gorm:"type:varchar(255);not null"`
+	LastLogin    time.Time `json:"last_login" db:"last_login"`
 }
 
-type ProcessedProfile struct {
-	ID       int     `json:"id"`
-	Name     string  `json:"name"`
-	Age      int     `json:"age"`
-	Motto    string  `json:"motto"`
-	Distance float64 `json:"distance"`
-	Profile  string  `json:"profile"`
-	Details  Details `json:"details"`
+type DatabaseConfig struct {
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Database string `json:"database"`
 }
 
 type ProfilePhoto struct {
@@ -39,7 +50,7 @@ type ProfilePhoto struct {
 type ChatMessage struct {
 	ID      int64     `json:"id"`
 	Time    time.Time `json:"time"`
-	Who     string    `json:"who"`
+	Who     uint    `json:"who"`
 	Message string    `json:"message"`
 }
 
@@ -61,9 +72,9 @@ type Details struct {
 type Match struct {
 	MatchID      int           `json:"id"`
 	MatchesIDs   []int         `json:"matches_ids"`
-	Offered      int           `json:"offered"`
+	Offered      uint           `json:"offered"`
 	OfferedTime  time.Time     `json:"offered_time"`
-	Accepted     int           `json:"accepted"`
+	Accepted     uint           `json:"accepted"`
 	AcceptedTime time.Time     `json:"accepted_time"`
 	VibeChat     bool          `json:"vibe_chat"`
 	OfferedChat  []ChatMessage `json:"offered_chat"`
