@@ -2,7 +2,9 @@ import { useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
-export function SignUp() {
+export function SignUp({ 
+  setLoggedInUser , 
+  setJWT}) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -29,9 +31,13 @@ export function SignUp() {
       });
 
       if (response.ok) {
-        alert('User added successfully!');
+        const data = await response.json();
+        setLoggedInUser(data.person); // Update the logged-in user in App.jsx
+        console.log(data.person);
+        setJWT(data.token);
+        alert('Signup successful');
       } else {
-        alert('Failed to add User.');
+        alert('We already have a user with that email address');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -49,7 +55,7 @@ export function SignUp() {
             id="signupEmail"
             type="text"
             placeholder="urmom@iskindofaslut.com"
-            value={formData.email}
+            value={formData.signupEmail}
             onChange={handleChange}
           />
         </div>
@@ -60,7 +66,7 @@ export function SignUp() {
             id="signupPassword"
             type="password"
             placeholder="password123...is a 𝘵𝘦𝘳𝘳𝘪𝘣𝘭𝘦 password"
-            value={formData.password}
+            value={formData.signupPassword}
             onChange={handleChange}
           />
         </div>

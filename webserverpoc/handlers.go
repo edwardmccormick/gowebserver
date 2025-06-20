@@ -373,6 +373,31 @@ func Signup(c *gin.Context) {
 		PasswordHash: string(passwordHash),
 	}
 	users = append(users, newUser)
-	c.IndentedJSON(http.StatusCreated, newUser)
+
+		// Create JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub":   newUser.ID,
+		"exp":   time.Now().Add(time.Hour * 72).Unix(),
+		"email": newUser.Email,
+	})
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create token"})
+		return
+	}
+	var person = Person{
+		ID: newUser.ID,
+	}
+	
+	
+	// Return token and user info (excluding password hash)
+	resp := struct {
+		Token  string `json:"token"`
+		Person Person `json:"person"`
+	}{
+		Token:  tokenString,
+		Person: person,
+	}
+	c.IndentedJSON(http.StatusCreated, resp)
 
 }

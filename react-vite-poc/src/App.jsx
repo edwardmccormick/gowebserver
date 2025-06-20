@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import NavBar from './components/navbar';
 import MatchList from './components/matchlist';
 import SignIn from './components/login';
-import { SignUpProfile } from './components/login';
+import CreateProfile from './components/createprofile';
 import FAQ from './components/faq';
 import 'bootstrap/dist/css/bootstrap.min.css';    
 import ClaudeAdvancedSearch from './components/advancedsearchclaude';
@@ -27,7 +27,7 @@ function App() {
   const [showFAQ, setShowFAQ] = useState(false);
   const [animationStarted, setAnimationStarted] = useState(false); // Controls the logo animation
   const [showText, setShowText] = useState(false); // Controls the visibility of the <h1>
-  const [signUpFlow, setSignUpFlow] = useState(false); // Controls the visibility of the sign-up flow
+  const [pendingID, setPendingID] = useState([]); // Controls the visibility of the sign-up flow
 
   useEffect(() => {
     // Start the animation after 3 seconds
@@ -76,7 +76,7 @@ function App() {
       else if (matches == null || matches == undefined) {console.log("This needs a fetch from refreshMatches")}
     fetch(`http://localhost:8080/matches/${loggedInUser.id}`)
       .then((res) => res.json())
-      .then((data) => {
+      .then((data) => { 
         console.log(data);
         const offered = data.filter((match) => (match.accepted_time == "0001-01-01T00:00:00Z" && match.offered == loggedInUser.id)); // This is what a null date looks like in Go
         console.log(offered);
@@ -150,17 +150,17 @@ function App() {
     // setPeople(results); 
   };
 
-  return ( !loggedInUser ? (
+  return ( !jwt ? (
     <>
       <div className="mx-auto p-3 text-center bg-black h-100" style={{height: '100vh', width: '100vw'}}>
       
       
         <img src={"./urmid.svg"} className={`w-50 mx-auto text-center frontlogo ${animationStarted ? 'swoop' : ''}`} /> 
-         {showText && (
-        <h1 className="text-white animated-text">
+         {/* {showText && (
+        <h1 className="text-white">
           urmid - find love so you Go. Away.
         </h1>
-      )}
+      )} */}
           <div className='m-2 p-2 w-50 bg-white mx-auto text-center rounded form-container'>
             <div className="form-content">
             <h1 className='bg-white'>And we all talk about it behind your back.</h1>
@@ -175,7 +175,10 @@ function App() {
                 </div>   
                 <div><h4>Or</h4></div>
                 <div className='col-5'>
-                  <SignUp />
+                  <SignUp 
+                    setLoggedInUser={setLoggedInUser} 
+                    setJWT={setJWT}
+                  />
                 </div>
               </div></div>
           </div>
@@ -189,6 +192,17 @@ function App() {
        </div>
 
   </>
+  ) : (jwt && !loggedInUser.name) ? (
+    <div className="mx-auto p-3 text-center bg-black h-100" style={{height: '100vh', width: '100vw'}}>
+      <h1 className="text-white">Oh. Cool. You actually signed up for this hot mess?</h1>
+      <h4 className="text-white">Well we might as well make it official. Let's get some info for you</h4>
+        <div className="bg-white">
+          <CreateProfile
+            setLoggedInUser={setLoggedInUser}
+            loggedInUser={loggedInUser} 
+          />
+        </div>
+    </div>
   ) : (
 
   <>
@@ -221,7 +235,10 @@ function App() {
       />
 
        <div className={`text-center mx-auto container m-4 p-2 fade-container ${!showConfirmMatch ? 'hidden' : 'visible'}`}>
-        <ConfirmMatchList
+        { pendings==[] ? (
+          <h2>No pending matches for you right now</h2>
+          ) : (
+          <ConfirmMatchList
           key='ConfirmMatchList'
           matches={pendings}
           loading={matchLoading}
@@ -229,13 +246,14 @@ function App() {
           refreshMatches={refreshMatches}
           className='m-5 p-4'
         />
+        )}
 
         <br />
         
         <br />
         
         <br />
-
+        
         <MatchList 
           people={people} 
           loading={loading}
