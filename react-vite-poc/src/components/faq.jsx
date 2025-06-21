@@ -4,38 +4,37 @@ function FAQ() {
   return (
     <Accordion defaultActiveKey="0">
       <Accordion.Item eventKey="0">
-        <Accordion.Header className='bg-success text-white'>Wtf even is this?</Accordion.Header>
+        <Accordion.Header className='bg-success text-white'><strong>Wtf even is urmid anyway?</strong></Accordion.Header>
         <Accordion.Body>
           <div className="text-start">
-            <p>Man I don't know. It's a dating app. We thought most dating apps sucked, and surely there was a better way.</p>
-            <p>Fucked up pretty bad, didn't we?</p>
-            <br />
-            <p>Okay, sorry, that was rude. I'm still kind of new at this.</p>
-            <br />
-            <p>urmid is a dating app that we made because, well, most dating apps suck.</p>
-            <p>We wanted to make something that was simple, easy to use, and didn't have a bunch of bullshit.</p>
-            <p>We wanted to make something that was aligned with your interests - we think it's bullshit that most dating apps make you 'pay to win.'</p>
-            <p>So our model is a little different. Everything is free. You only pay if you find a date (to exchange information with them) and when you eventually decide to quit using our site because you found what you were looking.</p>
+            <p>One man's response to all the shitty, exploitive dating apps currently out there.</p>
+            <p>A cry in the wilderness about finding human connection in our dumpster fire of a world.</p>
+            <p>Okay, sorry, less philosophizing, more actual explaining.</p>
+            <p>Urmid is our attempt at fixing online dating. We stripped away the bullshit, the endless swiping, and the pressure to "pay to win." We wanted to build something simple, honest, and truly aligned with your success.</p>
+            <p>Our model is (we hope?) refreshingly different. The core Urmid experience is free. You only pay a tiny fee if you want to take a connection to a real-world date (like, seriously, go outside!) and a small 'Success Fee' only when you ditch us because you've found what you were looking for. Yep, we actually want you to leave us.</p>
           </div>
         </Accordion.Body>
       </Accordion.Item>
       <Accordion.Item eventKey="1">
-        <Accordion.Header className='bg-success-subtle text-white'>So, seriously, everything is free?</Accordion.Header>
+        <Accordion.Header className='bg-success-subtle text-white'><strong>So, seriously, everything is free?</strong></Accordion.Header>
         <Accordion.Body>
           <div className="text-start">
-            <p>Yup, you heard right, chief. Most of Urmid is genuinely free. It's almost easier to tell you what's <em>not free:</em></p>
+            <p>Yup, you heard right, chief. Most of urmid is genuinely free. It's almost easier to tell you what's <em>not free:</em></p>
             <br />
-            <p>If you've been chatting with someone, and you want to take it to the real world (which you should! the internet sucks, mkay?) you pay to ask them out.</p>
+            <ul>
+              <li><p><strong>Date request:</strong> If you've hit it off with someone in a chat and want to exchange info to set up a real-world date (and you absolutely should, the internet's fine, but real life is better!), there's a tiny "Date Request" fee. We're currently in pre-alpha, so it's all free for now, but we're leaning towards something like 50 cents.</p></li>
+              <li><p><strong>Success fee:</strong> When you find whatever you're looking for – true love, passionate hookups, a polycule, someone to tie you up and insult you, or just someone to split a pizza with – and decide to close your account because urmid did its job, we'll charge you five dollars. Think of it as leaving five bucks on the nightstand for us to "buy ourselves something nice."</p></li>
+            </ul>
+            
             <br />
-            <p>We're still kind of pinning down the business model, and if you're reading this we're still in pre-alpha, so even that shit is free, but, we're leaning towards, like, $.50</p>
-            <p>And when you find whatever you're looking for - eternal love and happiness, someone to tie you up and call you names, or just so much pussy/dick that even sex is boring, we charge you when you break up with us.</p>
-            <p>Five dollars left on the nightstand of the internet, so that we can 'buy ourselves something nice.'</p>
+            
+            <p>No hidden fees, no subscription plans, no bullshit. Just a simple, straightforward way to connect with people and maybe find something special.</p>
             <p>That's it, man.</p>
           </div>
         </Accordion.Body>
       </Accordion.Item>
       <Accordion.Item eventKey="2">
-        <Accordion.Header>FIFTY DOLLARS FOR A DATE?!?!? THAT'S OUTRAGEOUS!!!!</Accordion.Header>
+        <Accordion.Header><strong>FIFTY DOLLARS FOR A DATE?!?!? THAT'S OUTRAGEOUS!!!!</strong></Accordion.Header>
         <Accordion.Body>
           <div className="text-start">
             <p>Woah, man, slow down. Take a deep breath.</p>
@@ -90,7 +89,7 @@ function FAQ() {
         <Accordion.Header>Wait. You're okay with that?</Accordion.Header>
         <Accordion.Body>
           <div className="text-start">
-            <p>Look, we're a sticklers for rules, especially since we're the one who wrote 'em. But I'm not your mom, or your parole officer. (Though I'm almost as fat as your mom, and definitely way sluttier than your parole officer.)</p>
+            <p>Look, we're a sticklers for rules, especially since we're the one who wrote 'em. But we're not your mom, or your parole officer. (Though I'm almost as fat as your mom, and definitely way sluttier than your parole officer.)</p>
             <p>It's the same deal with closing your account. You can tell us you're closing it for any reason – you're tired of our shenanigans (fair!), you've embraced a life of celibacy, you're moving to Mars. You can even tell us Urmid sucks, go get married, and yup, keep your five bucks. Spend it on your honeymoon, or on hookers, or on hookers on your honeymoon. We won't judge.</p>
             <p>We're more likely to start publicly begging for donations (shoutout to Wikipedia! We love... everything about you, actually) than to ever try to screw you over. We're about genuine connections, not nickel-and-diming you.</p>
             <p>Free. Forever. That's the promise.</p>
