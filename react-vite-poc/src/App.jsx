@@ -27,7 +27,7 @@ function App() {
   const [showFAQ, setShowFAQ] = useState(false);
   const [animationStarted, setAnimationStarted] = useState(false); // Controls the logo animation
   const [showText, setShowText] = useState(false); // Controls the visibility of the <h1>
-  const [pendingID, setPendingID] = useState([]); // Controls the visibility of the sign-up flow
+  const [pendingID, setPendingID] = useState(null); // Controls the visibility of the sign-up flow
 
   useEffect(() => {
     // Start the animation after 3 seconds
@@ -62,13 +62,13 @@ function App() {
     // Add this useEffect hook
   useEffect(() => {
     
-    if (loggedInUser) { 
+    if (loggedInUser || showAdvancedSearch || showConfirmMatch || showFAQ) { 
       // Scroll to the top of the page when the user logs in
       window.scrollTo({ top: 0, behavior: 'smooth' });
       // Only call refreshMatches if loggedInUser is not null
       refreshMatches();
     }
-  }, [loggedInUser]); // Dependency array: this effect runs when loggedInUser changes
+  }, [loggedInUser, showAdvancedSearch, showConfirmMatch, showFAQ]); // Dependency array: this effect runs when loggedInUser changes
 
 
   const refreshMatches = () => {
@@ -152,7 +152,7 @@ function App() {
 
   return ( !jwt ? (
     <>
-      <div className="mx-auto p-3 text-center bg-black h-100" style={{height: '100vh', width: '100vw'}}>
+      <div className="mx-auto p-3 text-center bg-black h-100" style={{height: '200vh', width: '100vw'}}>
       
       
         <img src={"./urmid.svg"} className={`w-50 mx-auto text-center frontlogo ${animationStarted ? 'swoop' : ''}`} /> 
@@ -176,7 +176,7 @@ function App() {
                 <div><h4>Or</h4></div>
                 <div className='col-5'>
                   <SignUp 
-                    setLoggedInUser={setLoggedInUser} 
+                    setPendingID={setPendingID} 
                     setJWT={setJWT}
                   />
                 </div>
@@ -192,21 +192,22 @@ function App() {
        </div>
 
   </>
-  ) : (jwt && !loggedInUser.name) ? (
-    <div className="mx-auto p-3 text-center bg-black h-100" style={{height: '100vh', width: '100vw'}}>
+  ) : (jwt && pendingID) ? (
+    <div className="mx-auto p-3 text-center bg-black h-100 app-container">
       <h1 className="text-white">Oh. Cool. You actually signed up for this hot mess?</h1>
       <h4 className="text-white">Well we might as well make it official. Let's get some info for you</h4>
         <div className="bg-white">
           <CreateProfile
             setLoggedInUser={setLoggedInUser}
-            loggedInUser={loggedInUser} 
+            pendingID={pendingID}
+            setPendingID={setPendingID}
           />
         </div>
     </div>
-  ) : (
+  ) : 
 
   <>
-    <div className='mx-auto text-center'>
+    <div className='mx-auto text-center bg-white' style={{minHeight: '100vh', width: '100vw'}}>
       <NavBar
         User={loggedInUser}
         setLoggedInUser={setLoggedInUser}
@@ -264,20 +265,17 @@ function App() {
 
 
 
-        <>
-      <div className={`text-center mx-auto container m-5 p-4 fade-container ${!showAdvancedSearch ? 'hidden' : 'visible'}`}>
-        <h1 className='m-3 p-3 text-center'>Advanced Search - Claude Remix</h1>
-        <ClaudeAdvancedSearch onSearch={handleSearch} />
-      </div>
+      <>
+        <div className={`text-center mx-auto container m-5 p-4 fade-container ${!showAdvancedSearch ? 'hidden' : 'visible'}`}>
+          <h1 className='m-3 p-3 text-center'>Advanced Search - Claude Remix</h1>
+          <ClaudeAdvancedSearch onSearch={handleSearch} />
+        </div>
       </>
 
-    <>
-      <h2 className='m-3 p-3 text-center'>People Add</h2>
-      <SignUpProfile />
-      <div className={`m-3 p-3fade-container ${!showFAQ ? 'hidden' : 'visible'}`}>
-        
-        <FAQ className='p-2 m-2'/>
-      </div>
+      <>
+        <div className={`m-3 p-3 fade-container ${!showFAQ ? 'hidden' : 'visible'}`}>
+          <FAQ className='p-2 m-2'/>
+        </div>
       </>
       { jwt ? <p>JWT: {jwt}</p> : null }
     </div>
@@ -285,7 +283,7 @@ function App() {
   
       
     
-  ));
+  );
 }
 
 export default App;

@@ -3,7 +3,7 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
 export function SignUp({ 
-  setLoggedInUser , 
+  setPendingID , 
   setJWT}) {
   const [formData, setFormData] = useState({
     email: '',
@@ -32,7 +32,7 @@ export function SignUp({
 
       if (response.ok) {
         const data = await response.json();
-        setLoggedInUser(data.person); // Update the logged-in user in App.jsx
+        setPendingID(data.id); // Update the logged-in user in App.jsx
         console.log(data.person);
         setJWT(data.token);
         alert('Signup successful');

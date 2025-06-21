@@ -2,11 +2,14 @@ import { useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import DetailsSelections from './detailsselections';
+import { useQuillLoader, QuillEditor } from './editor';
 import details from '../../../details.json';
 
-export function CreateProfile({setLoggedInUser, loggedInUser}) {
+export function CreateProfile({setLoggedInUser, pendingID, setPendingID}) {
   const [formData, setFormData] = useState({
     name: '',
+    age: '',
+    description: '',
     motto: '',
     latitude: '',
     longitude: '',
@@ -19,6 +22,10 @@ export function CreateProfile({setLoggedInUser, loggedInUser}) {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
+  const handleContentChange = (content) => {
+    setEditorDelta(content);
+  };
+
   const handleDetailsChange = (key, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -26,16 +33,21 @@ export function CreateProfile({setLoggedInUser, loggedInUser}) {
     }));
   };
 
+  const isQuillLoaded = useQuillLoader(); // Hook to load Quill scripts
+  // State to hold the editor's content in Delta format
+  const [editorDelta, setEditorDelta] = useState(null);
+  // State to hold the "submitted" content, which we'll then render as HTML
+
   const handleSubmit = async () => {
     const payload = {
-      id: loggedInUser,
+      id: pendingID,
       age: parseInt(formData.age),
       name: formData.name,
       motto: formData.motto,
       lat: parseFloat(formData.latitude),
       long: parseFloat(formData.longitude),
       profile: formData.profile,
-      description: formData.description,
+      description: JSON.stringify(editorDelta), // Use the Delta content from the editor
       details: formData.details,
     };
 
@@ -51,6 +63,7 @@ export function CreateProfile({setLoggedInUser, loggedInUser}) {
       if (response.ok) {
         const data = await response.json();
         setLoggedInUser(data); // Update the logged-in user in App.jsx
+        setPendingID(null);
         console.log('Profile created successfully:', data);
         alert('Completed your profile! Nice');
       } else {
@@ -67,7 +80,7 @@ export function CreateProfile({setLoggedInUser, loggedInUser}) {
       <div className="d-flex justify-content-center align-items-center flex-wrap">
 
 
-        <div className="col-3 m-1 p-1">
+        <div className="col-2 m-1 p-1">
           <Form.Label htmlFor="name">Name</Form.Label>
           <Form.Control
             id="name"
@@ -101,7 +114,7 @@ export function CreateProfile({setLoggedInUser, loggedInUser}) {
         </div>
 
         <div className="col-3 m-1 p-1">
-          <Form.Label htmlFor="profile">Profile Picture</Form.Label>
+          <Form.Label htmlFor="profile">Profile Picture URL</Form.Label>
           <Form.Control
             id="profile"
             type="text"
@@ -132,10 +145,10 @@ export function CreateProfile({setLoggedInUser, loggedInUser}) {
             onChange={handleChange}
           />
         </div>
-
-        <div className="col-1 m-1 p-1">
-          <Form.Label htmlFor="longitude">Describe yourself</Form.Label>
-          <Form.Control
+      </div>
+        <div className="mx-auto text-center m-1 p-1 w-75">
+          <Form.Label htmlFor="description">Describe yourself</Form.Label>
+          <Form.Control as="textarea" rows={5}
             id="description"
             type="textarea"
             placeholder="This is the part where you pretend to have something interesting to say."
@@ -143,6 +156,14 @@ export function CreateProfile({setLoggedInUser, loggedInUser}) {
             onChange={handleChange}
           />
         </div>
+      <div className="mx-auto text-center m-1 p-1 w-75" style={{ maxHeight: '300px' }}>
+        {isQuillLoaded ? (
+          <QuillEditor onContentChange={handleContentChange} />
+          ) : (
+              <div className="d-flex align-items-center justify-content-center bg-secondary-subtle">
+                  <p className="text-secondary-emphasis">Loading Editor...</p>
+              </div>
+          )}
       </div>
 
       <DetailsSelections

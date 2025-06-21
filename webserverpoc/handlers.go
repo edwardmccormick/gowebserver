@@ -327,23 +327,23 @@ func PostMatch(c *gin.Context) {
 		return
 	}
 	if newMatch.MatchID != 0 {
-        for i, match := range Matches {
-            if match.MatchID == newMatch.MatchID {
-                // Update the existing match
-                Matches[i].AcceptedTime = time.Now() // Update the AcceptedTime
-                Matches[i].Offered = newMatch.Offered
-                Matches[i].Accepted = newMatch.Accepted
-                Matches[i].Person = newMatch.Person
-                c.IndentedJSON(http.StatusOK, Matches)
-                return
-            }
-        }
+		for i, match := range Matches {
+			if match.MatchID == newMatch.MatchID {
+				// Update the existing match
+				Matches[i].AcceptedTime = time.Now() // Update the AcceptedTime
+				Matches[i].Offered = newMatch.Offered
+				Matches[i].Accepted = newMatch.Accepted
+				Matches[i].Person = newMatch.Person
+				c.IndentedJSON(http.StatusOK, Matches)
+				return
+			}
+		}
 	}
 
-		newMatch.MatchID = len(Matches) + 1000 // Assign a new ID based on the length of the slice
-		newMatch.OfferedTime = time.Now() // Set the OfferedTime to the current time
-		Matches = append(Matches, newMatch)
-		c.IndentedJSON(http.StatusCreated, newMatch)
+	newMatch.MatchID = len(Matches) + 1000 // Assign a new ID based on the length of the slice
+	newMatch.OfferedTime = time.Now()      // Set the OfferedTime to the current time
+	Matches = append(Matches, newMatch)
+	c.IndentedJSON(http.StatusCreated, newMatch)
 
 }
 
@@ -374,7 +374,7 @@ func Signup(c *gin.Context) {
 	}
 	users = append(users, newUser)
 
-		// Create JWT token
+	// Create JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":   newUser.ID,
 		"exp":   time.Now().Add(time.Hour * 72).Unix(),
@@ -385,18 +385,14 @@ func Signup(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create token"})
 		return
 	}
-	var person = Person{
-		ID: newUser.ID,
-	}
-	
-	
+
 	// Return token and user info (excluding password hash)
 	resp := struct {
-		Token  string `json:"token"`
-		Person Person `json:"person"`
+		Token string `json:"token"`
+		ID    uint   `json:"id"`
 	}{
-		Token:  tokenString,
-		Person: person,
+		Token: tokenString,
+		ID:    newUser.ID,
 	}
 	c.IndentedJSON(http.StatusCreated, resp)
 
