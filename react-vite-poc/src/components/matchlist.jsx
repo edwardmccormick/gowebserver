@@ -3,6 +3,7 @@ import Accordion from 'react-bootstrap/Accordion';
 import ControlledCarousel from './carousel'
 import { getPreciseDistance } from 'geolib';
 import Button from 'react-bootstrap/Button';
+import { useQuillLoader, QuillEditor } from './editor';
 
 function MatchList({
     people, 
@@ -12,6 +13,7 @@ function MatchList({
   }) {
 
   const [submittedLikes, setSubmittedLikes] = useState({}); // Track submitted likes
+   const isQuillLoaded = useQuillLoader(); // Load Quill at the top level
   // let people = peopleObject.people;
   // Add distance to each person and sort by distance
   if (!loading && User) {
@@ -61,6 +63,31 @@ function MatchList({
       alert('An error occurred while submitting the form.');
     }
   };
+
+  // Refactored renderDeltaAsHtml function
+  const renderDeltaAsHtml = (deltaString) => {
+    if (!deltaString) {
+      return { __html: '<p>Nothing to show yet.</p>' };
+    }
+
+    if (!isQuillLoaded) {
+      return { __html: '<p>Loading content...</p>' }; // Handle case where Quill is not yet loaded
+    }
+
+    try {
+      // Parse the string into a Delta JSON object
+      const delta = JSON.parse(deltaString);
+
+      // Create a temporary, non-rendered Quill instance to convert Delta to HTML
+      const tempContainer = document.createElement('div');
+      const tempQuill = new window.Quill(tempContainer);
+      tempQuill.setContents(delta); // Load the Delta
+      return { __html: tempContainer.querySelector('.ql-editor').innerHTML };
+    } catch (error) {
+      console.error('Error parsing Delta string:', error);
+      return { __html: '<p>Invalid content format.</p>' };
+    }
+  };
     return (
       loading || User==undefined ? (
         <div className="d-flex align-items-center">
@@ -87,16 +114,27 @@ function MatchList({
           <Accordion.Body key={`${person.id}10000`}>
             <div className='text-start'>
               <img src={person.profile} className='m-1 p-1 rounded float-start' height={'250'} width={'auto'} />
-                <p>(Bender) There we were in the park when suddenly some old lady says I stole her purse. I chucked the professor at her but she kept coming. So I had to hit her with this purse I found.</p>
-                <p>(Bender) Boy, who knew a cooler could also make a handy wang coffin?!</p>
-                <p>Leela Futurama Quotes: (Amy After Bender destroys Fry's tent) Bender, wasn't that Fry's Tent? (Bender Responds Scoffing) Bender, Mominey mum meh. (Leela) Bender Raises a good point. Where is Fry?</p>
-                <p>Farnsworth Futurama Quotes: (Farnsworth to group) As new employees, I'd like your opinion on our commercial. I've paid to have it aired during the Super Bowl (Fry) Wow. (Farnsworth) Not on the same channel of course.</p>
-                <p>(Zap) The spirit is willing, but the flesh is spongy and bruised.</p>
-                <p>(President Truman) Bush-wah! Now, what's your mission? Are you here to make some sort of alien-human hybrid? (Zoidberg) Are you coming on to me? President Truman: Hot Crackers! I take exception to that! (Zoidberg) (leering) I'm not hearing a no...</p>
-                <p>(Zoidberg) Did you see me escaping? I was all like, "WOO WOO WOO WOO!"</p>
-                <p>(Lucy Liu-bot) You're cute!  (Fry) No, you are!  (Lucy Liu-bot) No, you!  (Fry) No, you! (Lucy Liu-bot) No, you! (Fry) No, you!  (Professor Hubert Farnsworth) Oh dear, she's stuck in an infinite loop and he's an idiot!</p>
-                <p>(Zap) Prepare to continue the epic struggle between good and neutral.</p>
-                <p>(Fry)I did do the nasty in the pasty!</p>
+                { person?.description ? 
+                (
+                  <div
+                    dangerouslySetInnerHTML={renderDeltaAsHtml(
+                      person.description
+                    )}
+                  />
+                )
+                : (<div> 
+                  <p>(Bender) There we were in the park when suddenly some old lady says I stole her purse. I chucked the professor at her but she kept coming. So I had to hit her with this purse I found.</p>
+                    <p>(Bender) Boy, who knew a cooler could also make a handy wang coffin?!</p>
+                    <p>Leela Futurama Quotes: (Amy After Bender destroys Fry's tent) Bender, wasn't that Fry's Tent? (Bender Responds Scoffing) Bender, Mominey mum meh. (Leela) Bender Raises a good point. Where is Fry?</p>
+                    <p>Farnsworth Futurama Quotes: (Farnsworth to group) As new employees, I'd like your opinion on our commercial. I've paid to have it aired during the Super Bowl (Fry) Wow. (Farnsworth) Not on the same channel of course.</p>
+                    <p>(Zap) The spirit is willing, but the flesh is spongy and bruised.</p>
+                    <p>(President Truman) Bush-wah! Now, what's your mission? Are you here to make some sort of alien-human hybrid? (Zoidberg) Are you coming on to me? President Truman: Hot Crackers! I take exception to that! (Zoidberg) (leering) I'm not hearing a no...</p>
+                    <p>(Zoidberg) Did you see me escaping? I was all like, "WOO WOO WOO WOO!"</p>
+                    <p>(Lucy Liu-bot) You're cute!  (Fry) No, you are!  (Lucy Liu-bot) No, you!  (Fry) No, you! (Lucy Liu-bot) No, you! (Fry) No, you!  (Professor Hubert Farnsworth) Oh dear, she's stuck in an infinite loop and he's an idiot!</p>
+                    <p>(Zap) Prepare to continue the epic struggle between good and neutral.</p>
+                    <p>(Fry)I did do the nasty in the pasty!</p>
+                  </div>
+                )}
 
               <div height='450' width='450' className='text-center w-fill'>
                 <ControlledCarousel
