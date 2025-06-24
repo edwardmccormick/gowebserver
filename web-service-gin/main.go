@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
@@ -83,6 +84,26 @@ var albums = []album{
 
 // getAlbums responds with the list of all albums as JSON.
 func getAlbums(c *gin.Context) {
+
+	var albums []album
+
+	rows, err := db.Query("SELECT * FROM album")
+	if err != nil {
+		fmt.Errorf("albumsByArtist %q:", err)
+	}
+	defer rows.Close()
+	// Loop through rows, using Scan to assign column data to struct fields.
+	for rows.Next() {
+		var alb album
+		if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
+			fmt.Errorf("albumsByArtist %q:", err)
+		}
+		albums = append(albums, alb)
+	}
+	if err := rows.Err(); err != nil {
+		fmt.Errorf("albumsByArtist: %v", err)
+	}
+
 	c.IndentedJSON(http.StatusOK, albums)
 }
 
@@ -112,17 +133,24 @@ func postAlbums(c *gin.Context) {
 // getAlbumByID locates the album whose ID value matches the id
 // parameter sent by the client, then returns that album as a response.
 func getAlbumByID(c *gin.Context) {
-	id := c.Param("id")
-
+	str := c.Param("id")
+	id, err := strconv.Atoi(str)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
 	// Loop over the list of albums, looking for
 	// an album whose ID value matches the parameter.
-	for _, a := range albums {
-		if a.ID == id {
-			c.IndentedJSON(http.StatusOK, a)
-			return
-		}
+
+	a, err := albumByID(int64(id))
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
+	c.IndentedJSON(http.StatusOK, a)
+	return
+
+	// c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
 }
 
 func albumsByArtist(name string) ([]album, error) {
