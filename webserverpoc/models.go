@@ -14,12 +14,12 @@ func (Person) TableName() string {
 }
 
 type Person struct {
-	ID           uint      `json:"id" db:"id" gorm:"primaryKey,AutoIncrement,not null,Unique"`
-	Name         string    `json:"name" db:"name" gorm:"type:varchar(255),not null"`
-	Age          int       `json:"age" db:"age" gorm:"type:int,not null"`
+	ID           uint      `json:"id" db:"id" gorm:"primaryKey,AutoIncrement not null,Unique"`
+	Name         string    `json:"name" db:"name" gorm:"type:varchar(255) not null"`
+	Age          int       `json:"age" db:"age" gorm:"type:int not null"`
 	Motto        string    `json:"motto" db:"motto" gorm:"type:varchar(255)"`
-	LatLocation  float64   `json:"lat" db:"lat" gorm:"type:float,not null"`
-	LongLocation float64   `json:"long" db:"long" gorm:"type:float,not null"`
+	LatLocation  float64   `json:"lat" db:"lat" gorm:"type:float not null"`
+	LongLocation float64   `json:"long" db:"long" gorm:"type:float not null"`
 	Profile      string    `json:"profile" db:"profile" gorm:"type:varchar(255)"`
 	Details      Details   `json:"details" db:"details" gorm:"embedded"`
 	Description  string    `json:"description" db:"description" gorm:"type:text"`
@@ -28,18 +28,27 @@ type Person struct {
 }
 
 type User struct {
-	ID           uint   `json:"id" db:"id" gorm:"uniqueIndex;not null"`
-	Email        string `json:"email" db:"email" gorm:"type:varchar(255);not null"`
-	PasswordHash string `json:"-" db:"password_hash" gorm:"type:varchar(255);not null"`
+	ID           uint      `json:"id" db:"id" gorm:"uniqueIndex;not null"`
+	Email        string    `json:"email" db:"email" gorm:"type:varchar(255);not null"`
+	PasswordHash string    `json:"-" db:"password_hash" gorm:"type:varchar(255);not null"`
 	LastLogin    time.Time `json:"last_login" db:"last_login"`
 }
 
-type DatabaseConfig struct {
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Database string `json:"database"`
+type Config struct {
+	MySQL struct {
+		Host     string `json:"host"`
+		Port     int    `json:"port"`
+		User     string `json:"user"`
+		Password string `json:"password"`
+		Database string `json:"database"`
+	} `json:"mysql"`
+	Mongo struct {
+		Host     string `json:"host"`
+		Port     int    `json:"port"`
+		User     string `json:"user"`
+		Password string `json:"password"`
+		Database string `json:"database"`
+	} `json:"mongo"`
 }
 
 type ProfilePhoto struct {
@@ -48,10 +57,13 @@ type ProfilePhoto struct {
 }
 
 type ChatMessage struct {
-	ID      int64     `json:"id"`
+	ID      int64     `json:"id" gorm:"primaryKey,AutoIncrement not null,Unique"`
+	MatchID int       `json:"match_id" gorm:"not null"`                                         // Foreign key to Match.MatchID
+	Match   Match     `gorm:"foreignKey:MatchID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Foreign key relationship
 	Time    time.Time `json:"time"`
-	Who     uint    `json:"who"`
-	Message string    `json:"message"`
+	WhoID   uint      `json:"who_id" gorm:"not null"`                                         // Foreign key to Person.ID
+	Who     Person    `gorm:"foreignKey:WhoID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Foreign key relationship
+	Message string    `json:"message" gorm:"type:text;not null"`
 }
 
 type Details struct {
@@ -70,14 +82,16 @@ type Details struct {
 }
 
 type Match struct {
-	MatchID      int           `json:"id"`
-	MatchesIDs   []int         `json:"matches_ids"`
-	Offered      uint           `json:"offered"`
-	OfferedTime  time.Time     `json:"offered_time"`
-	Accepted     uint           `json:"accepted"`
-	AcceptedTime time.Time     `json:"accepted_time"`
-	VibeChat     bool          `json:"vibe_chat"`
-	OfferedChat  []ChatMessage `json:"offered_chat"`
-	AcceptedChat []ChatMessage `json:"accepted_chat"`
-	Person       Person        `json:"person"`
+	MatchID      int       `json:"id" gorm:"primaryKey,AutoIncrement,not null,Unique"`
+	Offered      uint      `json:"offered"`                                                           // Foreign key to User.ID
+	OfferedUser  Person    `gorm:"foreignKey:Offered;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` // Foreign key relationship
+	OfferedTime  time.Time `json:"offered_time"`
+	OfferedLiked int       `json:"offered_liked"`
+	Accepted     uint      `json:"accepted"`                                                           // Foreign key to User.ID
+	AcceptedUser Person    `gorm:"foreignKey:Accepted;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` // Foreign key relationship
+	AcceptedTime time.Time `json:"accepted_time"`
+	VibeChat     bool      `json:"vibe_chat"`
+	// OfferedChat  []ChatMessage `json:"offered_chat"`
+	// AcceptedChat []ChatMessage `json:"accepted_chat"`
+	// ChatHistory  []ChatMessage `json:"chat_history"`
 }

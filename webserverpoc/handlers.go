@@ -288,22 +288,22 @@ func GetMatchByPersonID(c *gin.Context) {
 		if match.Offered == uint(id) || match.Accepted == uint(id) {
 			// if !match.AcceptedTime.IsZero() { // Check if AcceptedTime is not null
 			// Determine the other person's ID
-			otherPersonID := match.Offered
-			if match.Offered == uint(id) {
-				// fmt.Println("Second person switch")
+			// otherPersonID := match.Offered
+			// if match.Offered == uint(id) {
+			// 	// fmt.Println("Second person switch")
 
-				otherPersonID = match.Accepted
-			}
-			fmt.Println(otherPersonID)
-			// Find the person in the people array
-			for _, person := range people {
-				if person.ID == otherPersonID {
-					match.Person = person // Add the person to match.Person
-					// fmt.Println("Match found:", match)
-					break
-				}
-			}
+			// 	otherPersonID = match.Accepted
 			// }
+			// fmt.Println(otherPersonID)
+			// // Find the person in the people array
+			// for _, person := range people {
+			// 	if person.ID == otherPersonID {
+			// 		match.Person = person // Add the person to match.Person
+			// 		// fmt.Println("Match found:", match)
+			// 		break
+			// 	}
+			// }
+			// // }
 			matchesForPerson = append(matchesForPerson, match)
 		}
 	}
@@ -333,7 +333,6 @@ func PostMatch(c *gin.Context) {
 				Matches[i].AcceptedTime = time.Now() // Update the AcceptedTime
 				Matches[i].Offered = newMatch.Offered
 				Matches[i].Accepted = newMatch.Accepted
-				Matches[i].Person = newMatch.Person
 				c.IndentedJSON(http.StatusOK, Matches)
 				return
 			}
