@@ -36,12 +36,13 @@ func LoadConfig(filePath string) (*Config, error) {
 
 // ConnectToMongoDBWithConfig connects to MongoDB using values from the config
 func ConnectToMongoDBWithConfig(config *Config) (*mongo.Client, error) {
-	uri := fmt.Sprintf("mongodb://%s:%s@%s:%d/%s",
+	uri := fmt.Sprintf("mongodb://%s:%s@%s:%d/?authSource=admin",
+	//  uri := fmt.Sprintf("mongodb://%s:%s@%s:%d/",
 		config.Mongo.User,
 		config.Mongo.Password,
 		config.Mongo.Host,
 		config.Mongo.Port,
-		config.Mongo.Database,
+		// config.Mongo.Database,
 	)
 
 	clientOptions := options.Client().ApplyURI(uri)
@@ -49,6 +50,10 @@ func ConnectToMongoDBWithConfig(config *Config) (*mongo.Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}
+	// Test the connection and authentication
+    if err := client.Ping(context.TODO(), nil); err != nil {
+        return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
+    }
 
 	return client, nil
 }

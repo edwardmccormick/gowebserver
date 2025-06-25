@@ -48,7 +48,7 @@ type Config struct {
 		User     string `json:"user"`
 		Password string `json:"password"`
 		Database string `json:"database"`
-	} `json:"mongo"`
+	} `json:"mongodb"`
 }
 
 type ProfilePhoto struct {
