@@ -18,16 +18,60 @@ var Upgrader = websocket.Upgrader{
 func main() {
 	router := gin.Default()
 
-	    // Custom CORS configuration
-    config := cors.Config{
-        AllowOrigins:     []string{"http://localhost:5173","http://localhost:5174","http://localhost:5172"}, // Replace with your frontend's origin
-        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-        ExposeHeaders:    []string{"Content-Length"},
-        AllowCredentials: true,
-    }
+	// Custom CORS configuration
+	configCors := cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:5174", "http://localhost:5172"}, // Replace with your frontend's origin
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}
 
-    router.Use(cors.New(config))
+	router.Use(cors.New(configCors))
+
+	// Load the configuration
+	config, err := LoadConfig("../config.json") // Adjust the path as needed
+	if err != nil {
+		fmt.Println("Error loading config:", err)
+		return
+	}
+
+	// Connect to MySQL
+	db, err := ConnectToMySQLWithConfig(config)
+	if err != nil {
+		fmt.Println("Error connecting to MySQL:", err)
+		return
+	}
+	fmt.Println("Connected to MySQL.")
+	db = db.Debug()
+
+	// Perform GORM automigration
+	if err := db.AutoMigrate(
+		&User{},
+		&Person{},
+		&Details{},
+		&Match{},
+		// &ChatMessage{},
+	); err != nil {
+		fmt.Errorf("Error during automigration: %v", err)
+	}
+	fmt.Println("Database schema migrated successfully.")
+
+	// Connect to MongoDB
+	mongoClient, err := ConnectToMongoDBWithConfig(config)
+	if err != nil {
+		fmt.Println("Error connecting to MongoDB:", err)
+		return
+	}
+	fmt.Println("Connected to MongoDB.")
+
+	// Populate the database
+	if err := PopulateDatabase(db, mongoClient); err != nil {
+		fmt.Println("Error populating database:", err)
+		return
+	}
+
+	fmt.Println("Database check and population complete.")
 
 	fmt.Println("Let's do the thing")
 	router.GET("/people", GetPeople)
