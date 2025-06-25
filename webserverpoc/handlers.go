@@ -93,6 +93,23 @@ func Signout(c *gin.Context) {
 }
 
 func GetPeople(c *gin.Context) {
+	var people []person
+	rows, err := db.Query("SELECT * FROM people")
+		if err != nil {
+		fmt.Errorf("GetPeople error %q:", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var person person
+		if err := rows.Scan(&person.ID, &alb.Name); err != nil {
+			fmt.Errorf("GetPeople Error on record %q:", err)
+		}
+		people = append(people, person)
+	}
+	if err := rows.Err(); err != nil {
+		fmt.Errorf("GetPeople Error on row: %v", err)
+	}
 	c.IndentedJSON(http.StatusOK, people)
 }
 

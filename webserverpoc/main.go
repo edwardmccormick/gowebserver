@@ -30,12 +30,13 @@ func main() {
 	router.Use(cors.New(configCors))
 
 	// Load the configuration
-	config, err := LoadConfig("../config.json") // Adjust the path as needed
+	config, err := LoadConfig("./config.json") // Adjust the path as needed
 	if err != nil {
 		fmt.Println("Error loading config:", err)
 		return
 	}
 
+	var db *sql.DB
 	// Connect to MySQL
 	db, err := ConnectToMySQLWithConfig(config)
 	if err != nil {
