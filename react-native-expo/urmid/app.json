@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "urmid",
+    "slug": "urmid",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/urmid.svg",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/urmid-dark-tagline.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/urmid.svg",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
