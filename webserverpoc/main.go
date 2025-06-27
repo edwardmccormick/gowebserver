@@ -7,7 +7,10 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"gorm.io/gorm"
 )
+
+var db *gorm.DB
 
 var Upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
@@ -36,9 +39,8 @@ func main() {
 		return
 	}
 
-	var db *sql.DB
 	// Connect to MySQL
-	db, err := ConnectToMySQLWithConfig(config)
+	db, err = ConnectToMySQLWithConfig(config)
 	if err != nil {
 		fmt.Println("Error connecting to MySQL:", err)
 		return
@@ -71,6 +73,7 @@ func main() {
 		fmt.Println("Error populating database:", err)
 		return
 	}
+	fmt.Println(mongoClient)
 
 	fmt.Println("Database check and population complete.")
 
@@ -90,6 +93,12 @@ func main() {
 	router.GET("/matches/:id", GetMatchByPersonID)
 	router.POST("/matches", PostMatch)
 	router.POST("/signup", Signup)
+	router.GET("/users", GetUsers)
 
-	router.Run("localhost:8080")
+	if isRunningInDockerContainer() {
+		router.Run("0.0.0.0:8080")
+	} else {
+		router.Run("localhost:8080") 
+	}
+	
 }

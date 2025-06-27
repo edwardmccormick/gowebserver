@@ -26,6 +26,8 @@ RUN go mod download
 # Copy the source code into the container
 COPY . .
 
+ENV CGO_ENABLED=0
+
 # Build the Go application
 RUN GOOS=linux GOARCH=amd64 go build -o gowebserver .
 
@@ -48,4 +50,4 @@ COPY config.json .
 EXPOSE 8080
 
 # Command to run the application
-CMD [". gowebserver"]
+CMD ["./gowebserver"]

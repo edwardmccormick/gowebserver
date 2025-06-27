@@ -80,11 +80,23 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
                   </div>
                   
                 : matches.map((match) => (
-                  // {match.accepted_time == undefined ? null : (
-                  <div key={`${match.person.name}-${match.id}-${match.person.id}`}>
+                  (match.AcceptedProfile.id == User.id) ? (
+                  <div key={`${match.OfferedProfile.name}-${match.id}-${match.OfferedProfile.id}`}>
                   <ChatModal
-                    key={`chatwith${match.person.name}-${match.id}`}
-                    person={match.person} // Pass the currently selected person to the modal
+                    key={`chatwith${match.OfferedProfile.name}-${match.id}`}
+                    person={match.OfferedProfile} // Pass the currently selected person to the modal
+                    match={match}
+                    User={User} // Pass the User prop to the ChatModal
+                    unreadmessages={countUndeliveredMessages(User, match)}
+                  />
+                  </div>
+                  ) 
+                  : (
+
+                  <div key={`${match.AcceptedProfile.name}-${match.id}-${match.AcceptedProfile.id}`}>
+                  <ChatModal
+                    key={`chatwith${match.AcceptedProfile.name}-${match.id}`}
+                    person={match.AcceptedProfile} // Pass the currently selected person to the modal
                     match={match}
                     User={User} // Pass the User prop to the ChatModal
                     unreadmessages={countUndeliveredMessages(User, match)}
@@ -100,7 +112,7 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
                   /> */}
                   </div>
                   // )}
-                ))
+                )))
               }
             </div>
           { pendings == undefined || pendings == null || offereds == undefined || offereds == null
@@ -110,19 +122,19 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
               <div className='d-flex flex-column'>
                 {pendings.map((pending) => (
                 <Button
-                  key={`pendingmatchfrom${pending.person.name}-${pending.id}`}     
+                  key={`pendingmatchfrom${pending.OfferedProfile.name}-${pending.id}`}     
                   variant="outline-warning"
                   className="p-2 fs-5 m-2 text-right d-flex flex-row justify-content-between align-items-center"
                 >
                       <img
-                        src={pending.person.profile ? pending.person.profile : '/profile.svg'}
+                        src={pending.OfferedProfile.profile ? pending.OfferedProfile.profile : '/profile.svg'}
                         style={{ borderRadius: '50%' }}
                         className="m-1 p-1"
                         height="50"
                         width="50"
-                        alt={`${pending.person.name}'s profile`}
+                        alt={`${pending.OfferedProfile.name}'s profile`}
                       />
-                      {pending.person.name} liked you at {convertISODateToLocal(pending.offered_time)}
+                      {pending.OfferedProfile.name} liked you at {convertISODateToLocal(pending.offered_time)}
                   
                 </Button>
                 ))}
@@ -131,7 +143,7 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
             <div className='d-flex flex-column'>
                 {offereds.map((pending) => (
                   <Button 
-                    key={`pendingmatchfrom${pending.person.name}-${pending.id}`}
+                    key={`pendingmatchfrom${pending.AcceptedProfile.name}-${pending.id}`}
                     variant="outline-warning"
                     className="p-2 fs-5 m-2 text-right d-flex flex-row justify-content-between align-items-center"
                     onClick={() => {
@@ -140,14 +152,14 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
                     }}
                   >
                     <img
-                      src={pending.person.profile ? pending.person.profile : '/profile.svg'}
+                      src={pending.AcceptedProfile.profile ? pending.AcceptedProfile.profile : '/profile.svg'}
                       style={{ borderRadius: '50%' }}
                       className="m-1 p-1"
                       height="50"
                       width="50"
-                      alt={`${pending.person.name}'s profile`}
+                      alt={`${pending.AcceptedProfile.name}'s profile`}
                     />
-                      You liked {pending.person.name} at {convertISODateToLocal(pending.offered_time)}
+                      You liked {pending.AcceptedProfile.name} at {convertISODateToLocal(pending.offered_time)}
                    
                   </Button>
                 ))}
