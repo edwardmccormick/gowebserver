@@ -8,11 +8,6 @@ type Tabler interface {
 	TableName() string
 }
 
-// TableName overrides the table name used by User to `profiles`
-func (Person) TableName() string {
-	return "people"
-}
-
 type Person struct {
 	ID           uint      `json:"id" db:"id" gorm:"primaryKey,AutoIncrement not null,Unique"`
 	Name         string    `json:"name" db:"name" gorm:"type:varchar(255) not null"`
@@ -23,8 +18,8 @@ type Person struct {
 	Profile      string    `json:"profile" db:"profile" gorm:"type:varchar(255)"`
 	Details      Details   `json:"details" db:"details" gorm:"embedded"`
 	Description  string    `json:"description" db:"description" gorm:"type:text"`
-	CreateTime   time.Time `json:"create_time" db:"create_time" gorm:"autoCreateTime"`
-	UpdateTime   time.Time `json:"update_time" db:"update_time" gorm:"autoUpdateTime"`
+	CreatedAt   time.Time `json:"create_time"`
+	UpdatedAt   time.Time `json:"update_time"`
 }
 
 type User struct {
@@ -32,6 +27,8 @@ type User struct {
 	Email        string    `json:"email" db:"email" gorm:"type:varchar(255);not null"`
 	PasswordHash string    `json:"-" db:"password_hash" gorm:"type:varchar(255);not null"`
 	LastLogin    time.Time `json:"last_login" db:"last_login"`
+	CreatedAt   time.Time `json:"create_time" db:"create_time"`
+	UpdatedAt   time.Time `json:"update_time" db:"update_time"`
 }
 
 type Config struct {
@@ -84,13 +81,14 @@ type Details struct {
 type Match struct {
 	MatchID      int       `json:"id" gorm:"primaryKey,AutoIncrement,not null,Unique"`
 	Offered      uint      `json:"offered"`                                                           // Foreign key to User.ID
-	OfferedUser  Person    `gorm:"foreignKey:Offered;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` // Foreign key relationship
+	OfferedProfile  Person    `gorm:"foreignKey:Offered;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` // Foreign key relationship
 	OfferedTime  time.Time `json:"offered_time"`
 	OfferedLiked int       `json:"offered_liked"`
 	Accepted     uint      `json:"accepted"`                                                           // Foreign key to User.ID
-	AcceptedUser Person    `gorm:"foreignKey:Accepted;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` // Foreign key relationship
+	AcceptedProfile Person    `gorm:"foreignKey:Accepted;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` // Foreign key relationship
 	AcceptedTime time.Time `json:"accepted_time"`
 	VibeChat     bool      `json:"vibe_chat"`
+
 	// OfferedChat  []ChatMessage `json:"offered_chat"`
 	// AcceptedChat []ChatMessage `json:"accepted_chat"`
 	// ChatHistory  []ChatMessage `json:"chat_history"`

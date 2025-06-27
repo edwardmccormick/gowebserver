@@ -105,7 +105,7 @@ func PopulateDatabase(db *gorm.DB, mongoClient *mongo.Client) error {
 		fmt.Println("People populated in MySQL.")
 	}
 
-	// Check if matches exist in MySQL
+	// // Check if matches exist in MySQL
 	var matchCount int64
 	if err := db.Model(&Match{}).Count(&matchCount).Error; err != nil {
 		return fmt.Errorf("failed to check match count: %w", err)

@@ -1,5 +1,6 @@
 {
     "mysql": {
+        // "host": "mysql",
         "host": "localhost",
         "port": 3306,
         "user": "root",
@@ -7,6 +8,7 @@
         "database": "urmid"
     },
     "mongo": {
+        // "host": "mongodb",
         "host": "localhost",
         "port": 27017,
         "user":"root",

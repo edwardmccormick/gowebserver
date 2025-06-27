@@ -27,13 +27,14 @@ func Login(c *gin.Context) {
 
 	// Find the user by email
 	var user *User
-	for i := range users {
-		if users[i].Email == req.Email {
-			users[i].LastLogin = time.Now()
-			user = &users[i]
-			break
-		}
-	}
+	db.Where("email = ?", req.Email).First(&user)
+	// for i := range users {
+	// 	if users[i].Email == req.Email {
+	// 		// users[i].LastLogin = time.Now()
+	// 		user = &users[i]
+	// 		break
+	// 	}
+	// }
 	if user == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
@@ -57,13 +58,16 @@ func Login(c *gin.Context) {
 		return
 	}
 
+
+	var person = Person{ID: user.ID}
+	db.First(&person)
 	// Return token and user info (excluding password hash)
 	resp := struct {
 		Token  string `json:"token"`
 		Person Person `json:"person"`
 	}{
 		Token:  tokenString,
-		Person: people[user.ID],
+		Person: person,
 	}
 
 	c.JSON(http.StatusOK, resp)
@@ -93,46 +97,37 @@ func Signout(c *gin.Context) {
 }
 
 func GetPeople(c *gin.Context) {
-	var people []person
-	rows, err := db.Query("SELECT * FROM people")
-		if err != nil {
-		fmt.Errorf("GetPeople error %q:", err)
-	}
-	defer rows.Close()
+	var people []Person
+	if result := db.Find(&people); result.Error != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+            return
+        }
 
-	for rows.Next() {
-		var person person
-		if err := rows.Scan(&person.ID, &alb.Name); err != nil {
-			fmt.Errorf("GetPeople Error on record %q:", err)
-		}
-		people = append(people, person)
-	}
-	if err := rows.Err(); err != nil {
-		fmt.Errorf("GetPeople Error on row: %v", err)
-	}
+	// fmt.Println(people) // Print the people slice to the console for debugging pu
 	c.IndentedJSON(http.StatusOK, people)
+}
+
+func GetUsers(c *gin.Context) {
+	var users []User
+	if result := db.Find(&users); result.Error != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+            return
+        }
+
+	// fmt.Println(people) // Print the people slice to the console for debugging pu
+	c.IndentedJSON(http.StatusOK, users)
 }
 
 func PostPeople(c *gin.Context) {
 	var newPerson Person
-	// var newDetails Details
 
-	// Call BindJSON to bind the received JSON to
-	// newAlbum.
 	if err := c.BindJSON(&newPerson); err != nil {
 		return
 	}
 
-	// // Ensure the Details field is initialized if it's missing
-	// if newPerson.Details == nil {
-	//     newPerson.Details = c.BindJSON(&newDetails);
-	// 	err != nil {
-	// 		return
-	// 	}
-	// }
-
-	// Add the new album to the slice.
-	people = append(people, newPerson)
+	
+	result := db.Create(newPerson) // pass a slice to insert multiple row
+	fmt.Println("Created rows: ", result.RowsAffected)
 	c.IndentedJSON(http.StatusCreated, newPerson)
 }
 
@@ -186,30 +181,6 @@ func GetPeopleByLocation(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, processedPeople)
 }
 
-func GetProcessedPeople(c *gin.Context) {
-	var processedPeople []Person
-
-	for _, p := range people {
-
-		// Calculate the distance from locationOrigin
-		distance, err := geodist.VincentyDistance(locationOrigin, geodist.Point{Lat: p.LatLocation, Long: p.LongLocation})
-		if err != nil {
-			fmt.Printf("Error calculating distance for person %s: %v\n", p.ID, err)
-			continue
-		}
-
-		// Round the distance to two decimal places
-		roundedDistance := math.Round(distance*100) / 100
-		fmt.Println(roundedDistance)
-		// Create a processedProfile and append it to the processedPeople slice
-		processedPeople = append(processedPeople, p)
-
-	}
-
-	// Return the processedPeople array as JSON
-	c.IndentedJSON(http.StatusOK, processedPeople)
-}
-
 func GetPeopleByID(c *gin.Context) {
 	str := c.Param("id")
 	id, err := strconv.Atoi(str)
@@ -219,15 +190,17 @@ func GetPeopleByID(c *gin.Context) {
 	}
 	fmt.Println(id)
 
-	// Loop over the list of albums, looking for
-	// an album whose ID value matches the parameter.
-	for _, a := range people {
-		if a.ID == uint(id) {
-			c.IndentedJSON(http.StatusOK, a)
-			return
-		}
+	var person = Person{ID: uint(id)}
+	results := db.First(&person)
+	if results.Error != nil {
+		fmt.Println(results.Error)
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "person not found"})
+	if results.RowsAffected == 0 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "person not found"})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, person)
 }
 
 func GetPhotosByID(c *gin.Context) {
@@ -261,11 +234,18 @@ func GreetUserByName(c *gin.Context) {
 }
 
 func GetFaviconIco(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, "./urmid.svg")
+	c.IndentedJSON(http.StatusOK, "localhost:3306/urmid.svg")
 }
 
 func GetMatches(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, Matches)
+	var matches []Match
+	if result := db.Find(&matches); result.Error != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+            return
+        }
+
+	// fmt.Println(people) // Print the people slice to the console for debugging pu
+	c.IndentedJSON(http.StatusOK, matches)
 }
 
 func GetMatchByID(c *gin.Context) {
@@ -276,16 +256,17 @@ func GetMatchByID(c *gin.Context) {
 		fmt.Println("Error:", err)
 		return
 	}
-	// Find the match with the given ID
-	for _, match := range Matches {
-		if match.MatchID == id {
-			c.IndentedJSON(http.StatusOK, match)
-			return
-		}
+	var matches []Match
+	results := db.Where("offered = ?", uint(id)).Or("accepted = ?", uint(id)).Preload("OfferedProfile").Preload("AcceptedProfile").Find(&matches)
+	if results.Error != nil {
+		fmt.Println(results.Error)
+	}
+	if results.RowsAffected == 0 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "matches for person not found"})
+		return
 	}
 
-	// If no match is found, return a 404 Not Found response
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Match not found"})
+	c.IndentedJSON(http.StatusOK, matches)
 }
 
 func GetMatchByPersonID(c *gin.Context) {
@@ -296,41 +277,17 @@ func GetMatchByPersonID(c *gin.Context) {
 		fmt.Println("Error:", err)
 		return
 	}
-	matchesForPerson := []Match{}
-
-	// Find the match with the given ID
-
-	// Find the match with the given ID
-	for _, match := range Matches {
-		if match.Offered == uint(id) || match.Accepted == uint(id) {
-			// if !match.AcceptedTime.IsZero() { // Check if AcceptedTime is not null
-			// Determine the other person's ID
-			// otherPersonID := match.Offered
-			// if match.Offered == uint(id) {
-			// 	// fmt.Println("Second person switch")
-
-			// 	otherPersonID = match.Accepted
-			// }
-			// fmt.Println(otherPersonID)
-			// // Find the person in the people array
-			// for _, person := range people {
-			// 	if person.ID == otherPersonID {
-			// 		match.Person = person // Add the person to match.Person
-			// 		// fmt.Println("Match found:", match)
-			// 		break
-			// 	}
-			// }
-			// // }
-			matchesForPerson = append(matchesForPerson, match)
-		}
+	var matches []Match
+	results := db.Where("offered = ?", uint(id)).Or("accepted = ?", uint(id)).Preload("OfferedProfile").Preload("AcceptedProfile").Find(&matches)
+	if results.Error != nil {
+		fmt.Println(results.Error)
 	}
-
-	if len(matchesForPerson) == 0 {
-		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "No matches found for this person"})
+	if results.RowsAffected == 0 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "matches for person not found"})
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, matchesForPerson)
+	c.IndentedJSON(http.StatusOK, matches)
 
 }
 
