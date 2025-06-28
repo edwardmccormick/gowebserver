@@ -8,13 +8,64 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/asmarques/geodist"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Add your route handlers here
+// Sort by general functionality - signup, auth, login, logout
+func Signup(c *gin.Context) {
+	// Signup both creates the user and gives them a JWT for the session so they can create their person/profile
+	var req struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	// Bind the JSON payload to the struct
+	if err := c.BindJSON(&req); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Generate the password hash
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Create a new user
+	newUser := User{
+		ID:           uint(len(users)),
+		Email:        req.Email,
+		PasswordHash: string(passwordHash),
+	}
+	users = append(users, newUser)
+
+	// Create JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub":   newUser.ID,
+		"exp":   time.Now().Add(time.Hour * 72).Unix(),
+		"email": newUser.Email,
+	})
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create token"})
+		return
+	}
+
+	// Return token and user info (excluding password hash)
+	resp := struct {
+		Token string `json:"token"`
+		ID    uint   `json:"id"`
+	}{
+		Token: tokenString,
+		ID:    newUser.ID,
+	}
+	c.IndentedJSON(http.StatusCreated, resp)
+
+}
+
 func Login(c *gin.Context) {
 	var req struct {
 		Email    string `json:"email"`
@@ -28,13 +79,7 @@ func Login(c *gin.Context) {
 	// Find the user by email
 	var user *User
 	db.Where("email = ?", req.Email).First(&user)
-	// for i := range users {
-	// 	if users[i].Email == req.Email {
-	// 		// users[i].LastLogin = time.Now()
-	// 		user = &users[i]
-	// 		break
-	// 	}
-	// }
+
 	if user == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
@@ -58,7 +103,6 @@ func Login(c *gin.Context) {
 		return
 	}
 
-
 	var person = Person{ID: user.ID}
 	db.First(&person)
 	// Return token and user info (excluding password hash)
@@ -73,7 +117,7 @@ func Login(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func Signout(c *gin.Context) {
+func Logout(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "No token provided"})
@@ -96,28 +140,6 @@ func Signout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Signed out successfully"})
 }
 
-func GetPeople(c *gin.Context) {
-	var people []Person
-	if result := db.Find(&people); result.Error != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-            return
-        }
-
-	// fmt.Println(people) // Print the people slice to the console for debugging pu
-	c.IndentedJSON(http.StatusOK, people)
-}
-
-func GetUsers(c *gin.Context) {
-	var users []User
-	if result := db.Find(&users); result.Error != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-            return
-        }
-
-	// fmt.Println(people) // Print the people slice to the console for debugging pu
-	c.IndentedJSON(http.StatusOK, users)
-}
-
 func PostPeople(c *gin.Context) {
 	var newPerson Person
 
@@ -125,18 +147,41 @@ func PostPeople(c *gin.Context) {
 		return
 	}
 
-	
 	result := db.Create(newPerson) // pass a slice to insert multiple row
 	fmt.Println("Created rows: ", result.RowsAffected)
 	c.IndentedJSON(http.StatusCreated, newPerson)
 }
 
+func GetUsers(c *gin.Context) {
+	var users []User
+	if result := db.Find(&users); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+
+	// fmt.Println(people) // Print the people slice to the console for debugging pu
+	c.IndentedJSON(http.StatusOK, users)
+}
+
+// Search and find people and profile information
+
+func GetPeople(c *gin.Context) {
+	var people []Person
+	if result := db.Find(&people); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+
+	// fmt.Println(people) // Print the people slice to the console for debugging pu
+	c.IndentedJSON(http.StatusOK, people)
+}
+
 func GetPeopleByLocation(c *gin.Context) {
-	var processedPeople []Person
 	JwtMiddleware(c)
 	var req struct {
-		Lat  string `json:"lat"`
-		Long string `json:"long"`
+		Lat   float64 `json:"lat"`
+		Long  float64 `json:"long"`
+		Range float64 `json:"range"`
 	}
 	fmt.Println(c)
 	fmt.Println(req)
@@ -145,40 +190,29 @@ func GetPeopleByLocation(c *gin.Context) {
 		return
 	}
 
-	lat, err := strconv.ParseFloat(req.Lat, 64)
-	if err != nil {
-		fmt.Println("Error parsing latitude:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid latitude"})
+	// Earth's radius in kilometers
+	const earthRadius = 6371.0
+
+	// Calculate the bounding box
+	latRange := req.Range / earthRadius * (180 / math.Pi)
+	longRange := req.Range / (earthRadius * math.Cos(req.Lat*math.Pi/180)) * (180 / math.Pi)
+
+	minLat := req.Lat - latRange
+	maxLat := req.Lat + latRange
+	minLong := req.Long - longRange
+	maxLong := req.Long + longRange
+
+	fmt.Printf("Bounding box: minLat=%f, maxLat=%f, minLong=%f, maxLong=%f\n", minLat, maxLat, minLong, maxLong)
+
+	// Query the database for people within the bounding box
+	var people []Person
+	if err := db.Where("lat_location BETWEEN ? AND ? AND long_location BETWEEN ? AND ?", minLat, maxLat, minLong, maxLong).Find(&people).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query database"})
 		return
 	}
-	fmt.Println(lat)
 
-	long, err := strconv.ParseFloat(req.Long, 64)
-	if err != nil {
-		fmt.Println("Error parsing longitude:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid longitude"})
-		return
-	}
-	fmt.Println(long)
-	for _, p := range people {
-
-		// Calculate the distance from locationOrigin
-		distance, err := geodist.VincentyDistance(geodist.Point{Lat: p.LatLocation, Long: p.LongLocation}, geodist.Point{Lat: lat, Long: long})
-		if err != nil {
-			fmt.Printf("Error calculating distance for person %s: %v\n", p.ID, err)
-			continue
-		}
-
-		// Round the distance to two decimal places
-		roundedDistance := math.Round(distance*100) / 100
-		fmt.Println(roundedDistance)
-		// Create a processedProfile and append it to the processedPeople slice
-		processedPeople = append(processedPeople, p)
-
-	}
-
-	// Return the processedPeople array as JSON
-	c.IndentedJSON(http.StatusOK, processedPeople)
+	// Return the filtered people
+	c.IndentedJSON(http.StatusOK, people)
 }
 
 func GetPeopleByID(c *gin.Context) {
@@ -223,26 +257,14 @@ func GetPhotosByID(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found for that id"})
 }
 
-func GreetUser(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, "Hello World!")
-}
-
-func GreetUserByName(c *gin.Context) {
-	name := c.Param("name")
-
-	c.String(http.StatusOK, "Hello %s", name)
-}
-
-func GetFaviconIco(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, "localhost:3306/urmid.svg")
-}
+// Matchmaking and chat functionality
 
 func GetMatches(c *gin.Context) {
 	var matches []Match
 	if result := db.Find(&matches); result.Error != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-            return
-        }
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
 
 	// fmt.Println(people) // Print the people slice to the console for debugging pu
 	c.IndentedJSON(http.StatusOK, matches)
@@ -294,79 +316,68 @@ func GetMatchByPersonID(c *gin.Context) {
 func PostMatch(c *gin.Context) {
 	var newMatch Match
 
-	// Call BindJSON to bind the received JSON to
-	// newAlbum.
+	// Call BindJSON to bind the received JSON to Match struct
 	if err := c.BindJSON(&newMatch); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	if newMatch.MatchID != 0 {
-		for i, match := range Matches {
-			if match.MatchID == newMatch.MatchID {
-				// Update the existing match
-				Matches[i].AcceptedTime = time.Now() // Update the AcceptedTime
-				Matches[i].Offered = newMatch.Offered
-				Matches[i].Accepted = newMatch.Accepted
-				c.IndentedJSON(http.StatusOK, Matches)
+		results := db.Where("offered = ?", newMatch.MatchID).Preload("OfferedProfile").Preload("AcceptedProfile").First(&newMatch)
+		if results.Error != nil {
+			fmt.Println(results.Error)
+		}
+		if results.RowsAffected == 0 {
+			fmt.Printf("No match found with ID %d, checking if match exists between these two people", newMatch.MatchID)
+			results := db.Where("offered = ? AND accepted = ?", newMatch.Offered, newMatch.Accepted).Or("offered = ? AND accepted = ?", newMatch.Accepted, newMatch.Offered).Preload("OfferedProfile").Preload("AcceptedProfile").First(&newMatch)
+			if results.Error != nil {
+				fmt.Println(results.Error)
+			}
+			if results.RowsAffected == 0 {
+				fmt.Printf("No match found between these two people, creating a new match")
+				results := db.Create(newMatch) // pass a slice to insert multiple rows
+				fmt.Println("Created rows: ", results.RowsAffected)
+				if results.Error != nil {
+					fmt.Println(results.Error)
+					c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error creating match, existing match found and unable to create a new match"})
+					return
+				}
+				c.IndentedJSON(http.StatusCreated, newMatch)
 				return
+			} else {
+				fmt.Printf("Match found between these two people, although the match ID was wrong, updating the existing match")
+
 			}
 		}
+		// Update the existing match
+		newMatch.AcceptedTime = time.Now() // Update the AcceptedTime
+
+		c.IndentedJSON(http.StatusOK, newMatch)
+		return
 	}
 
-	newMatch.MatchID = len(Matches) + 1000 // Assign a new ID based on the length of the slice
-	newMatch.OfferedTime = time.Now()      // Set the OfferedTime to the current time
-	Matches = append(Matches, newMatch)
+	// If MatchID is 0, create a new match
+	results := db.Create(newMatch) // pass a slice to insert multiple row
+	fmt.Println("Created rows: ", results.RowsAffected)
+	if results.Error != nil {
+		fmt.Println(results.Error)
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error creating match"})
+		return
+	}
 	c.IndentedJSON(http.StatusCreated, newMatch)
 
 }
 
-func Signup(c *gin.Context) {
-	var req struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
+// Troubleshooting and utility endpoints
+func GetFaviconIco(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, "https://urmid.com/favicon.ico")
+}
 
-	// Bind the JSON payload to the struct
-	if err := c.BindJSON(&req); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+func GreetUser(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, "Hello World!")
+}
 
-	// Generate the password hash
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+func GreetUserByName(c *gin.Context) {
+	name := c.Param("name")
 
-	// Create a new user
-	newUser := User{
-		ID:           uint(len(users)),
-		Email:        req.Email,
-		PasswordHash: string(passwordHash),
-	}
-	users = append(users, newUser)
-
-	// Create JWT token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":   newUser.ID,
-		"exp":   time.Now().Add(time.Hour * 72).Unix(),
-		"email": newUser.Email,
-	})
-	tokenString, err := token.SignedString(jwtSecret)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create token"})
-		return
-	}
-
-	// Return token and user info (excluding password hash)
-	resp := struct {
-		Token string `json:"token"`
-		ID    uint   `json:"id"`
-	}{
-		Token: tokenString,
-		ID:    newUser.ID,
-	}
-	c.IndentedJSON(http.StatusCreated, resp)
-
+	c.String(http.StatusOK, "Hello %s", name)
 }
