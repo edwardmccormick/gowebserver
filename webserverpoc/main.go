@@ -33,10 +33,17 @@ func main() {
 	router.Use(cors.New(configCors))
 
 	// Load the configuration
-	config, err := LoadConfig("./config.json") // Adjust the path as needed
+	config, err := LoadConfig("./configlocal.json") // Adjust the path as needed
 	if err != nil {
 		fmt.Println("Error loading config:", err)
 		return
+	}
+	if isRunningInDockerContainer() {
+		config, err = LoadConfig("./config.json") // Adjust the path as needed
+		if err != nil {
+			fmt.Println("Error loading config:", err)
+			return
+		}
 	}
 
 	// Connect to MySQL
@@ -78,27 +85,34 @@ func main() {
 	fmt.Println("Database check and population complete.")
 
 	fmt.Println("Let's do the thing")
+	// Sort by general functionality - signup, auth, login, logout
+	router.POST("/signup", Signup)
+	router.POST("/login", Login)
+	router.GET("/logout", Logout)
+	router.POST("/people", PostPeople) // Really create profile for yourself but this logic made sense to me
+	router.GET("/users", GetUsers)     // for troubleshooting or admin purposes
+
+	// Search and find people and profile information
 	router.GET("/people", GetPeople)
 	router.POST("/peoplelocation", GetPeopleByLocation)
 	router.GET("/people/:id", GetPeopleByID)
-	router.POST("/people", PostPeople)
-	router.GET("/", GreetUser)
-	router.GET("/greet/:name", GreetUserByName)
-	router.POST("/login", Login)
-	router.GET("/logout", Signout)
-	router.GET("/ws", WebsocketListener)
 	router.GET("/photos/:id", GetPhotosByID)
-	router.GET("/favicon.ico", GetFaviconIco)
+
+	// Matchmaking and chat functionality
 	router.GET("/matches", GetMatches)
 	router.GET("/matches/:id", GetMatchByPersonID)
 	router.POST("/matches", PostMatch)
-	router.POST("/signup", Signup)
-	router.GET("/users", GetUsers)
+	router.GET("/ws", WebsocketListener)
+
+	// Troubleshooting and utility endpoints
+	router.GET("/favicon.ico", GetFaviconIco)
+	router.GET("/", GreetUser)
+	router.GET("/greet/:name", GreetUserByName)
 
 	if isRunningInDockerContainer() {
 		router.Run("0.0.0.0:8080")
 	} else {
-		router.Run("localhost:8080") 
+		router.Run("localhost:8080")
 	}
-	
+
 }

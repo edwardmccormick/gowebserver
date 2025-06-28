@@ -1,13 +1,13 @@
 {
   "mongodb": {
-    "host": "mongodb",
+    "host": "localhost",
     "port": 27017,
     "database": "urmid",
     "user": "root",
     "password": "password123"
   },
   "mysql": {
-    "host": "mysql",
+    "host": "localhost",
     "port": 3306,
     "database": "urmid",
     "user": "root",
