@@ -81,9 +81,9 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
                   
                 : matches.map((match) => (
                   (match.AcceptedProfile.id == User.id) ? (
-                  <div key={`${match.OfferedProfile.name}-${match.id}-${match.OfferedProfile.id}`}>
+                  <div key={`${match.OfferedProfile.name}-${match.ID}-${match.OfferedProfile.id}`}>
                   <ChatModal
-                    key={`chatwith${match.OfferedProfile.name}-${match.id}`}
+                    key={`chatwith${match.OfferedProfile.name}-${match.ID}`}
                     person={match.OfferedProfile} // Pass the currently selected person to the modal
                     match={match}
                     User={User} // Pass the User prop to the ChatModal
@@ -93,9 +93,9 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
                   ) 
                   : (
 
-                  <div key={`${match.AcceptedProfile.name}-${match.id}-${match.AcceptedProfile.id}`}>
+                  <div key={`${match.AcceptedProfile.name}-${match.ID}-${match.AcceptedProfile.id}`}>
                   <ChatModal
-                    key={`chatwith${match.AcceptedProfile.name}-${match.id}`}
+                    key={`chatwith${match.AcceptedProfile.name}-${match.ID}`}
                     person={match.AcceptedProfile} // Pass the currently selected person to the modal
                     match={match}
                     User={User} // Pass the User prop to the ChatModal

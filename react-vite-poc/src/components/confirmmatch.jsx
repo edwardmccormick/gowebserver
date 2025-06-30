@@ -35,7 +35,7 @@ function ConfirmMatchList({
       distance: Math.round(
         getPreciseDistance(
           { latitude: User.lat, longitude: User.long },
-          { latitude: match.person.lat, longitude: match.person.long }
+          { latitude: match.OfferedProfile.lat, longitude: match.OfferedProfile.long }
         ) / 1609.34 * 10
       ) / 10, // Convert meters to miles and round to 1 decimal place
     }));
@@ -50,9 +50,8 @@ function ConfirmMatchList({
   
   const handleSubmit = async (User, person, match) => {
     const payload = {
-      id: match.id,
-      match_ids: [User.id, person.id],
-      offered: person.id,
+      id: match.ID,
+      offered: match.offered,
       offered_time: match.offered_time,
       accepted: User.id
     };
@@ -90,21 +89,21 @@ function ConfirmMatchList({
        className='w-100'
       >
         {matches.map((match) => (
-        <Accordion.Item className='w-100' eventKey={match.person.id} key={match.person.id}>
-          <Accordion.Header className='w-100' key={`${match.person.id}100`}>
+        <Accordion.Item className='w-100' eventKey={match.OfferedProfile.id} key={match.OfferedProfile.id}>
+          <Accordion.Header className='w-100' key={`${match.OfferedProfile.id}100`}>
             <img
-              src={match.person.profile ? match.person.profile : '/profile.svg'}
+              src={match.OfferedProfile.profile ? match.OfferedProfile.profile : '/profile.svg'}
               style={{ borderRadius: '50%' }}
               className="m-1 p-1"
               height="50"
               width="50"
-              alt={`${match.person.name}'s profile`}
+              alt={`${match.OfferedProfile.name}'s profile`}
             />
-            <strong>{match.person.name}</strong> — {match.person.motto} - Distance: { match.distance } miles - liked your profile on { convertISODateToLocal(match.offered)}
+            <strong>{match.OfferedProfile.name}</strong> — {match.OfferedProfile.motto} - Distance: { match.distance } miles - liked your profile on { convertISODateToLocal(match.offered)}
           </Accordion.Header>
-          <Accordion.Body key={`${match.person.id}10000`}>
+          <Accordion.Body key={`${match.OfferedProfile.id}10000`}>
             <div className='text-start'>
-              <img src={match.person.profile} className='m-1 p-1 rounded float-start' height={'250'} width={'250'} />
+              <img src={match.OfferedProfile.profile} className='m-1 p-1 rounded float-start' height={'250'} width={'250'} />
                 <p>(Bender) There we were in the park when suddenly some old lady says I stole her purse. I chucked the professor at her but she kept coming. So I had to hit her with this purse I found.</p>
                 <p>(Bender) Boy, who knew a cooler could also make a handy wang coffin?!</p>
                 <p>Leela Futurama Quotes: (Amy After Bender destroys Fry's tent) Bender, wasn't that Fry's Tent? (Bender Responds Scoffing) Bender, Mominey mum meh. (Leela) Bender Raises a good point. Where is Fry?</p>
@@ -118,19 +117,19 @@ function ConfirmMatchList({
 
               <div height='450' width='450' className='text-center w-fill'>
                 <ControlledCarousel
-                  key={`${match.person.id}1000000`}
-                  id={match.person.id}
+                  key={`${match.OfferedProfile.id}1000000`}
+                  id={match.OfferedProfile.id}
                 />
               </div>
               <div className="mx-auto w-50 d-flex flex-row justify-content-around align-items-center">
-                {submittedLikes[match.person.id] ? (
+                {submittedLikes[match.OfferedProfile.id] ? (
                   <p className="text-success">Like submitted!</p>
                 ) : (
                   <>
                     <Button
                       variant="primary"
                       className="m-2"
-                      onClick={() => handleSubmit(User, match.person, match)}
+                      onClick={() => handleSubmit(User, match.OfferedProfile, match)}
                     >
                       Great match - let's chat!
                     </Button>

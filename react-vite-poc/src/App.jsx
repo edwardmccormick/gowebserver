@@ -80,9 +80,9 @@ function App() {
         console.log(data);
         const offered = data.filter((match) => (match.accepted_time == "0001-01-01T00:00:00Z" && match.offered == loggedInUser.id)); // This is what a null date looks like in Go
         console.log(offered);
-        const accepted = data.filter((match) => match.accepted_time != "0001-01-01T00:00:00Z"); // A non-null date
+        const accepted = data.filter((match) => match.accepted_time > "2009-11-10T17:00:00Z"); // A non-null date
         console.log(accepted);
-        const pending = data.filter((match) => (match.accepted_time == "0001-01-01T00:00:00Z" && match.offered != loggedInUser.id))
+        const pending = data.filter((match) => (match.accepted_time <= "2009-11-10T17:00:00Z" && match.offered != loggedInUser.id))
         console.log(pending);
         setMatches(accepted);
         setPendings(pending);

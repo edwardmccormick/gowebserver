@@ -7,10 +7,13 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"context"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"go.mongodb.org/mongo-driver/bson"
+	// "gorm.io/gorm"
 )
 
 // Sort by general functionality - signup, auth, login, logout
@@ -36,11 +39,15 @@ func Signup(c *gin.Context) {
 
 	// Create a new user
 	newUser := User{
-		ID:           uint(len(users)),
 		Email:        req.Email,
 		PasswordHash: string(passwordHash),
+		LastLogin: time.Now(),
 	}
-	users = append(users, newUser)
+	results := db.Create(&newUser)
+	if results.Error != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": results.Error.Error()})
+		return
+	}
 
 	// Create JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -147,7 +154,7 @@ func PostPeople(c *gin.Context) {
 		return
 	}
 
-	result := db.Create(newPerson) // pass a slice to insert multiple row
+	result := db.Create(&newPerson) // pass a slice to insert multiple row
 	fmt.Println("Created rows: ", result.RowsAffected)
 	c.IndentedJSON(http.StatusCreated, newPerson)
 }
@@ -321,19 +328,21 @@ func PostMatch(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if newMatch.MatchID != 0 {
-		results := db.Where("offered = ?", newMatch.MatchID).Preload("OfferedProfile").Preload("AcceptedProfile").First(&newMatch)
+	if newMatch.ID != 0 {
+		results := db.Where("offered = ?", newMatch.Offered).Preload("OfferedProfile").Preload("AcceptedProfile").First(&newMatch)
 		if results.Error != nil {
 			fmt.Println(results.Error)
 		}
 		if results.RowsAffected == 0 {
-			fmt.Printf("No match found with ID %d, checking if match exists between these two people", newMatch.MatchID)
+			fmt.Printf("No match found with ID %d, checking if match exists between these two people", newMatch.ID)
 			results := db.Where("offered = ? AND accepted = ?", newMatch.Offered, newMatch.Accepted).Or("offered = ? AND accepted = ?", newMatch.Accepted, newMatch.Offered).Preload("OfferedProfile").Preload("AcceptedProfile").First(&newMatch)
 			if results.Error != nil {
 				fmt.Println(results.Error)
 			}
 			if results.RowsAffected == 0 {
 				fmt.Printf("No match found between these two people, creating a new match")
+				newMatch.OfferedTime = time.Now()
+				newMatch.AcceptedTime = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 				results := db.Create(newMatch) // pass a slice to insert multiple rows
 				fmt.Println("Created rows: ", results.RowsAffected)
 				if results.Error != nil {
@@ -341,6 +350,7 @@ func PostMatch(c *gin.Context) {
 					c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error creating match, existing match found and unable to create a new match"})
 					return
 				}
+				newMatch.AcceptedTime = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 				c.IndentedJSON(http.StatusCreated, newMatch)
 				return
 			} else {
@@ -350,13 +360,23 @@ func PostMatch(c *gin.Context) {
 		}
 		// Update the existing match
 		newMatch.AcceptedTime = time.Now() // Update the AcceptedTime
-
+		results = db.Model(&newMatch).Where("id = ?", newMatch.ID).Save(&newMatch)
+		fmt.Println("Created rows: ", results.RowsAffected)
+		if results.Error != nil {
+			fmt.Println(results.Error)
+			c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error creating match, existing match found and unable to create a new match"})
+			return
+		}
 		c.IndentedJSON(http.StatusOK, newMatch)
 		return
 	}
 
-	// If MatchID is 0, create a new match
-	results := db.Create(newMatch) // pass a slice to insert multiple row
+	// If Match.ID is 0, create a new match
+	// newMatch.MatchID = nil;
+	newMatch.OfferedTime = time.Now()
+	newMatch.AcceptedTime = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	
+	results := db.Create(&newMatch) // pass a slice to insert multiple row
 	fmt.Println("Created rows: ", results.RowsAffected)
 	if results.Error != nil {
 		fmt.Println(results.Error)
@@ -369,7 +389,7 @@ func PostMatch(c *gin.Context) {
 
 // Troubleshooting and utility endpoints
 func GetFaviconIco(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, "https://urmid.com/favicon.ico")
+	c.File("./urmid.svg") // Serve the favicon.ico file from the current directory
 }
 
 func GreetUser(c *gin.Context) {
@@ -380,4 +400,65 @@ func GreetUserByName(c *gin.Context) {
 	name := c.Param("name")
 
 	c.String(http.StatusOK, "Hello %s", name)
+}
+
+func ChatMessagesFromSQL(c *gin.Context) {
+	var messages []ChatMessage
+	if result := db.Find(&messages); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+
+	// fmt.Println(people) // Print the people slice to the console for debugging pu
+	c.IndentedJSON(http.StatusOK, messages)
+}
+
+func ChatMessagesFromMongo(c *gin.Context) {
+	// Load the configuration
+	var config *Config
+	var err error
+
+	if isRunningInDockerContainer() {
+		config, err = LoadConfig("./config.json") // Adjust the path as needed
+		if err != nil {
+			fmt.Println("Error loading config:", err)
+			return
+		}
+	} else {
+		config, err = LoadConfig("./configlocal.json") // Adjust the path as needed
+		if err != nil {
+			fmt.Println("Error loading config:", err)
+			return
+		}
+	}
+
+	mongoClient, err := ConnectToMongoDBWithConfig(config)
+	if err != nil {
+		fmt.Println("Error connecting to MongoDB:", err)
+		return
+	}
+	fmt.Println("Connected to MongoDB.")
+
+	// Extract the ID from the URL parameter
+	str := c.Param("id")
+	id, err := strconv.Atoi(str)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	
+	collection := mongoClient.Database("gowebserver").Collection("chathistory")
+
+    var result struct {
+        History []ChatMessage `bson:"history"`
+    }
+    err = collection.FindOne(context.TODO(), bson.M{"ID": id}).Decode(&result)
+    if err != nil {
+        fmt.Printf("Error loading chat history from MongoDB: %v\n", err)
+        return
+    }
+
+    // Send the last 30 messages to the user
+
+	c.IndentedJSON(http.StatusOK, collection)
 }

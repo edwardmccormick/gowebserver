@@ -33,13 +33,17 @@ func main() {
 	router.Use(cors.New(configCors))
 
 	// Load the configuration
-	config, err := LoadConfig("./configlocal.json") // Adjust the path as needed
-	if err != nil {
-		fmt.Println("Error loading config:", err)
-		return
-	}
+	var config *Config
+	var err error
+
 	if isRunningInDockerContainer() {
 		config, err = LoadConfig("./config.json") // Adjust the path as needed
+		if err != nil {
+			fmt.Println("Error loading config:", err)
+			return
+		}
+	} else {
+		config, err = LoadConfig("./configlocal.json") // Adjust the path as needed
 		if err != nil {
 			fmt.Println("Error loading config:", err)
 			return
@@ -61,7 +65,7 @@ func main() {
 		&Person{},
 		&Details{},
 		&Match{},
-		// &ChatMessage{},
+		&ChatMessage{},
 	); err != nil {
 		fmt.Errorf("Error during automigration: %v", err)
 	}
@@ -108,7 +112,8 @@ func main() {
 	router.GET("/favicon.ico", GetFaviconIco)
 	router.GET("/", GreetUser)
 	router.GET("/greet/:name", GreetUserByName)
-
+	router.GET("/chat", ChatMessagesFromSQL)
+	router.GET("/chat/:id", ChatMessagesFromMongo)
 	if isRunningInDockerContainer() {
 		router.Run("0.0.0.0:8080")
 	} else {

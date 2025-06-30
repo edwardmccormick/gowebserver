@@ -40,7 +40,7 @@ export function ChatModal({match, person, User, unreadmessages}) {
     if (!match || !person || !User || !showModal) {
       return;
     }
-    ws.current = new WebSocket(`ws://localhost:8080/ws?id=${match.id}&user_id=${User.id}`);
+    ws.current = new WebSocket(`ws://localhost:8080/ws?id=${match.ID}&user_id=${User.id}`);
 
     ws.current.onopen = () => {
       setMessages((prev) => [...prev, { message: ' opened.', who: 'Connection', id: Date.now(), time: Date.now() }]);
@@ -145,7 +145,7 @@ export function ChatModal({match, person, User, unreadmessages}) {
 
     <>
     <Button
-      key={`openchatwith${person.name}-${match.id}`}
+      key={`openchatwith${person.name}-${match.ID}`}
       variant="outline-success"
       className="p-2 fs-5 m-2 text-right d-flex flex-row justify-content-between align-items-center"
       onClick={() => setShowModal(true)}
@@ -169,7 +169,7 @@ export function ChatModal({match, person, User, unreadmessages}) {
     </>
     <>
     <Modal
-      key={`chatwindowwith${person.name}-${match.id}`}
+      key={`chatwindowwith${person.name}-${match.ID}`}
       show={showModal}
       onHide={handleClose}
       size="lg"

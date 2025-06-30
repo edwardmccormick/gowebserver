@@ -6,9 +6,12 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"context"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Map to store connections by room ID
@@ -21,165 +24,213 @@ var chatHistory = make(map[int][]ChatMessage)
 var activeConnections = make(map[uint]*websocket.Conn)
 var activeConnectionsLock sync.Mutex // Protect access to the activeConnections map
 
+
+
 func WebsocketListener(c *gin.Context) {
-	conn, err := Upgrader.Upgrade(c.Writer, c.Request, nil)
+    conn, err := Upgrader.Upgrade(c.Writer, c.Request, nil)
+    if err != nil {
+        return
+    }
+    defer conn.Close()
+
+    // Parse room ID and user ID from query parameters
+    roomID := c.Query("id")
+    userID, _ := strconv.Atoi(c.Query("user_id"))
+
+    if roomID == "" || userID == 0 {
+        conn.WriteMessage(websocket.TextMessage, []byte("Room ID and User ID are required"))
+        return
+    }
+
+    matchID, err := strconv.Atoi(roomID)
+    if err != nil {
+        conn.WriteMessage(websocket.TextMessage, []byte("Invalid room ID"))
+        return
+    }
+
+    // Add connection to the room
+    roomsLock.Lock()
+    if rooms[roomID] == nil {
+        rooms[roomID] = make(map[*websocket.Conn]bool)
+    }
+    rooms[roomID][conn] = true
+    roomsLock.Unlock()
+
+    // Track the user's active connection
+    activeConnectionsLock.Lock()
+    activeConnections[uint(userID)] = conn
+    activeConnectionsLock.Unlock()
+
+	var config *Config
+
+	if isRunningInDockerContainer() {
+		config, err = LoadConfig("./config.json") // Adjust the path as needed
+		if err != nil {
+			fmt.Println("Error loading config:", err)
+			return
+		}
+	} else {
+		config, err = LoadConfig("./configlocal.json") // Adjust the path as needed
+		if err != nil {
+			fmt.Println("Error loading config:", err)
+			return
+		}
+	}
+
+	// Connect to MongoDB
+	mongoClient, err := ConnectToMongoDBWithConfig(config)
 	if err != nil {
+		fmt.Println("Error connecting to MongoDB:", err)
 		return
 	}
-	defer conn.Close()
+	fmt.Println("Connected to MongoDB.")
 
-	// Parse room ID and user ID from query parameters
-	roomID := c.Query("id")
-	userID, _ := strconv.Atoi(c.Query("user_id")) // Assume user_id is passed as a query parameter
+    defer func() {
+        // Remove connection from the room when it disconnects
+        roomsLock.Lock()
+        delete(rooms[roomID], conn)
+        roomsLock.Unlock()
 
-	if roomID == "" || userID == 0 {
-		conn.WriteMessage(websocket.TextMessage, []byte("Room ID and User ID are required"))
-		return
-	}
+        // Remove the user's active connection
+        activeConnectionsLock.Lock()
+        delete(activeConnections, uint(userID))
+        activeConnectionsLock.Unlock()
 
-	matchID, err := strconv.Atoi(roomID)
-	if err != nil {
-		conn.WriteMessage(websocket.TextMessage, []byte("Invalid room ID"))
-		return
-	}
+        // Dump chat history to MongoDB
+        dumpChatHistoryToMongo(matchID, mongoClient)
+    }()
 
-	// Add connection to the room
-	roomsLock.Lock()
-	if rooms[roomID] == nil {
-		rooms[roomID] = make(map[*websocket.Conn]bool)
-	}
-	rooms[roomID][conn] = true
-	roomsLock.Unlock()
+    // Deliver undelivered messages
+    deliverUndeliveredMessages(conn, matchID, uint(userID))
 
-	// Track the user's active connection
-	activeConnectionsLock.Lock()
-	activeConnections[uint(userID)] = conn
-	fmt.Printf("User %d connected to room %s\n", userID, roomID)
-	activeConnectionsLock.Unlock()
+    // Load chat history from MongoDB
+    loadChatHistoryFromMongo(conn, matchID, mongoClient)
 
-	defer func() {
-		// Remove connection from the room when it disconnects
-		roomsLock.Lock()
-		delete(rooms[roomID], conn)
-		roomsLock.Unlock()
+    // Chat message array for this session
+    var sessionChat []ChatMessage
 
-		// Remove the user's active connection
-		activeConnectionsLock.Lock()
-		delete(activeConnections, uint(userID))
-		activeConnectionsLock.Unlock()
-	}()
+    i := 0
+    for {
+        // Read message from the client
+        _, msg, err := conn.ReadMessage()
+        if err != nil {
+            fmt.Printf("Error reading message: %v\n", err)
+            break
+        }
 
-	// Deliver undelivered messages
-	deliverUndeliveredMessages(conn, matchID, uint(userID))
+        // Parse the received message as JSON
+        var receivedMessage ChatMessage
+        err = json.Unmarshal(msg, &receivedMessage)
+        if err != nil {
+            conn.WriteMessage(websocket.TextMessage, []byte("Invalid message format"))
+            continue
+        }
 
-	// Chat message array for this session
-	var sessionChat []ChatMessage
+        // Prepare the response
+        response := ChatMessage{
+            ID:      int64(i),
+            Time:    time.Now(),
+            Who:     uint(userID),
+            Message: receivedMessage.Message,
+        }
+        sessionChat = append(sessionChat, response)
+        i++
 
-	i := 0
-	for {
-		// Read message from the client
-		_, msg, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Printf("Error reading message: %v\n", err)
-			break
-		}
+        // Broadcast the message to all connections in the room except the sender
+        roomsLock.Lock()
+        for client := range rooms[roomID] {
+            if client != conn {
+                err := client.WriteMessage(websocket.TextMessage, msg)
+                if err != nil {
+                    client.Close()
+                    delete(rooms[roomID], client)
+                }
+            }
+        }
+        roomsLock.Unlock()
 
-		// Log the received message
-		fmt.Printf("Received message: %s\n", string(msg))
+        // Handle undelivered messages
+        handleUndeliveredMessages(matchID, response)
+    }
 
-		// Parse the received message as JSON
-		var receivedMessage ChatMessage
-		err = json.Unmarshal(msg, &receivedMessage)
-		if err != nil {
-			fmt.Printf("Error unmarshaling message: %v\n", err)
-			conn.WriteMessage(websocket.TextMessage, []byte("Invalid message format"))
-			continue
-		}
-
-		// Prepare the response
-		response := ChatMessage{
-			ID:      int64(i),
-			Time:    time.Now(),
-			Who:     receivedMessage.Who,
-			Message: receivedMessage.Message,
-		}
-		sessionChat = append(sessionChat, response)
-		fmt.Printf("Session chat: %v\n", sessionChat)
-		i++
-
-		// Marshal the response to JSON
-		msgBytes, err := json.Marshal(response)
-		if err != nil {
-			fmt.Printf("Error marshaling response: %v\n", err)
-			conn.WriteMessage(websocket.TextMessage, []byte("Error processing message"))
-			continue
-		}
-
-		// Broadcast the message to all connections in the room except the sender
-		roomsLock.Lock()
-		for client := range rooms[roomID] {
-			if client != conn {
-				err := client.WriteMessage(websocket.TextMessage, msgBytes)
-				if err != nil {
-					fmt.Printf("Error broadcasting message: %v\n", err)
-					client.Close()
-					delete(rooms[roomID], client)
-				}
-			}
-		}
-		roomsLock.Unlock()
-
-		// Handle undelivered messages
-		handleUndeliveredMessages(matchID, response)
-	}
-
-	// Save chat history for the session
-	roomsLock.Lock()
-	chatHistory[matchID] = append(chatHistory[matchID], sessionChat...)
-	roomsLock.Unlock()
+    // Save chat history for the session
+    roomsLock.Lock()
+    chatHistory[matchID] = append(chatHistory[matchID], sessionChat...)
+    roomsLock.Unlock()
 }
 
 func deliverUndeliveredMessages(conn *websocket.Conn, matchID int, userID uint) {
-	// for i, match := range Matches {
-	// 	if match.MatchID == matchID {
-	// 		// Check if the user is the Offered or Accepted user
-	// 		// var undeliveredMessages []ChatMessage
-	// 		// if match.Offered == userID {
-	// 		// 	undeliveredMessages = match.OfferedChat
-	// 		// } else if match.Accepted == userID {
-	// 		// 	undeliveredMessages = match.AcceptedChat
-	// 		// }
+    var undeliveredMessages []ChatMessage
+    db.Where("match_id = ? AND who != ?", matchID, userID).Find(&undeliveredMessages)
 
-	// 		// // Deliver only undelivered messages
-	// 		// for _, msg := range undeliveredMessages {
-	// 		// 	msgBytes, _ := json.Marshal(msg)
-	// 		// 	conn.WriteMessage(websocket.TextMessage, msgBytes)
-	// 		// }
+    for _, msg := range undeliveredMessages {
+        msgBytes, _ := json.Marshal(msg)
+        conn.WriteMessage(websocket.TextMessage, msgBytes)
+    }
 
-	// 		// Clear undelivered messages after sending
-	// 		// if match.Offered == userID {
-	// 		// 	Matches[i].OfferedChat = nil
-	// 		// } else if match.Accepted == userID {
-	// 		// 	Matches[i].AcceptedChat = nil
-	// 		// }
-	// 		// break
-	// 	}
-	// }
+    // Delete undelivered messages after sending
+    db.Where("match_id = ? AND who != ?", matchID, userID).Delete(&ChatMessage{})
 }
 
 func handleUndeliveredMessages(matchID int, message ChatMessage) {
-	fmt.Printf("Handling undelivered messages for matchID: %d\n", matchID)
-	// for i, match := range Matches {
-	// 	if match.MatchID == matchID {
-	// 		// Check if the sender is the Offered or Accepted user
-	// 		if match.OfferedUser == message.Who {
-	// 			fmt.Printf("Adding message to OfferedChat for matchID: %d\n", matchID)
-	// 			Matches[i].AcceptedChat = append(Matches[i].AcceptedChat, message)
-	// 		} else if match.AcceptedUser == message.Who {
-	// 			fmt.Printf("Adding message to AcceptedChat for matchID: %d\n", matchID)
-	// 			Matches[i].OfferedChat = append(Matches[i].OfferedChat, message)
-	// 		}
-	// 		break
-	// 	}
-	// }
+    for _, match := range Matches {
+        if match.ID == uint(matchID) {
+            activeConnectionsLock.Lock()
+            _, connected := activeConnections[match.Accepted]
+            activeConnectionsLock.Unlock()
+
+            if !connected {
+                // Save the message to MySQL
+                message.MatchID = matchID
+                db.Create(&message)
+            }
+            break
+        }
+    }
+}
+
+func dumpChatHistoryToMongo(matchID int, mongoClient *mongo.Client) {
+    history := chatHistory[matchID]
+    if len(history) == 0 {
+        return
+    }
+
+    collection := mongoClient.Database("gowebserver").Collection("chathistory")
+    _, err := collection.InsertOne(context.TODO(), bson.M{
+        "match_id": matchID,
+        "history":  history,
+        "timestamp": time.Now(),
+    })
+    if err != nil {
+        fmt.Printf("Error dumping chat history to MongoDB: %v\n", err)
+        return
+    }
+
+    // Clear in-memory chat history
+    roomsLock.Lock()
+    delete(chatHistory, matchID)
+    roomsLock.Unlock()
+}
+
+func loadChatHistoryFromMongo(conn *websocket.Conn, matchID int, mongoClient *mongo.Client) {
+    collection := mongoClient.Database("gowebserver").Collection("chathistory")
+
+    var result struct {
+        History []ChatMessage `bson:"history"`
+    }
+    err := collection.FindOne(context.TODO(), bson.M{"match_id": matchID}).Decode(&result)
+    if err != nil {
+        fmt.Printf("Error loading chat history from MongoDB: %v\n", err)
+        return
+    }
+
+    // Send the last 30 messages to the user
+    start := 0
+    if len(result.History) > 30 {
+        start = len(result.History) - 30
+    }
+    for _, msg := range result.History[start:] {
+        msgBytes, _ := json.Marshal(msg)
+        conn.WriteMessage(websocket.TextMessage, msgBytes)
+    }
 }

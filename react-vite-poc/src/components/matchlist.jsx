@@ -37,10 +37,10 @@ function MatchList({
   
   const handleSubmit = async (User, person) => {
     const payload = {
-      match_ids: [User.id, person.id],
       offered: User.id,
+      OfferedProfile: User,
       accepted: person.id,
-      person: person
+      AcceptedProfile: person
     };
     try {
       const response = await fetch('http://localhost:8080/matches', {

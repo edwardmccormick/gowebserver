@@ -27,14 +27,14 @@ var people = []Person{
 
 var users = []User{
 	// {ID: 0, Email: "bobby@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Now()},
-	{ID: 1, Email: "joe@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
-	{ID: 2, Email: "fred@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
-	{ID: 3, Email: "turd@furguson.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
-	{ID: 4, Email: "don@furguson.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
-	{ID: 5, Email: "ted@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
-	{ID: 6, Email: "training@data.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
-	{ID: 7, Email: "scale@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
-	{ID: 8, Email: "natalie@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{Email: "joe@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{Email: "fred@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{Email: "turd@furguson.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{Email: "don@furguson.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{Email: "ted@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{Email: "training@data.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{Email: "scale@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{Email: "natalie@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
 }
 
 var locationOrigin = geodist.Point{Lat: 29.42618, Long: 98.48618} // The Stupid Alamo
@@ -82,13 +82,13 @@ var isme = []string{
 }
 
 var Matches = []Match{
-	{MatchID: 1000, Offered: 3, OfferedProfile:people[3], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
-	{MatchID: 1001, Offered: 4, OfferedProfile:people[4], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
-	{MatchID: 1002, Offered: 3, OfferedProfile:people[3], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedProfile: people[1], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
-	// {MatchID: 1003, Offered: 0, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5, VibeChat: true},
-	{MatchID: 1004, Offered: 5, OfferedProfile:people[5], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedProfile: people[1], AcceptedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), VibeChat: true},
-	{MatchID: 1005, Offered: 6, OfferedProfile:people[6], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), VibeChat: true},
-	{MatchID: 1006, Offered: 5, OfferedProfile:people[5], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 7, AcceptedProfile: people[7], AcceptedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), VibeChat: true},
+	{Offered: 3, OfferedProfile:people[3], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
+	{Offered: 4, OfferedProfile:people[4], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
+	{Offered: 3, OfferedProfile:people[3], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedProfile: people[1], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
+	// {MatchID: 1003, Offered: 3, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5,  AcceptedTime: mustParseTime("0000-00-1T00:00:0.0000001-05:00"), VibeChat: true},
+	{Offered: 5, OfferedProfile:people[5], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedProfile: people[1], AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true},
+	{Offered: 6, OfferedProfile:people[6], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true},
+	{Offered: 5, OfferedProfile:people[5], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 7, AcceptedProfile: people[7], AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true},
 }
 
 // mustParseTime is a helper to parse time or panic if invalid
@@ -100,8 +100,66 @@ func mustParseTime(value string) time.Time {
 	return t
 }
 
-// varOfferedChat: []ChatMessage{
-// 	{ID: 0, Time: time.Now(), Who: "Me", Message: "Hey, how's it going?"},
+var chat8 = []ChatMessage{
+[
+  {
+    "id": 1,
+    "match_id": 8,
+    "time": "2025-06-30T10:00:00Z",
+    "who": 3,
+    "message": "Hey, how's it going?"
+  },
+  {
+    "id": 2,
+    "match_id": 8,
+    "time": "2025-06-30T10:01:00Z",
+    "who": 5,
+    "message": "Pretty good! How about you?"
+  },
+  {
+    "id": 3,
+    "match_id": 8,
+    "time": "2025-06-30T10:02:00Z",
+    "who": 3,
+    "message": "Not bad, just enjoying the day. What are you up to?"
+  },
+  {
+    "id": 4,
+    "match_id": 8,
+    "time": "2025-06-30T10:03:00Z",
+    "who": 5,
+    "message": "Just working on some projects. How about you?"
+  },
+  {
+    "id": 5,
+    "match_id": 8,
+    "time": "2025-06-30T10:04:00Z",
+    "who": 3,
+    "message": "Same here. Trying to wrap up a few things before the weekend."
+  },
+  {
+    "id": 6,
+    "match_id": 8,
+    "time": "2025-06-30T10:05:00Z",
+    "who": 5,
+    "message": "Sounds good! Any plans for the weekend?"
+  },
+  {
+    "id": 7,
+    "match_id": 8,
+    "time": "2025-06-30T10:06:00Z",
+    "who": 3,
+    "message": "Not sure yet, maybe just relax. What about you?"
+  },
+  {
+    "id": 8,
+    "match_id": 8,
+    "time": "2025-06-30T10:07:00Z",
+    "who": 5,
+    "message": "Thinking of going hiking. Should be fun!"
+  }
+]
+}
 
 var jwtSecret = []byte("supersecretkey") // Use a secure random key in production!
 
@@ -116,4 +174,8 @@ func isRunningInDockerContainer() bool {
     }
         
     return false
+}
+
+func intPtr(i int) *int {
+    return &i
 }

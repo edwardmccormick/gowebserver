@@ -2,6 +2,8 @@ package main
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Tabler interface {
@@ -9,7 +11,7 @@ type Tabler interface {
 }
 
 type Person struct {
-	ID           uint      `json:"id" db:"id" gorm:"primaryKey,AutoIncrement not null,Unique"`
+	ID           uint      `json:"id" db:"id" gorm:"primaryKey"`
 	Name         string    `json:"name" db:"name" gorm:"type:varchar(255) not null"`
 	Age          int       `json:"age" db:"age" gorm:"type:int not null"`
 	Motto        string    `json:"motto" db:"motto" gorm:"type:varchar(255)"`
@@ -24,6 +26,7 @@ type Person struct {
 
 type User struct {
 	ID           uint      `json:"id" db:"id" gorm:"uniqueIndex;not null"`
+	Person      Person    	`json:"user" db:"user" gorm:"foreignKey:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Email        string    `json:"email" db:"email" gorm:"type:varchar(255);not null"`
 	PasswordHash string    `json:"-" db:"password_hash" gorm:"type:varchar(255);not null"`
 	LastLogin    time.Time `json:"last_login" db:"last_login"`
@@ -58,8 +61,8 @@ type ChatMessage struct {
 	MatchID int       `json:"match_id" gorm:"not null"`                                         // Foreign key to Match.MatchID
 	Match   Match     `gorm:"foreignKey:MatchID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Foreign key relationship
 	Time    time.Time `json:"time"`
-	WhoID   uint      `json:"who_id" gorm:"not null"`                                         // Foreign key to Person.ID
-	Who     Person    `gorm:"foreignKey:WhoID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Foreign key relationship
+	Who   	uint      `json:"who" gorm:"not null"`                                         // Foreign key to Person.ID
+	WhoProfile     Person    `gorm:"foreignKey:Who;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Foreign key relationship
 	Message string    `json:"message" gorm:"type:text;not null"`
 }
 
@@ -79,7 +82,7 @@ type Details struct {
 }
 
 type Match struct {
-	MatchID      int       `json:"id" gorm:"primaryKey,AutoIncrement,not null,Unique"`
+	gorm.Model
 	Offered      uint      `json:"offered"`                                                           // Foreign key to User.ID
 	OfferedProfile  Person    `gorm:"foreignKey:Offered;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` // Foreign key relationship
 	OfferedTime  time.Time `json:"offered_time"`
