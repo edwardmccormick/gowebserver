@@ -1,0 +1,16 @@
+{
+  "mongodb": {
+    "host": "mongodb",
+    "port": 27017,
+    "database": "urmid",
+    "user": "root",
+    "password": "password123"
+  },
+  "mysql": {
+    "host": "mysql",
+    "port": 3306,
+    "database": "urmid",
+    "user": "urmid",
+    "password": "password123"
+  }
+}

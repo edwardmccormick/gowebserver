@@ -2,6 +2,7 @@ package main
 
 import (
 	"time"
+	"os"
 
 	"github.com/asmarques/geodist"
 	"golang.org/x/crypto/bcrypt"
@@ -13,7 +14,7 @@ func HashPassword(pw string) string {
 }
 
 var people = []Person{
-	{ID: 0, Name: "Bobby", Age: 25, Motto: "Always Ready", LatLocation: 29.534261019806404, LongLocation: 98.47049550692051, Profile: "./man_square1.jpg"},
+	// {ID: 0, Name: "Bobby", Age: 25, Motto: "Always Ready", LatLocation: 29.534261019806404, LongLocation: 98.47049550692051, Profile: "./man_square1.jpg"},
 	{ID: 1, Name: "Joe", Age: 31, Motto: "Always Faithful", LatLocation: 29.52016959410149, LongLocation: 98.49401109752402, Profile: "./man_square2.jpg"},
 	{ID: 2, Name: "Fred", Age: 28, Motto: "Always Prepared", LatLocation: 29.453596593823395, LongLocation: 98.47166788793534, Profile: "/pexels-kelvin809-810775.jpg"},
 	{ID: 3, Name: "Turd Furguson", Age: 41, Motto: "I'm supre close let's party!", LatLocation: 29.419922273698763, LongLocation: 98.48366872664229, Profile: "./turdfurguson.jpg"},
@@ -25,15 +26,15 @@ var people = []Person{
 }
 
 var users = []User{
-	{ID: 0, Email: "bobby@urmid.com", PasswordHash: HashPassword("password123")},
-	{ID: 1, Email: "joe@urmid.com", PasswordHash: HashPassword("password123")},
-	{ID: 2, Email: "fred@urmid.com", PasswordHash: HashPassword("password123")},
-	{ID: 3, Email: "turd@furguson.com", PasswordHash: HashPassword("password123")},
-	{ID: 4, Email: "don@furguson.com", PasswordHash: HashPassword("password123")},
-	{ID: 5, Email: "ted@urmid.com", PasswordHash: HashPassword("password123")},
-	{ID: 6, Email: "training@data.com", PasswordHash: HashPassword("password123")},
-	{ID: 7, Email: "scale@urmid.com", PasswordHash: HashPassword("password123")},
-	{ID: 8, Email: "natalie@urmid.com", PasswordHash: HashPassword("password123")},
+	// {ID: 0, Email: "bobby@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Now()},
+	{ID: 1, Email: "joe@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{ID: 2, Email: "fred@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{ID: 3, Email: "turd@furguson.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{ID: 4, Email: "don@furguson.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{ID: 5, Email: "ted@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{ID: 6, Email: "training@data.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{ID: 7, Email: "scale@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
+	{ID: 8, Email: "natalie@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
 }
 
 var locationOrigin = geodist.Point{Lat: 29.42618, Long: 98.48618} // The Stupid Alamo
@@ -81,13 +82,13 @@ var isme = []string{
 }
 
 var Matches = []Match{
-	{MatchID: 1000, MatchesIDs: []int{3, 5}, Offered: 3, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5, AcceptedTime: mustParseTime("2025-06-16T21:03:59.5225862-05:00"), VibeChat: true},
-	{MatchID: 1001, MatchesIDs: []int{4, 5}, Offered: 4, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5, AcceptedTime: mustParseTime("2025-06-16T21:03:59.5225862-05:00"), VibeChat: true},
-	{MatchID: 1002, MatchesIDs: []int{1, 3}, Offered: 3, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 1, AcceptedTime: mustParseTime("2025-06-16T21:03:59.5225862-05:00"), VibeChat: true},
-	{MatchID: 1003, MatchesIDs: []int{0, 5}, Offered: 0, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5, VibeChat: true},
-	{MatchID: 1004, MatchesIDs: []int{1, 5}, Offered: 5, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 1, VibeChat: true},
-	{MatchID: 1005, MatchesIDs: []int{6, 5}, Offered: 6, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5, VibeChat: true},
-	{MatchID: 1006, MatchesIDs: []int{5, 7}, Offered: 5, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 7, VibeChat: true},
+	{MatchID: 1000, Offered: 3, OfferedProfile:people[3], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
+	{MatchID: 1001, Offered: 4, OfferedProfile:people[4], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
+	{MatchID: 1002, Offered: 3, OfferedProfile:people[3], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedProfile: people[1], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
+	// {MatchID: 1003, Offered: 0, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5, VibeChat: true},
+	{MatchID: 1004, Offered: 5, OfferedProfile:people[5], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedProfile: people[1], AcceptedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), VibeChat: true},
+	{MatchID: 1005, Offered: 6, OfferedProfile:people[6], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), VibeChat: true},
+	{MatchID: 1006, Offered: 5, OfferedProfile:people[5], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 7, AcceptedProfile: people[7], AcceptedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), VibeChat: true},
 }
 
 // mustParseTime is a helper to parse time or panic if invalid
@@ -103,3 +104,16 @@ func mustParseTime(value string) time.Time {
 // 	{ID: 0, Time: time.Now(), Who: "Me", Message: "Hey, how's it going?"},
 
 var jwtSecret = []byte("supersecretkey") // Use a secure random key in production!
+
+func isRunningInDockerContainer() bool {
+    // docker creates a .dockerenv file at the root
+    // of the directory tree inside the container.
+    // if this file exists then the viewer is running
+    // from inside a container so return true
+        
+    if _, err := os.Stat("/.dockerenv"); err == nil {
+        return true
+    }
+        
+    return false
+}

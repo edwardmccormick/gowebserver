@@ -1,0 +1,43 @@
+
+services:
+  gowebserver:
+    build:
+      context: ./webserverpoc
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./webserverpoc/config.json:/root/config.json
+    depends_on:
+      - mongodb
+      - mysql
+    environment:
+      - CONFIG_FILE=/root/config.json
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    volumes:
+      - mongodb_data:/data/db
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password123
+      MYSQL_DATABASE: urmid
+      MYSQL_USER: urmid
+      MYSQL_PASSWORD: password123
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mongodb_data:
+  mysql_data:

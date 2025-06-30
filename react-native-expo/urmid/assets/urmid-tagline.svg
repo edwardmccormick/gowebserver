@@ -1,0 +1,13 @@
+<svg width="500" height="500" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#000000" />
+  <text x="50%" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-size="100" fill="white" font-weight="bold">ur</text>
+  <path d="M250 190
+           C250 170, 280 170, 280 190
+           C280 210, 250 240, 250 240
+           C250 240, 220 210, 220 190
+           C220 170, 250 170, 250 190
+           Z" fill="#D32F2F"/>
+  <text x="50%" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="100" fill="white" font-weight="bold">mid</text>
+  <text x="50%" y="350" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="white" letter-spacing="4">DATING. MINUS</text>
+  <text x="50%" y="370" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="white" letter-spacing="4">THE DUMB SHIT</text>
+</svg>
