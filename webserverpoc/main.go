@@ -8,9 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var db *gorm.DB
+var mongoClient *mongo.Client
 
 var Upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {

@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	// "go.mongodb.org/mongo-driver/mongo"
 )
 
 // Map to store connections by room ID
@@ -61,29 +61,29 @@ func WebsocketListener(c *gin.Context) {
     activeConnections[uint(userID)] = conn
     activeConnectionsLock.Unlock()
 
-	var config *Config
+	// var config *Config
 
-	if isRunningInDockerContainer() {
-		config, err = LoadConfig("./config.json") // Adjust the path as needed
-		if err != nil {
-			fmt.Println("Error loading config:", err)
-			return
-		}
-	} else {
-		config, err = LoadConfig("./configlocal.json") // Adjust the path as needed
-		if err != nil {
-			fmt.Println("Error loading config:", err)
-			return
-		}
-	}
+	// if isRunningInDockerContainer() {
+	// 	config, err = LoadConfig("./config.json") // Adjust the path as needed
+	// 	if err != nil {
+	// 		fmt.Println("Error loading config:", err)
+	// 		return
+	// 	}
+	// } else {
+	// 	config, err = LoadConfig("./configlocal.json") // Adjust the path as needed
+	// 	if err != nil {
+	// 		fmt.Println("Error loading config:", err)
+	// 		return
+	// 	}
+	// }
 
-	// Connect to MongoDB
-	mongoClient, err := ConnectToMongoDBWithConfig(config)
-	if err != nil {
-		fmt.Println("Error connecting to MongoDB:", err)
-		return
-	}
-	fmt.Println("Connected to MongoDB.")
+	// // Connect to MongoDB
+	// mongoClient, err := ConnectToMongoDBWithConfig(config)
+	// if err != nil {
+	// 	fmt.Println("Error connecting to MongoDB:", err)
+	// 	return
+	// }
+	// fmt.Println("Connected to MongoDB.")
 
     defer func() {
         // Remove connection from the room when it disconnects
@@ -97,14 +97,14 @@ func WebsocketListener(c *gin.Context) {
         activeConnectionsLock.Unlock()
 
         // Dump chat history to MongoDB
-        dumpChatHistoryToMongo(matchID, mongoClient)
+        dumpChatHistoryToMongo(matchID)
     }()
 
     // Deliver undelivered messages
     deliverUndeliveredMessages(conn, matchID, uint(userID))
 
     // Load chat history from MongoDB
-    loadChatHistoryFromMongo(conn, matchID, mongoClient)
+    loadChatHistoryFromMongo(conn, matchID)
 
     // Chat message array for this session
     var sessionChat []ChatMessage
@@ -189,7 +189,7 @@ func handleUndeliveredMessages(matchID int, message ChatMessage) {
     }
 }
 
-func dumpChatHistoryToMongo(matchID int, mongoClient *mongo.Client) {
+func dumpChatHistoryToMongo(matchID int) {
     history := chatHistory[matchID]
     if len(history) == 0 {
         return
@@ -212,7 +212,7 @@ func dumpChatHistoryToMongo(matchID int, mongoClient *mongo.Client) {
     roomsLock.Unlock()
 }
 
-func loadChatHistoryFromMongo(conn *websocket.Conn, matchID int, mongoClient *mongo.Client) {
+func loadChatHistoryFromMongo(conn *websocket.Conn, matchID int) {
     collection := mongoClient.Database("gowebserver").Collection("chathistory")
 
     var result struct {

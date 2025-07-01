@@ -414,32 +414,32 @@ func ChatMessagesFromSQL(c *gin.Context) {
 }
 
 func ChatMessagesFromMongo(c *gin.Context) {
-	// Load the configuration
-	var config *Config
-	var err error
+	// // Load the configuration
+	// var config *Config
+	// var err error
 
-	if isRunningInDockerContainer() {
-		config, err = LoadConfig("./config.json") // Adjust the path as needed
-		if err != nil {
-			fmt.Println("Error loading config:", err)
-			return
-		}
-	} else {
-		config, err = LoadConfig("./configlocal.json") // Adjust the path as needed
-		if err != nil {
-			fmt.Println("Error loading config:", err)
-			return
-		}
-	}
+	// if isRunningInDockerContainer() {
+	// 	config, err = LoadConfig("./config.json") // Adjust the path as needed
+	// 	if err != nil {
+	// 		fmt.Println("Error loading config:", err)
+	// 		return
+	// 	}
+	// } else {
+	// 	config, err = LoadConfig("./configlocal.json") // Adjust the path as needed
+	// 	if err != nil {
+	// 		fmt.Println("Error loading config:", err)
+	// 		return
+	// 	}
+	// }
 
-	mongoClient, err := ConnectToMongoDBWithConfig(config)
-	if err != nil {
-		fmt.Println("Error connecting to MongoDB:", err)
-		return
-	}
-	fmt.Println("Connected to MongoDB.")
+	// mongoClient, err := ConnectToMongoDBWithConfig(config)
+	// if err != nil {
+	// 	fmt.Println("Error connecting to MongoDB:", err)
+	// 	return
+	// }
+	// fmt.Println("Connected to MongoDB.")
 
-	// Extract the ID from the URL parameter
+	// // Extract the ID from the URL parameter
 	str := c.Param("id")
 	id, err := strconv.Atoi(str)
 	if err != nil {

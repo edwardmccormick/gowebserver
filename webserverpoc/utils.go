@@ -100,67 +100,6 @@ func mustParseTime(value string) time.Time {
 	return t
 }
 
-var chat8 = []ChatMessage{
-[
-  {
-    "id": 1,
-    "match_id": 8,
-    "time": "2025-06-30T10:00:00Z",
-    "who": 3,
-    "message": "Hey, how's it going?"
-  },
-  {
-    "id": 2,
-    "match_id": 8,
-    "time": "2025-06-30T10:01:00Z",
-    "who": 5,
-    "message": "Pretty good! How about you?"
-  },
-  {
-    "id": 3,
-    "match_id": 8,
-    "time": "2025-06-30T10:02:00Z",
-    "who": 3,
-    "message": "Not bad, just enjoying the day. What are you up to?"
-  },
-  {
-    "id": 4,
-    "match_id": 8,
-    "time": "2025-06-30T10:03:00Z",
-    "who": 5,
-    "message": "Just working on some projects. How about you?"
-  },
-  {
-    "id": 5,
-    "match_id": 8,
-    "time": "2025-06-30T10:04:00Z",
-    "who": 3,
-    "message": "Same here. Trying to wrap up a few things before the weekend."
-  },
-  {
-    "id": 6,
-    "match_id": 8,
-    "time": "2025-06-30T10:05:00Z",
-    "who": 5,
-    "message": "Sounds good! Any plans for the weekend?"
-  },
-  {
-    "id": 7,
-    "match_id": 8,
-    "time": "2025-06-30T10:06:00Z",
-    "who": 3,
-    "message": "Not sure yet, maybe just relax. What about you?"
-  },
-  {
-    "id": 8,
-    "match_id": 8,
-    "time": "2025-06-30T10:07:00Z",
-    "who": 5,
-    "message": "Thinking of going hiking. Should be fun!"
-  }
-]
-}
-
 var jwtSecret = []byte("supersecretkey") // Use a secure random key in production!
 
 func isRunningInDockerContainer() bool {
