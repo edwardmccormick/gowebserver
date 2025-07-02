@@ -44,8 +44,8 @@ Back-end:
 Architectural:
 
 [ ] A not-stupid implementation of user stats
-[ ] Containerize everything, and docker compose to spin up the right databases with the right connection strings
-[ ] some idea of how well react will scale to an iOS/Android app, and what those might possibly look like.
+[ x ] Containerize everything, and docker compose to spin up the right databases with the right connection strings
+[ x ] some idea of how well react will scale to an iOS/Android app, and what those might possibly look like.
 [ ] Postgres vs MySQL, although this will ultimately come down (like most of my decisions) to which is cheaper. Picking up pennies in front off the train tracks!
 [ ] Alerts, at least something besides server-side events, since those are pretty much a no-go with serverless. Message queue/delivery service?
 [ ] Probably some hard decisions about vibe chats, for or against
@@ -59,3 +59,9 @@ Operational:
 [ ] Terms of service
 [ ] Privacy statement, or whatever other legally required documents we're going to need. These are more 'go live' than 'alpha' pieces, but still....they might be easy wins.
 [ ] Would I consider a cofounder? Would I consider an angel? Would I consider some sort of equity arrangement to help us get 'off the ground'? Do I have the stones like those little Asian girls from Coffee Meets Bagel to tell Mark Cuban (rightly!) 
+
+#FFFFFF - White
+#000000 - Black
+#FF0000 - Red
+#0E6BA8 - Bice Blue
+#717744 - Reseda Green
