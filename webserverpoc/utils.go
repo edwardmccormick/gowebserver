@@ -1,8 +1,8 @@
 package main
 
 import (
-	"time"
 	"os"
+	"time"
 
 	"github.com/asmarques/geodist"
 	"golang.org/x/crypto/bcrypt"
@@ -75,20 +75,15 @@ var messages = []string{
 	"Yes, it is working. I can see your messages.",
 	"I don't think it is. Can you see what I'm typing? Try again?",
 }
-var isme = []string{
-	"Me",
-	"Them",
-	"Admin",
-}
 
 var Matches = []Match{
-	{Offered: 3, OfferedProfile:people[3], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
-	{Offered: 4, OfferedProfile:people[4], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
-	{Offered: 3, OfferedProfile:people[3], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedProfile: people[1], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
+	{Offered: 3, OfferedProfile: people[3], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
+	{Offered: 4, OfferedProfile: people[4], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
+	{Offered: 3, OfferedProfile: people[3], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedProfile: people[1], AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
 	// {MatchID: 1003, Offered: 3, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5,  AcceptedTime: mustParseTime("0000-00-1T00:00:0.0000001-05:00"), VibeChat: true},
-	{Offered: 5, OfferedProfile:people[5], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedProfile: people[1], AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true},
-	{Offered: 6, OfferedProfile:people[6], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true},
-	{Offered: 5, OfferedProfile:people[5], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 7, AcceptedProfile: people[7], AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true},
+	{Offered: 5, OfferedProfile: people[5], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedProfile: people[1], AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true},
+	{Offered: 6, OfferedProfile: people[6], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedProfile: people[5], AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true},
+	{Offered: 5, OfferedProfile: people[5], OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 7, AcceptedProfile: people[7], AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true},
 }
 
 // mustParseTime is a helper to parse time or panic if invalid
@@ -103,18 +98,18 @@ func mustParseTime(value string) time.Time {
 var jwtSecret = []byte("supersecretkey") // Use a secure random key in production!
 
 func isRunningInDockerContainer() bool {
-    // docker creates a .dockerenv file at the root
-    // of the directory tree inside the container.
-    // if this file exists then the viewer is running
-    // from inside a container so return true
-        
-    if _, err := os.Stat("/.dockerenv"); err == nil {
-        return true
-    }
-        
-    return false
+	// docker creates a .dockerenv file at the root
+	// of the directory tree inside the container.
+	// if this file exists then the viewer is running
+	// from inside a container so return true
+
+	if _, err := os.Stat("/.dockerenv"); err == nil {
+		return true
+	}
+
+	return false
 }
 
 func intPtr(i int) *int {
-    return &i
+	return &i
 }

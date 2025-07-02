@@ -7,8 +7,8 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"gorm.io/gorm"
 	"go.mongodb.org/mongo-driver/mongo"
+	"gorm.io/gorm"
 )
 
 var db *gorm.DB
@@ -69,7 +69,7 @@ func main() {
 		&Match{},
 		&ChatMessage{},
 	); err != nil {
-		fmt.Errorf("Error during automigration: %v", err)
+		fmt.Printf("Error during automigration: %v", err)
 	}
 	fmt.Println("Database schema migrated successfully.")
 
