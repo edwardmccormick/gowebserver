@@ -63,17 +63,16 @@ type ProfileAlbum struct {
 }
 
 type ChatMessage struct {
-	ID         int64     `json:"id" gorm:"primaryKey,AutoIncrement not null,Unique"`
-	MatchID    int       `json:"match_id" gorm:"not null"`                                         // Foreign key to Match.MatchID
-	Match      Match     `gorm:"foreignKey:MatchID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Foreign key relationship
-	Time       time.Time `json:"time"`
-	Who        uint      `json:"who" gorm:"not null"`                                          // Foreign key to Person.ID
-	WhoProfile Person    `gorm:"foreignKey:Who;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Foreign key relationship
-	Message    string    `json:"message" gorm:"type:text;not null"`
+	ID         int64     `json:"id" gorm:"primaryKey,AutoIncrement not null,Unique" bson:"id"`
+	MatchID    int       `json:"match_id" gorm:"not null" bson:"match_id"`                                         // Foreign key to Match.MatchID
+	// Match      Match     `gorm:"foreignKey:MatchID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Foreign key relationship
+	Time       time.Time `json:"time" bson:"time"`
+	Who        uint      `json:"who" gorm:"not null" bson:"who"`                                          // Foreign key to Person.ID
+	// WhoProfile Person    `gorm:"foreignKey:Who;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Foreign key relationship
+	Message    string    `json:"message" gorm:"type:text;not null" bson:"message"`
 }
 
 type Conversation struct {
-	gorm.Model
 	MatchID  uint          `json:"match_id" bson:"match_id"` //
 	Messages []ChatMessage `json:"messages" bson:"messages"` // Array of chat messages
 }

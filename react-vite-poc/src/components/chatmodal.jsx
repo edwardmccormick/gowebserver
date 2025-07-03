@@ -9,12 +9,7 @@ function convertISODateToLocal(dateString) {
   const date = new Date(dateString);
 
 
-  const localTime = date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  });
+  const localTime = date.toLocaleTimeString();
   return localTime; // Output: "09:03:56 PM"
 
 }
@@ -85,7 +80,7 @@ export function ChatModal({match, person, User, unreadmessages}) {
   const sendMessage = () => {
     if (ws.current && input) {
       let date = new Date();
-      ws.current.send(JSON.stringify({ message: input, who: User.id, id: Date.now() })); // Send the message as a JSON object
+      ws.current.send(JSON.stringify({ message: input, who: User.id, id: Date.now(), time: date.toISOString() })); // Send the message as a JSON object
       setMessages((prev) => [...prev, { message: input, who: 'Me', id: Date.now(), time: date.toLocaleTimeString() }]); // Add the message to the chat
       setInput(''); // Reset the input field to an empty string
     }

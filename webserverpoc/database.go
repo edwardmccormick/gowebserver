@@ -50,6 +50,7 @@ func ConnectToMongoDBWithConfig(config *Config) (*mongo.Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}
+
 	// Test the connection and authentication
 	if err := client.Ping(context.TODO(), nil); err != nil {
 		return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
@@ -138,6 +139,22 @@ func PopulateDatabase(db *gorm.DB, mongoClient *mongo.Client) error {
 			return fmt.Errorf("failed to populate photos: %w", err)
 		}
 		fmt.Println("Photos populated in MongoDB.")
+	}
+
+		// Check if PhotoArray1 exists in MongoDB
+	chat := mongoClient.Database("urmid").Collection("chathistory")
+	chatCount, err := chat.CountDocuments(context.TODO(), bson.M{})
+	if err != nil {
+		return fmt.Errorf("failed to check photo count: %w", err)
+	}
+	if chatCount == 0 {
+		var conversation Conversation
+		// Populate chat history
+		success, err := chat.InsertOne(context.TODO(), conversation); 
+		if err != nil {
+			fmt.Errorf("failed to populate chat history: %+v\n", err)
+		}
+		fmt.Println("Chat history table created in MongoDB.", success)
 	}
 
 	return nil

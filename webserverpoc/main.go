@@ -74,7 +74,7 @@ func main() {
 	fmt.Println("Database schema migrated successfully.")
 
 	// Connect to MongoDB
-	mongoClient, err := ConnectToMongoDBWithConfig(config)
+	mongoClient, err = ConnectToMongoDBWithConfig(config)
 	if err != nil {
 		fmt.Println("Error connecting to MongoDB:", err)
 		return

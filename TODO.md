@@ -65,3 +65,4 @@ Operational:
 #FF0000 - Red
 #0E6BA8 - Bice Blue
 #717744 - Reseda Green
+#ED8B00
