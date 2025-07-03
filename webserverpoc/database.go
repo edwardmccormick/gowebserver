@@ -37,7 +37,7 @@ func LoadConfig(filePath string) (*Config, error) {
 // ConnectToMongoDBWithConfig connects to MongoDB using values from the config
 func ConnectToMongoDBWithConfig(config *Config) (*mongo.Client, error) {
 	uri := fmt.Sprintf("mongodb://%s:%s@%s:%d/?authSource=admin",
-	//  uri := fmt.Sprintf("mongodb://%s:%s@%s:%d/",
+		//  uri := fmt.Sprintf("mongodb://%s:%s@%s:%d/",
 		config.Mongo.User,
 		config.Mongo.Password,
 		config.Mongo.Host,
@@ -51,9 +51,9 @@ func ConnectToMongoDBWithConfig(config *Config) (*mongo.Client, error) {
 		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}
 	// Test the connection and authentication
-    if err := client.Ping(context.TODO(), nil); err != nil {
-        return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
-    }
+	if err := client.Ping(context.TODO(), nil); err != nil {
+		return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
+	}
 
 	return client, nil
 }
@@ -120,7 +120,7 @@ func PopulateDatabase(db *gorm.DB, mongoClient *mongo.Client) error {
 	}
 
 	// Check if PhotoArray1 exists in MongoDB
-	photoCollection := mongoClient.Database("gowebserver").Collection("photos")
+	photoCollection := mongoClient.Database("urmid").Collection("photos")
 	photoCount, err := photoCollection.CountDocuments(context.TODO(), bson.M{})
 	if err != nil {
 		return fmt.Errorf("failed to check photo count: %w", err)
@@ -128,9 +128,9 @@ func PopulateDatabase(db *gorm.DB, mongoClient *mongo.Client) error {
 
 	if photoCount == 0 {
 		// Populate PhotoArray1 and PhotoArray2
-		photos := append(PhotoArray, PhotoArray2...)
+		// photos := append(PhotoArray, PhotoArray2...)
 		var photoDocs []interface{}
-		for _, photo := range photos {
+		for _, photo := range albums {
 			photoDocs = append(photoDocs, photo)
 		}
 

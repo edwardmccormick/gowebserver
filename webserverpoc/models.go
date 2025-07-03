@@ -56,6 +56,12 @@ type ProfilePhoto struct {
 	Caption string `json:"caption"`
 }
 
+type ProfileAlbum struct {
+	ID     uint           `json:"id" db:"id" gorm:"uniqueIndex;not null"`
+	Person Person         `json:"-" db:"user" gorm:"foreignKey:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Photos []ProfilePhoto `json:"photos"` // Using JSONB for PostgreSQL or JSON for MySQL
+}
+
 type ChatMessage struct {
 	ID         int64     `json:"id" gorm:"primaryKey,AutoIncrement not null,Unique"`
 	MatchID    int       `json:"match_id" gorm:"not null"`                                         // Foreign key to Match.MatchID
@@ -68,9 +74,8 @@ type ChatMessage struct {
 
 type Conversation struct {
 	gorm.Model
-	MatchID  uint          `json:"match_id" gorm:"not null"`                                         //
-	Match    Match         `gorm:"foreignKey:MatchID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Foreign key relationship
-	Messages []ChatMessage `json:"messages" gorm:"foreignKey:MatchID;"`
+	MatchID  uint          `json:"match_id" bson:"match_id"` //
+	Messages []ChatMessage `json:"messages" bson:"messages"` // Array of chat messages
 }
 
 type Details struct {
