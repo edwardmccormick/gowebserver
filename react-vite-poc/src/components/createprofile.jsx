@@ -14,7 +14,7 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID}) {
     latitude: '',
     longitude: '',
     profile: '',
-    details: Object.keys(details).reduce((acc, key) => ({ ...acc, [key]: 0 }), {}),
+    details: Object.keys(details).reduce((acc, key) => ({ ...acc, [key]: null }), {}),
   });
 
   const handleChange = (e) => {
@@ -146,7 +146,7 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID}) {
           />
         </div>
       </div>
-        <div className="mx-auto text-center m-1 p-1 w-75">
+        {/* <div className="mx-auto text-center m-1 p-1 w-75">
           <Form.Label htmlFor="description">Describe yourself</Form.Label>
           <Form.Control as="textarea" rows={5}
             id="description"
@@ -155,13 +155,13 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID}) {
             value={formData.description}
             onChange={handleChange}
           />
-        </div>
+        </div> */}
       <div className="mx-auto text-center m-1 p-1 w-75" style={{ maxHeight: '300px' }}>
         {isQuillLoaded ? (
           <QuillEditor onContentChange={handleContentChange} />
           ) : (
               <div className="d-flex align-items-center justify-content-center bg-secondary-subtle">
-                  <p className="text-secondary-emphasis">Loading Editor...</p>
+                  <p className="text-secondary-emphasis">Hold on, finding some pen and paper to write this down....</p>
               </div>
           )}
       </div>

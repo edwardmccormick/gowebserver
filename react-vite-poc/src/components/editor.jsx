@@ -53,7 +53,7 @@ export const QuillEditor = ({ onContentChange }) => {
                         ['clean']
                     ],
                 },
-                placeholder: 'Compose an epic...',
+                placeholder: 'This is the part where you pretend to have something interesting to say...',
             });
 
             // Store the Quill instance in the ref

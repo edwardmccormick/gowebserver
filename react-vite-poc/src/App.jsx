@@ -192,7 +192,7 @@ function App() {
        </div>
 
   </>
-  ) : (jwt && pendingID) ? (
+  ) : (jwt && (pendingID || loggedInUser.motto == null || loggedInUser.motto == undefined) ? (
     <div className="mx-auto p-3 text-center bg-black h-100 app-container">
       <h1 className="text-white">Oh. Cool. You actually signed up for this hot mess?</h1>
       <h4 className="text-white">Well we might as well make it official. Let's get some info for you</h4>
