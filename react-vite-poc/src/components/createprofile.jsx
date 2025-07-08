@@ -168,6 +168,7 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID}) {
 
       <DetailsSelections
         onChange={handleDetailsChange}
+        selectedValues={formData.details}
       />
 
       <Button variant="primary"  onClick={handleSubmit}>

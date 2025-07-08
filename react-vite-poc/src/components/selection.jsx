@@ -1,43 +1,36 @@
-import Form from 'react-bootstrap/Form';
+import { useState } from 'react';
+import Button from 'react-bootstrap/Button';
+import Accordion from 'react-bootstrap/Accordion';
 
-function SelectionFormat({ array, subject, onChange }) {
-  const handleChange = (e) => {
-    const value = e.target.value;
-    onChange(value); // Pass the selected value to the parent
+function SelectionFormat({ array, subject, onChange, selectedValue = null }) {
+  const [selected, setSelected] = useState(selectedValue);
+
+  const handleSelect = (index) => {
+    setSelected(index);
+    onChange(index);
   };
+
   return (
-    <>
-      <Form.Label htmlFor={`create${subject}`}>Describe how much you like {subject} on a scale of 0-10</Form.Label>
-      <Form.Select 
-        aria-label={`${subject} select example`}
-        onChange={handleChange}
-      >
-        <option>Describe how much you like {subject} on a scale of 0-10</option>
-        {array.map((item, index) => (
-          <option key={index} value={index}>
-            {index} - {item}
-          </option>
-        ))}
-      </Form.Select>
-    </>
+    <Accordion className="mb-3">
+      <Accordion.Item eventKey="0">
+        <Accordion.Header>{subject} - {selected !== null || selected !== 0 || selected !== undefined ? array[selected] : `Love 'em or hate 'em?`}</Accordion.Header>
+        <Accordion.Body>
+          <div className="d-flex flex-column gap-2">
+            {array.map((item, index) => (
+              <Button
+                key={index}
+                variant={selected === index ? "primary" : "outline-secondary"}
+                onClick={() => handleSelect(index)}
+                className="text-start"
+              >
+                {index} - {item}
+              </Button>
+            ))}
+          </div>
+        </Accordion.Body>
+      </Accordion.Item>
+    </Accordion>
   );
 }
-
-export function HumanitySelectionFormat({ array, subject }) {
-  return (
-    <>
-      <Form.Label htmlFor={`create${subject}`}>So it turns out {subject} doesn't exist on a scale - pick what makes sense to you.</Form.Label>
-      <Form.Select aria-label={`${subject} select example`}>
-        <option>Which option best describes what fits for you?</option>
-        {array.map((item, index) => (
-          <option key={index} value={index}>
-            {item}
-          </option>
-        ))}
-      </Form.Select>
-    </>
-  );
-}
-
 
 export default SelectionFormat;
