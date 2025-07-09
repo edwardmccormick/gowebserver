@@ -34,7 +34,7 @@ export const useQuillLoader = () => {
 
 // --- QuillEditor Component ---
 // This component wraps the Quill editor instance.
-export const QuillEditor = ({ onContentChange }) => {
+export const QuillEditor = ({ onContentChange, initialContent = null }) => {
     const editorRef = useRef(null); // Ref to the div where Quill will be mounted
     const quillInstanceRef = useRef(null); // Ref to the Quill instance itself
 
@@ -58,7 +58,12 @@ export const QuillEditor = ({ onContentChange }) => {
 
             // Store the Quill instance in the ref
             quillInstanceRef.current = quill;
-
+            
+            // Set initial content if provided
+            if (initialContent) {
+                quill.setContents(initialContent);
+            }
+            
             // --- Event Listener for Text Change ---
             quill.on('text-change', (delta, oldDelta, source) => {
                 if (source === 'user') {
@@ -69,7 +74,7 @@ export const QuillEditor = ({ onContentChange }) => {
                 }
             });
         }
-    }, [onContentChange]); // Rerun effect if onContentChange callback changes
+    }, [onContentChange, initialContent]); // Rerun effect if onContentChange or initialContent changes
 
     return (
         // The div element that will be replaced by the Quill editor

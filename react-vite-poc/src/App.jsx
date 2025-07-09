@@ -192,15 +192,26 @@ function App() {
        </div>
 
   </>
-  ) : (jwt && (pendingID || loggedInUser.motto == null || loggedInUser.motto == undefined) ? (
+  ) : (jwt && (pendingID || loggedInUser.name == null || loggedInUser.name == undefined || loggedInUser.name == "") ? (
     <div className="mx-auto p-3 text-center bg-black h-100 app-container">
-      <h1 className="text-white">Oh. Cool. You actually signed up for this hot mess?</h1>
-      <h4 className="text-white">Well we might as well make it official. Let's get some info for you</h4>
+      {loggedInUser && loggedInUser.name ? (
+        <>
+        <h1 className="text-white">Yeah. I was wondering how to tell you that it was a little off-putting.</h1>
+        <h4 className="text-white">Although most of that is your pictures. And personality. And personal hygiene.</h4>
+        </>
+      ) : (
+        <>
+        <h1 className="text-white">Oh. Cool. You actually signed up for this hot mess?</h1>
+        <h4 className="text-white">Well we might as well make it official. Let's get some info for you</h4>
+        </>
+      )
+      }
         <div className="bg-white">
           <CreateProfile
             setLoggedInUser={setLoggedInUser}
             pendingID={pendingID}
             setPendingID={setPendingID}
+            loggedInUser={loggedInUser}
           />
         </div>
     </div>
@@ -232,6 +243,9 @@ function App() {
           setShowFAQ(true)
           setShowConfirmMatch(false);
           setShowAdvancedSearch(false);
+        }}
+        onClickProfile={() => {
+          setPendingID(loggedInUser.id)
         }}
       />
 
@@ -283,7 +297,7 @@ function App() {
   
       
     
-  );
+  ));
 }
 
 export default App;

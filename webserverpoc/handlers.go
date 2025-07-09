@@ -85,7 +85,7 @@ func Login(c *gin.Context) {
 
 	// Find the user by email
 	var user *User
-	db.Where("email = ?", req.Email).First(&user)
+	db.Where("email = ?", req.Email).First(&user).Preload("Person")
 
 	if user == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
@@ -153,15 +153,15 @@ func PostPeople(c *gin.Context) {
 	if err := c.BindJSON(&newPerson); err != nil {
 		return
 	}
-
-	result := db.Create(&newPerson) // pass a slice to insert multiple row
+	// newPerson.CreatedAt = nil;
+	result := db.Save(&newPerson) // pass a slice to insert multiple row
 	fmt.Println("Created rows: ", result.RowsAffected)
 	c.IndentedJSON(http.StatusCreated, newPerson)
 }
 
 func GetUsers(c *gin.Context) {
 	var users []User
-	if result := db.Find(&users); result.Error != nil {
+	if result := db.Find(&users).Preload("Person"); result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
@@ -256,7 +256,7 @@ func GetPhotosByID(c *gin.Context) {
 		c.IndentedJSON(http.StatusOK, PhotoArray2)
 		return
 	}
-	if id == 4 || id == 5 || id == 6 || id == 7 || id == 8 || id == 9 || id == 10 {
+	if id == 4 || id == 5 || id == 6 || id == 7 || id == 8 || id == 9 || id == 10 || id == 11 || id == 12 || id == 13 {
 		c.IndentedJSON(http.StatusOK, PhotoArray)
 		return
 	}

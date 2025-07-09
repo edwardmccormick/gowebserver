@@ -20,7 +20,8 @@ function NavBar({
   setShowConfirmMatch,
   onSearchClick,
   onMeetClick,
-  onFAQClick
+  onFAQClick,
+  onClickProfile,
   }) {
 
   
@@ -85,7 +86,9 @@ function NavBar({
                   
                   </NavDropdown.Item>
                   <NavDropdown.Item href="#action/3.1" className='text-center'>Currently logged in as: <br /> {User.name}</NavDropdown.Item>
-                  <NavDropdown.Item>
+                  <NavDropdown.Item
+                  onClick={onClickProfile}
+                  >
                     Update Profile
                   </NavDropdown.Item>
                   <NavDropdown.Item>

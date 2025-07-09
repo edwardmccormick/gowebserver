@@ -5,16 +5,32 @@ import DetailsSelections from './detailsselections';
 import { useQuillLoader, QuillEditor } from './editor';
 import details from '../../../details.json';
 
-export function CreateProfile({setLoggedInUser, pendingID, setPendingID}) {
-  const [formData, setFormData] = useState({
-    name: '',
-    age: '',
-    description: '',
-    motto: '',
-    latitude: '',
-    longitude: '',
-    profile: '',
-    details: Object.keys(details).reduce((acc, key) => ({ ...acc, [key]: null }), {}),
+export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedInUser}) {
+  const [formData, setFormData] = useState(() => {
+    // If loggedInUser exists and has a name, use its values to populate the form
+    if (loggedInUser && loggedInUser.name) {
+      return {
+        name: loggedInUser.name || '',
+        age: loggedInUser.age || '',
+        description: loggedInUser.description || '',
+        motto: loggedInUser.motto || '',
+        latitude: loggedInUser.lat || '',
+        longitude: loggedInUser.long || '',
+        profile: loggedInUser.profile || '',
+        details: loggedInUser.details || Object.keys(details).reduce((acc, key) => ({ ...acc, [key]: null }), {}),
+      };
+    }
+    // Otherwise, use empty values
+    return {
+      name: '',
+      age: '',
+      description: '',
+      motto: '',
+      latitude: '',
+      longitude: '',
+      profile: '',
+      details: Object.keys(details).reduce((acc, key) => ({ ...acc, [key]: null }), {}),
+    };
   });
 
   const handleChange = (e) => {
@@ -35,12 +51,23 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID}) {
 
   const isQuillLoaded = useQuillLoader(); // Hook to load Quill scripts
   // State to hold the editor's content in Delta format
-  const [editorDelta, setEditorDelta] = useState(null);
+  const [editorDelta, setEditorDelta] = useState(() => {
+    // If loggedInUser exists and has a description, try to parse it as JSON
+    if (loggedInUser && loggedInUser.description) {
+      try {
+        return JSON.parse(loggedInUser.description);
+      } catch (e) {
+        console.error('Error parsing description:', e);
+        return null;
+      }
+    }
+    return null;
+  });
   // State to hold the "submitted" content, which we'll then render as HTML
 
   const handleSubmit = async () => {
     const payload = {
-      id: pendingID,
+      id: loggedInUser?.id || pendingID,
       age: parseInt(formData.age),
       name: formData.name,
       motto: formData.motto,
@@ -65,7 +92,7 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID}) {
         setLoggedInUser(data); // Update the logged-in user in App.jsx
         setPendingID(null);
         console.log('Profile created successfully:', data);
-        alert('Completed your profile! Nice');
+        alert(loggedInUser && loggedInUser.name ? 'Updated your profile! Nice' : 'Completed your profile! Nice');
       } else {
         alert('Ruh roh Shaggy');
       }
@@ -158,7 +185,7 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID}) {
         </div> */}
       <div className="mx-auto text-center m-1 p-1 w-75" style={{ maxHeight: '300px' }}>
         {isQuillLoaded ? (
-          <QuillEditor onContentChange={handleContentChange} />
+          <QuillEditor onContentChange={handleContentChange} initialContent={editorDelta} />
           ) : (
               <div className="d-flex align-items-center justify-content-center bg-secondary-subtle">
                   <p className="text-secondary-emphasis">Hold on, finding some pen and paper to write this down....</p>
@@ -171,8 +198,8 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID}) {
         selectedValues={formData.details}
       />
 
-      <Button variant="primary"  onClick={handleSubmit}>
-        Finish your profile
+      <Button variant="primary" onClick={handleSubmit}>
+        {loggedInUser && loggedInUser.name ? 'Update your profile' : 'Finish your profile'}
       </Button>
     </>
   );
