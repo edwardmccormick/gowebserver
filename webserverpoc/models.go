@@ -20,8 +20,8 @@ type Person struct {
 	Profile      string    `json:"profile" db:"profile" gorm:"type:varchar(255)"`
 	Details      Details   `json:"details" db:"details" gorm:"embedded"`
 	Description  string    `json:"description" db:"description" gorm:"type:text"`
-	CreatedAt    time.Time `json:"create_time"`
-	UpdatedAt    time.Time `json:"update_time"`
+	CreatedAt    time.Time `json:"create_time" db:"create_time" gorm:"<-:create"`
+	UpdatedAt    time.Time `json:"update_time" db:"update_time" gorm:"<-:update"`
 }
 
 type User struct {
@@ -29,9 +29,9 @@ type User struct {
 	Person       Person    `json:"user" db:"user" gorm:"foreignKey:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Email        string    `json:"email" db:"email" gorm:"type:varchar(255);not null"`
 	PasswordHash string    `json:"-" db:"password_hash" gorm:"type:varchar(255);not null"`
-	LastLogin    time.Time `json:"last_login" db:"last_login"`
-	CreatedAt    time.Time `json:"create_time" db:"create_time"`
-	UpdatedAt    time.Time `json:"update_time" db:"update_time"`
+	LastLogin    time.Time `json:"last_login" db:"last_login" gorm:"<-:update"`
+	CreatedAt    time.Time `json:"create_time" db:"create_time" gorm:"<-:create"`
+	UpdatedAt    time.Time `json:"update_time" db:"update_time" gorm:"<-:update"`
 }
 
 type Config struct {
@@ -63,13 +63,13 @@ type ProfileAlbum struct {
 }
 
 type ChatMessage struct {
-	ID         int64     `json:"id" gorm:"primaryKey,AutoIncrement not null,Unique" bson:"id"`
-	MatchID    int       `json:"match_id" gorm:"not null" bson:"match_id"`                                         // Foreign key to Match.MatchID
+	ID      int64 `json:"id" gorm:"primaryKey,AutoIncrement not null,Unique" bson:"id"`
+	MatchID int   `json:"match_id" gorm:"not null" bson:"match_id"` // Foreign key to Match.MatchID
 	// Match      Match     `gorm:"foreignKey:MatchID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Foreign key relationship
-	Time       time.Time `json:"time" bson:"time"`
-	Who        uint      `json:"who" gorm:"not null" bson:"who"`                                          // Foreign key to Person.ID
+	Time time.Time `json:"time" bson:"time"`
+	Who  uint      `json:"who" gorm:"not null" bson:"who"` // Foreign key to Person.ID
 	// WhoProfile Person    `gorm:"foreignKey:Who;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Foreign key relationship
-	Message    string    `json:"message" gorm:"type:text;not null" bson:"message"`
+	Message string `json:"message" gorm:"type:text;not null" bson:"message"`
 }
 
 type Conversation struct {
