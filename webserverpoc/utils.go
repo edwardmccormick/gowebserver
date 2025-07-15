@@ -15,14 +15,14 @@ func HashPassword(pw string) string {
 
 var people = []Person{
 	// {ID: 0, Name: "Bobby", Age: 25, Motto: "Always Ready", LatLocation: 29.534261019806404, LongLocation: 98.47049550692051, Profile: "./man_square1.jpg"},
-	{ID: 1, Name: "Joe", Age: 31, Motto: "Always Faithful", LatLocation: 29.52016959410149, LongLocation: 98.49401109752402, Profile: "./man_square2.jpg"},
-	{ID: 2, Name: "Fred", Age: 28, Motto: "Always Prepared", LatLocation: 29.453596593823395, LongLocation: 98.47166788793534, Profile: "/pexels-kelvin809-810775.jpg"},
-	{ID: 3, Name: "Turd Furguson", Age: 41, Motto: "It's a funny name", LatLocation: 29.419922273698763, LongLocation: 98.48366872664229, Profile: "./turdfurguson.jpg"},
-	{ID: 4, Name: "Don", Age: 79, Motto: "I want you Bigly", LatLocation: 38.898, LongLocation: 77.037, Profile: "https://www.whitehouse.gov/wp-content/uploads/2025/06/President-Donald-Trump-Official-Presidential-Portrait.png"},
-	{ID: 5, Name: "The Founder", Age: 42, Motto: "I just want this fucking thing to work", LatLocation: 48.858, LongLocation: -2.294, Profile: "https://ted.mccormickhub.com/img/tedProfilePicture.jpg"},
-	{ID: 6, Name: "Training Data", Age: 32, Motto: "Somebody has to carry this fucking site", LatLocation: 48.858, LongLocation: -2.859, Profile: "https://wallpaperheart.com/wp-content/uploads/2018/04/image-Scarlett-Johansson-Images.jpg"},
-	{ID: 7, Name: "Scale is Hard", Age: 32, Motto: "I'm famous! Yay!", LatLocation: 50, LongLocation: 0.123, Profile: "./Lenna.jpg"},
-	{ID: 8, Name: "Natalie", Age: 39, Motto: "Yes, that one", LatLocation: 49, LongLocation: -1, Profile: "./natalie.jpg"},
+	{ID: 1, Name: "Joe", Age: 31, Motto: "Always Faithful", LatLocation: 29.52016959410149, LongLocation: -98.49401109752402, Profile: "./man_square2.jpg"},
+	{ID: 2, Name: "Fred", Age: 28, Motto: "Always Prepared", LatLocation: 29.453596593823395, LongLocation: -98.47166788793534, Profile: "/pexels-kelvin809-810775.jpg"},
+	{ID: 3, Name: "Turd Furguson", Age: 41, Motto: "It's a funny name", LatLocation: 29.419922273698763, LongLocation: -98.48366872664229, Profile: "./turdfurguson.jpg"},
+	{ID: 4, Name: "Don", Age: 79, Motto: "I want you Bigly", LatLocation: 38.898, LongLocation: -77.037, Profile: "https://www.whitehouse.gov/wp-content/uploads/2025/06/President-Donald-Trump-Official-Presidential-Portrait.png"},
+	{ID: 5, Name: "The Founder", Age: 42, Motto: "I just want this fucking thing to work", LatLocation: 38.858, LongLocation: -92.294, Profile: "https://ted.mccormickhub.com/img/tedProfilePicture.jpg"},
+	{ID: 6, Name: "Training Data", Age: 32, Motto: "Somebody has to carry this fucking site", LatLocation: 38.858, LongLocation: -92.859, Profile: "https://wallpaperheart.com/wp-content/uploads/2018/04/image-Scarlett-Johansson-Images.jpg"},
+	{ID: 7, Name: "Scale is Hard", Age: 32, Motto: "I'm famous! Yay!", LatLocation: 50, LongLocation: -100, Profile: "./Lenna.jpg"},
+	{ID: 8, Name: "Natalie", Age: 39, Motto: "Yes, that one", LatLocation: 49, LongLocation: -100, Profile: "./natalie.jpg"},
 }
 
 var users = []User{

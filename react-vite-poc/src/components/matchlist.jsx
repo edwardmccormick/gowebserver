@@ -4,6 +4,7 @@ import ControlledCarousel from './carousel'
 import { getPreciseDistance } from 'geolib';
 import Button from 'react-bootstrap/Button';
 import { useQuillLoader, QuillEditor } from './editor';
+import MatchMap from './MatchMap';
 
 function MatchList({
     people, 
@@ -13,7 +14,9 @@ function MatchList({
   }) {
 
   const [submittedLikes, setSubmittedLikes] = useState({}); // Track submitted likes
-   const isQuillLoaded = useQuillLoader(); // Load Quill at the top level
+  const [showMap, setShowMap] = useState(false); // Toggle between list and map view
+  const [isFlipping, setIsFlipping] = useState(false); // Animation state
+  const isQuillLoaded = useQuillLoader(); // Load Quill at the top level
   // let people = peopleObject.people;
   // Add distance to each person and sort by distance
   if (!loading && User) {
@@ -88,6 +91,14 @@ function MatchList({
       return { __html: '<p>Invalid content format.</p>' };
     }
   };
+
+  const handleViewToggle = () => {
+    setIsFlipping(true);
+    setTimeout(() => {
+      setShowMap(!showMap);
+      setIsFlipping(false);
+    }, 300);
+  };
     return (
       loading || User==undefined ? (
         <div className="d-flex align-items-center">
@@ -96,7 +107,27 @@ function MatchList({
         </div>
       ) : (
       <>
-      <h2>And these {people ? `${people.length} ` : null }cool folks want to be liked by you:</h2>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>And these {people ? `${people.length} ` : null }cool folks want to be liked by you:</h2>
+        <Button 
+          variant="outline-primary" 
+          onClick={handleViewToggle}
+          disabled={isFlipping}
+        >
+          {showMap ? '📋 List View' : '🗺️ Map View'}
+        </Button>
+      </div>
+      <div 
+        className={`view-container ${isFlipping ? 'flipping' : ''}`}
+        style={{
+          transform: isFlipping ? 'rotateY(90deg)' : 'rotateY(0deg)',
+          transition: 'transform 0.3s ease-in-out',
+          transformStyle: 'preserve-3d'
+        }}
+      >
+        {showMap ? (
+          <MatchMap people={people} User={User} />
+        ) : (
       <Accordion className='w-100'>
         {people.map((person) => (
         <Accordion.Item className='w-100' eventKey={person.id} key={person.id}>
@@ -165,6 +196,8 @@ function MatchList({
         </Accordion.Item>
         ))}
       </Accordion>
+        )}
+      </div>
     </>
       )
     
