@@ -4,7 +4,9 @@ import Button from 'react-bootstrap/Button';
 
 export function SignUp({ 
   setPendingID , 
-  setJWT}) {
+  setJWT,
+  setUploadUrls,
+}) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -33,6 +35,7 @@ export function SignUp({
       if (response.ok) {
         const data = await response.json();
         setPendingID(data.id); // Update the logged-in user in App.jsx
+        setUploadUrls(data.upload_urls); // Set the upload URLs for the user
         console.log(data.person);
         setJWT(data.token);
         alert('Signup successful');

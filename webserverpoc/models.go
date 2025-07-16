@@ -11,17 +11,18 @@ type Tabler interface {
 }
 
 type Person struct {
-	ID           uint      `json:"id" db:"id" gorm:"primaryKey"`
-	Name         string    `json:"name" db:"name" gorm:"type:varchar(255) not null"`
-	Age          int       `json:"age" db:"age" gorm:"type:int not null"`
-	Motto        string    `json:"motto" db:"motto" gorm:"type:varchar(255)"`
-	LatLocation  float64   `json:"lat" db:"lat" gorm:"type:float not null"`
-	LongLocation float64   `json:"long" db:"long" gorm:"type:float not null"`
-	Profile      string    `json:"profile" db:"profile" gorm:"type:varchar(255)"`
-	Details      Details   `json:"details" db:"details" gorm:"embedded"`
-	Description  string    `json:"description" db:"description" gorm:"type:text"`
-	CreatedAt    time.Time `json:"create_time" db:"create_time" gorm:"<-:create"`
-	UpdatedAt    time.Time `json:"update_time" db:"update_time" gorm:"<-:update"`
+	ID           uint           `json:"id" db:"id" gorm:"primaryKey"`
+	Name         string         `json:"name" db:"name" gorm:"type:varchar(255) not null"`
+	Age          int            `json:"age" db:"age" gorm:"type:int not null"`
+	Motto        string         `json:"motto" db:"motto" gorm:"type:varchar(255)"`
+	LatLocation  float64        `json:"lat" db:"lat" gorm:"type:float not null"`
+	LongLocation float64        `json:"long" db:"long" gorm:"type:float not null"`
+	Profile      string         `json:"profile" db:"profile" gorm:"type:varchar(255)"`
+	Details      Details        `json:"details" db:"details" gorm:"embedded"`
+	Photos       []ProfilePhoto `json:"photos" gorm:"foreignKey:PersonID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Establish relationship
+	Description  string         `json:"description" db:"description" gorm:"type:text"`
+	CreatedAt    time.Time      `json:"create_time" db:"create_time" gorm:"<-:create"`
+	UpdatedAt    time.Time      `json:"update_time" db:"update_time" gorm:"<-:update"`
 }
 
 type User struct {
@@ -52,14 +53,11 @@ type Config struct {
 }
 
 type ProfilePhoto struct {
-	Url     string `json:"url"`
-	Caption string `json:"caption"`
-}
-
-type ProfileAlbum struct {
-	ID     uint           `json:"id" db:"id" gorm:"uniqueIndex;not null"`
-	Person Person         `json:"-" db:"user" gorm:"foreignKey:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	Photos []ProfilePhoto `json:"photos"` // Using JSONB for PostgreSQL or JSON for MySQL
+	ID       uint   `json:"id" gorm:"primaryKey"`
+	PersonID uint   `json:"person_id" gorm:"not null"` // Foreign key to Person.ID
+	Url      string `json:"url" gorm:"-"`
+	S3Key    string `json:"s3key"`
+	Caption  string `json:"caption"`
 }
 
 type ChatMessage struct {

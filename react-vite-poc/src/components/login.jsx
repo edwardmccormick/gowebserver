@@ -6,7 +6,9 @@ import details from '../../../details.json';
 
 function SignIn({ 
   setLoggedInUser , 
-  setJWT}) {
+  setJWT,
+  setUploadUrls,
+}) {
     const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -34,6 +36,7 @@ function SignIn({
         const data = await response.json();
         setLoggedInUser(data.person); // Update the logged-in user in App.jsx
         setJWT(data.token);
+        setUploadUrls(data.upload_urls); // Set the upload URLs for the user
         alert('Login successful!');
       } else {
         alert('Invalid email or password.');

@@ -4,8 +4,11 @@ import Button from 'react-bootstrap/Button';
 import DetailsSelections from './detailsselections';
 import { useQuillLoader, QuillEditor } from './editor';
 import details from '../../../details.json';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
+import ControlledCarousel from './carousel';
 
-export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedInUser}) {
+export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedInUser, uploadUrls}) {
   const [formData, setFormData] = useState(() => {
     // If loggedInUser exists and has a name, use its values to populate the form
     if (loggedInUser && loggedInUser.name) {
@@ -18,6 +21,7 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedI
         longitude: loggedInUser.long || '',
         profile: loggedInUser.profile || '',
         details: loggedInUser.details || Object.keys(details).reduce((acc, key) => ({ ...acc, [key]: null }), {}),
+        photos: loggedInUser.photos || [],
       };
     }
     // Otherwise, use empty values
@@ -29,7 +33,8 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedI
       latitude: '',
       longitude: '',
       profile: '',
-      details: Object.keys(details).reduce((acc, key) => ({ ...acc, [key]: null }), {}),
+      details: {},
+      photos: [],
     };
   });
 
@@ -76,6 +81,10 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedI
       profile: formData.profile,
       description: JSON.stringify(editorDelta), // Use the Delta content from the editor
       details: formData.details,
+      photos: formData.photos.map(photo => ({ 
+        S3Key: photo.s3key,
+        caption: photo.caption || '',
+      })),
     };
 
     try {
@@ -101,6 +110,80 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedI
         alert('An error occurred during profile creation.');
       }
   };
+
+  const [usedUrls, setUsedUrls] = useState(0); // Track the number of used presigned URLs
+  const [uploadError, setUploadError] = useState(null); // Track upload errors
+  const [selectedFile, setSelectedFile] = useState(null); // Track the selected file
+  const [caption, setCaption] = useState(''); // Track the caption for the image
+
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file extension
+    const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    if (!validExtensions.includes(fileExtension)) {
+      setUploadError('Invalid file type. Please upload an image file.');
+      return;
+    }
+
+    setSelectedFile(file);
+    setUploadError(null); // Clear any previous errors
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setUploadError('Please select a file to upload.');
+      return;
+    }
+
+    // Check if there are remaining presigned URLs
+    if (usedUrls >= uploadUrls.length) {
+      setUploadError('You have reached your upload limit.');
+      return;
+    }
+
+    try {
+      const presignedUrl = uploadUrls[usedUrls].url; // Get the presigned URL for the next upload
+      const s3Key = uploadUrls[usedUrls].s3key; // Use the S3 key that was generated with the presigned urls
+
+      const response = await fetch(presignedUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': selectedFile.type,
+        },
+        body: selectedFile,
+      });
+
+      if (response.ok) {
+        setFormData((prev) => ({
+          ...prev,
+          photos: [
+            ...prev.photos,
+            { s3key: s3Key, caption }, // Persist the S3 key and caption
+          ],
+        }));
+        setUsedUrls((prev) => prev + 1); // Increment the used URLs count
+        setSelectedFile(null); // Clear the selected file
+        setCaption(''); // Clear the caption
+        setUploadError(null); // Clear any previous errors
+        alert('Image uploaded successfully!');
+      } else {
+        setUploadError('Failed to upload the image. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setUploadError('An error occurred during the upload.');
+    }
+  };
+
+  const renderTooltip = (props) => (
+    <Tooltip {...props}>
+      You've reached your upload limit for images.
+    </Tooltip>
+  );
 
  return (
     <>
@@ -192,12 +275,52 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedI
               </div>
           )}
       </div>
+<br />
+     {/* Upload Images Section */}
+      <div className="text-center my-3">
+        <Form.Group controlId="imageUpload">
+          <Form.Label>Upload Images</Form.Label>
+          <Form.Control
+            type="file"
+            accept="image/*"
+            onChange={handleFileSelect}
+            disabled={usedUrls >= uploadUrls.length} // Disable if all URLs are used
+          />
+        </Form.Group>
+        {selectedFile && (
+          <div className="my-3">
+            <ControlledCarousel
+              photos={[{ url: URL.createObjectURL(selectedFile), caption }]} // Preview the selected image
+              id={loggedInUser?.id || pendingID}
+            />
+            <Form.Group controlId="imageCaption">
+              <Form.Label>Image Caption</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter a caption for the image"
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+              />
+            </Form.Group>
+          </div>
+        )}
+        {uploadError && <p className="text-danger">{uploadError}</p>}
+        <OverlayTrigger
+          placement="top"
+          overlay={renderTooltip}
+          show={usedUrls >= uploadUrls.length} // Show tooltip when limit is reached
+        >
+          <Button
+            variant="primary"
+            onClick={handleUpload}
+            disabled={usedUrls >= uploadUrls.length} // Disable button if limit is reached
+          >
+            {usedUrls >= uploadUrls.length ? 'Upload Limit Reached' : 'Upload Image'}
+          </Button>
+        </OverlayTrigger>
+      </div>
 
-      <DetailsSelections
-        onChange={handleDetailsChange}
-        selectedValues={formData.details}
-      />
-
+      {/* Submit Button */}
       <Button variant="primary" onClick={handleSubmit}>
         {loggedInUser && loggedInUser.name ? 'Update your profile' : 'Finish your profile'}
       </Button>

@@ -2,10 +2,10 @@ Todos:
 
 Front-end:
 
-[ ] a signup flow that isn't (as) overwhelming
+[ x ] a signup flow that isn't (as) overwhelming
  - I think this is going to end up being, at least at first, a carousel with detail 'buttons' - pick one and go to the next screen, with maybe a back button enabled but no 'forward' button? Or maybe we let you go back and forward, but alert before you submit without every field filled. Working concept
-[ ] a split in the signup flow between a 'basic' profile and a 'complete' or 'advanced' profile, with all the metrics
-[ ] the ability to update your profile
+[ x ] a split in the signup flow between a 'basic' profile and a 'complete' or 'advanced' profile, with all the metrics
+[ x ] the ability to update your profile
 - This can probably be almost identical as the signup flow, except we show you what you currently have
 [ ] upload photograph user flow, if not an actual implementation
 - Drag and drop functionality, add from your photo gallery on phone

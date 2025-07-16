@@ -66,6 +66,7 @@ func main() {
 		&User{},
 		&Person{},
 		&Details{},
+		&ProfilePhoto{},
 		&Match{},
 		&ChatMessage{},
 	); err != nil {

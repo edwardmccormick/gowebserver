@@ -17,6 +17,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [loggedInUser, setLoggedInUser] = useState(null); // State to store the logged-in user
   const [jwt, setJWT] = useState(null);
+  const [uploadUrls, setUploadUrls] = useState([]); // State to store upload URLs
   const [searchResults, setSearchResults] = useState([]);
   const [matches, setMatches] = useState([]);
   const [matchLoading, setMatchLoading] = useState(false);
@@ -62,13 +63,13 @@ function App() {
     // Add this useEffect hook
   useEffect(() => {
     
-    if (loggedInUser || showAdvancedSearch || showConfirmMatch || showFAQ) { 
+    if (showAdvancedSearch || showConfirmMatch || showFAQ) { 
       // Scroll to the top of the page when the user logs in
       window.scrollTo({ top: 0, behavior: 'smooth' });
       // Only call refreshMatches if loggedInUser is not null
       refreshMatches();
     }
-  }, [loggedInUser, showAdvancedSearch, showConfirmMatch, showFAQ]); // Dependency array: this effect runs when loggedInUser changes
+  }, [showAdvancedSearch, showConfirmMatch, showFAQ]); // Dependency array: this effect runs when loggedInUser changes
 
 
   const refreshMatches = () => {
@@ -171,6 +172,7 @@ function App() {
                   <SignIn 
                     setLoggedInUser={setLoggedInUser} 
                     setJWT={setJWT}
+                    setUploadUrls={setUploadUrls}
                   />   
                 </div>   
                 <div><h4>Or</h4></div>
@@ -178,6 +180,7 @@ function App() {
                   <SignUp 
                     setPendingID={setPendingID} 
                     setJWT={setJWT}
+                    setUploadUrls={setUploadUrls}
                   />
                 </div>
               </div></div>
@@ -212,6 +215,7 @@ function App() {
             pendingID={pendingID}
             setPendingID={setPendingID}
             loggedInUser={loggedInUser}
+            uploadUrls={uploadUrls}
           />
         </div>
     </div>

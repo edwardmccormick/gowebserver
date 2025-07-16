@@ -121,27 +121,27 @@ func PopulateDatabase(db *gorm.DB, mongoClient *mongo.Client) error {
 	}
 
 	// Check if PhotoArray1 exists in MongoDB
-	photoCollection := mongoClient.Database("urmid").Collection("photos")
-	photoCount, err := photoCollection.CountDocuments(context.TODO(), bson.M{})
-	if err != nil {
-		return fmt.Errorf("failed to check photo count: %w", err)
-	}
+	// photoCollection := mongoClient.Database("urmid").Collection("photos")
+	// photoCount, err := photoCollection.CountDocuments(context.TODO(), bson.M{})
+	// if err != nil {
+	// 	return fmt.Errorf("failed to check photo count: %w", err)
+	// }
 
-	if photoCount == 0 {
-		// Populate PhotoArray1 and PhotoArray2
-		// photos := append(PhotoArray, PhotoArray2...)
-		var photoDocs []interface{}
-		for _, photo := range albums {
-			photoDocs = append(photoDocs, photo)
-		}
+	// if photoCount == 0 {
+	// 	// Populate PhotoArray1 and PhotoArray2
+	// 	// photos := append(PhotoArray, PhotoArray2...)
+	// 	var photoDocs []interface{}
+	// 	for _, photo := range albums {
+	// 		photoDocs = append(photoDocs, photo)
+	// 	}
 
-		if _, err := photoCollection.InsertMany(context.TODO(), photoDocs); err != nil {
-			return fmt.Errorf("failed to populate photos: %w", err)
-		}
-		fmt.Println("Photos populated in MongoDB.")
-	}
+	// 	if _, err := photoCollection.InsertMany(context.TODO(), photoDocs); err != nil {
+	// 		return fmt.Errorf("failed to populate photos: %w", err)
+	// 	}
+	// 	fmt.Println("Photos populated in MongoDB.")
+	// }
 
-		// Check if PhotoArray1 exists in MongoDB
+	// Check if PhotoArray1 exists in MongoDB
 	chat := mongoClient.Database("urmid").Collection("chathistory")
 	chatCount, err := chat.CountDocuments(context.TODO(), bson.M{})
 	if err != nil {
@@ -150,7 +150,7 @@ func PopulateDatabase(db *gorm.DB, mongoClient *mongo.Client) error {
 	if chatCount == 0 {
 		var conversation Conversation
 		// Populate chat history
-		success, err := chat.InsertOne(context.TODO(), conversation); 
+		success, err := chat.InsertOne(context.TODO(), conversation)
 		if err != nil {
 			fmt.Errorf("failed to populate chat history: %+v\n", err)
 		}

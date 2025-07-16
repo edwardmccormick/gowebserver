@@ -15,14 +15,14 @@ func HashPassword(pw string) string {
 
 var people = []Person{
 	// {ID: 0, Name: "Bobby", Age: 25, Motto: "Always Ready", LatLocation: 29.534261019806404, LongLocation: 98.47049550692051, Profile: "./man_square1.jpg"},
-	{ID: 1, Name: "Joe", Age: 31, Motto: "Always Faithful", LatLocation: 29.52016959410149, LongLocation: -98.49401109752402, Profile: "./man_square2.jpg"},
-	{ID: 2, Name: "Fred", Age: 28, Motto: "Always Prepared", LatLocation: 29.453596593823395, LongLocation: -98.47166788793534, Profile: "/pexels-kelvin809-810775.jpg"},
-	{ID: 3, Name: "Turd Furguson", Age: 41, Motto: "It's a funny name", LatLocation: 29.419922273698763, LongLocation: -98.48366872664229, Profile: "./turdfurguson.jpg"},
-	{ID: 4, Name: "Don", Age: 79, Motto: "I want you Bigly", LatLocation: 38.898, LongLocation: -77.037, Profile: "https://www.whitehouse.gov/wp-content/uploads/2025/06/President-Donald-Trump-Official-Presidential-Portrait.png"},
-	{ID: 5, Name: "The Founder", Age: 42, Motto: "I just want this fucking thing to work", LatLocation: 38.858, LongLocation: -92.294, Profile: "https://ted.mccormickhub.com/img/tedProfilePicture.jpg"},
-	{ID: 6, Name: "Training Data", Age: 32, Motto: "Somebody has to carry this fucking site", LatLocation: 38.858, LongLocation: -92.859, Profile: "https://wallpaperheart.com/wp-content/uploads/2018/04/image-Scarlett-Johansson-Images.jpg"},
-	{ID: 7, Name: "Scale is Hard", Age: 32, Motto: "I'm famous! Yay!", LatLocation: 50, LongLocation: -100, Profile: "./Lenna.jpg"},
-	{ID: 8, Name: "Natalie", Age: 39, Motto: "Yes, that one", LatLocation: 49, LongLocation: -100, Profile: "./natalie.jpg"},
+	{ID: 1, Name: "Joe", Age: 31, Motto: "Always Faithful", LatLocation: 29.52016959410149, LongLocation: -98.49401109752402, Profile: "./man_square2.jpg", Photos: deepCopyPhotoArray(PhotoArray)},
+	{ID: 2, Name: "Fred", Age: 28, Motto: "Always Prepared", LatLocation: 29.453596593823395, LongLocation: -98.47166788793534, Profile: "/pexels-kelvin809-810775.jpg", Photos: deepCopyPhotoArray(PhotoArray)},
+	{ID: 3, Name: "Turd Furguson", Age: 41, Motto: "It's a funny name", LatLocation: 29.419922273698763, LongLocation: -98.48366872664229, Profile: "./turdfurguson.jpg", Photos: deepCopyPhotoArray(PhotoArray)},
+	{ID: 4, Name: "Don", Age: 79, Motto: "I want you Bigly", LatLocation: 38.898, LongLocation: -77.037, Profile: "https://www.whitehouse.gov/wp-content/uploads/2025/06/President-Donald-Trump-Official-Presidential-Portrait.png", Photos: deepCopyPhotoArray(PhotoArray)},
+	{ID: 5, Name: "The Founder", Age: 42, Motto: "I just want this fucking thing to work", LatLocation: 38.858, LongLocation: -92.294, Profile: "https://ted.mccormickhub.com/img/tedProfilePicture.jpg", Photos: deepCopyPhotoArray(PhotoArray)},
+	{ID: 6, Name: "Training Data", Age: 32, Motto: "Somebody has to carry this fucking site", LatLocation: 38.858, LongLocation: -92.859, Profile: "https://wallpaperheart.com/wp-content/uploads/2018/04/image-Scarlett-Johansson-Images.jpg", Photos: deepCopyPhotoArray(PhotoArray2)},
+	{ID: 7, Name: "Scale is Hard", Age: 32, Motto: "I'm famous! Yay!", LatLocation: 50, LongLocation: -100, Profile: "./Lenna.jpg", Photos: deepCopyPhotoArray(PhotoArray2)},
+	{ID: 8, Name: "Natalie", Age: 39, Motto: "Yes, that one", LatLocation: 49, LongLocation: -100, Profile: "./natalie.jpg", Photos: deepCopyPhotoArray(PhotoArray2)},
 }
 
 var users = []User{
@@ -37,35 +37,35 @@ var users = []User{
 	{Email: "natalie@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
 }
 
-var albums = []ProfileAlbum{
-	{ID: 1, Person: people[0], Photos: PhotoArray},
-	{ID: 2, Person: people[1], Photos: PhotoArray},
-	{ID: 3, Person: people[2], Photos: PhotoArray},
-	{ID: 4, Person: people[3], Photos: PhotoArray},
-	{ID: 5, Person: people[4], Photos: PhotoArray},
-	{ID: 6, Person: people[5], Photos: PhotoArray2},
-	{ID: 7, Person: people[6], Photos: PhotoArray2},
-	{ID: 8, Person: people[7], Photos: PhotoArray2},
-}
+// var albums = []ProfileAlbum{
+// 	{ID: 1, Person: people[0], Photos: PhotoArray},
+// 	{ID: 2, Person: people[1], Photos: PhotoArray},
+// 	{ID: 3, Person: people[2], Photos: PhotoArray},
+// 	{ID: 4, Person: people[3], Photos: PhotoArray},
+// 	{ID: 5, Person: people[4], Photos: PhotoArray},
+// 	{ID: 6, Person: people[5], Photos: PhotoArray2},
+// 	{ID: 7, Person: people[6], Photos: PhotoArray2},
+// 	{ID: 8, Person: people[7], Photos: PhotoArray2},
+// }
 
-var locationOrigin = geodist.Point{Lat: 29.42618, Long: 98.48618} // The Stupid Alamo
+// var locationOrigin = geodist.Point{Lat: 29.42618, Long: 98.48618} // The Stupid Alamo
 var PictureArray = []string{"/man_square5.jpg", "./man_portrait3.jpg", "./man_landscape5.jpg", "./man_portrait6.jpg", "./man_landscape9.jpg"}
 var PhotoArray = []ProfilePhoto{
-	{Url: "/man_square5.jpg", Caption: "Just me and the boys"},
-	{Url: "./man_portrait3.jpg", Caption: "haha look at their faces"},
-	{Url: "./man_landscape5.jpg", Caption: "omg I can't believe we got away with this"},
-	{Url: "./man_portrait6.jpg", Caption: "life is good man"},
-	{Url: "./man_landscape9.jpg", Caption: "idk haha"},
+	{Url: "/man_square5.jpg", S3Key: "example/man_square5.jpg", Caption: "Just me and the boys"},
+	{Url: "./man_portrait3.jpg", S3Key: "example/man_portrait3.jpg", Caption: "haha look at their faces"},
+	{Url: "./man_landscape5.jpg", S3Key: "example/man_landscape5.jpg", Caption: "omg I can't believe we got away with this"},
+	{Url: "./man_portrait6.jpg", S3Key: "example/man_portrait6.jpg", Caption: "life is good man"},
+	{Url: "./man_landscape7.jpg", S3Key: "example/man_landscape7.jpg", Caption: "idk haha"},
 }
 
 var PhotoArray2 = []ProfilePhoto{
-	{Url: "./woman_square5.jpg", Caption: "Just me and the girls"},
-	{Url: "./woman_portrait3.jpg", Caption: "haha look at their faces"},
-	{Url: "./woman_landscape8.jpg", Caption: "omg I can't believe we got away with this"},
-	{Url: "./woman_portrait6.jpg", Caption: "life is good! ❤️"},
-	{Url: "./woman_square8.jpg", Caption: "idk haha"},
-	{Url: "./woman_landscape4.jpg", Caption: "Just chilling"},
-	{Url: "./woman_portrait10.jpg", Caption: "Having a great time"},
+	{Url: "./woman_square5.jpg", S3Key: "example/woman_square5.jpg", Caption: "Just me and the girls"},
+	{Url: "./woman_portrait3.jpg", S3Key: "example/woman_portrait3.jpg", Caption: "haha look at their faces"},
+	{Url: "./woman_landscape8.jpg", S3Key: "example/woman_landscape8.jpg", Caption: "omg I can't believe we got away with this"},
+	{Url: "./woman_portrait6.jpg", S3Key: "example/woman_portrait6.jpg", Caption: "life is good! ❤️"},
+	{Url: "./woman_square8.jpg", S3Key: "example/woman_square8.jpg", Caption: "idk haha"},
+	{Url: "./woman_landscape4.jpg", S3Key: "example/woman_landscape4.jpg", Caption: "Just chilling"},
+	{Url: "./woman_portrait10.jpg", S3Key: "example/woman_portrait10.jpg", Caption: "Having a great time"},
 }
 
 var locations = []geodist.Point{
@@ -121,6 +121,11 @@ func isRunningInDockerContainer() bool {
 	return false
 }
 
-func intPtr(i int) *int {
-	return &i
+// Helper function to create a deep copy of a slice
+func deepCopyPhotoArray(original []ProfilePhoto) []ProfilePhoto {
+	copy := make([]ProfilePhoto, len(original))
+	for i, photo := range original {
+		copy[i] = photo
+	}
+	return copy
 }

@@ -151,6 +151,7 @@ function MatchList({
                     dangerouslySetInnerHTML={renderDeltaAsHtml(
                       person.description
                     )}
+                  style={{ minHeight: '275px' }}
                   />
                 )
                 : (<div> 
@@ -170,6 +171,7 @@ function MatchList({
               <div height='450' width='450' className='text-center w-fill'>
                 <ControlledCarousel
                   key={`${person.id}1000000`}
+                  photos={person.photos}
                   id={person.id}
                 />
               </div>
