@@ -7,6 +7,8 @@ import details from '../../../details.json';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import ControlledCarousel from './carousel';
+import MatchList from './matchlist';
+import PhotoManager from './photomanager';
 
 export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedInUser, uploadUrls}) {
   const [formData, setFormData] = useState(() => {
@@ -71,6 +73,20 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedI
   // State to hold the "submitted" content, which we'll then render as HTML
 
   const handleSubmit = async () => {
+    // Prepare photos array, ensuring we don't have duplicates
+    const uniquePhotos = [];
+    const seenKeys = new Set();
+    
+    formData.photos.forEach(photo => {
+      if (!seenKeys.has(photo.s3key)) {
+        seenKeys.add(photo.s3key);
+        uniquePhotos.push({
+          S3Key: photo.s3key,
+          caption: photo.caption || '',
+        });
+      }
+    });
+    
     const payload = {
       id: loggedInUser?.id || pendingID,
       age: parseInt(formData.age),
@@ -81,10 +97,7 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedI
       profile: formData.profile,
       description: JSON.stringify(editorDelta), // Use the Delta content from the editor
       details: formData.details,
-      photos: formData.photos.map(photo => ({ 
-        S3Key: photo.s3key,
-        caption: photo.caption || '',
-      })),
+      photos: uniquePhotos,
     };
 
     try {
@@ -111,79 +124,24 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedI
       }
   };
 
-  const [usedUrls, setUsedUrls] = useState(0); // Track the number of used presigned URLs
-  const [uploadError, setUploadError] = useState(null); // Track upload errors
-  const [selectedFile, setSelectedFile] = useState(null); // Track the selected file
-  const [caption, setCaption] = useState(''); // Track the caption for the image
+  const [showPreview, setShowPreview] = useState(false); // Toggle profile preview
 
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Validate file extension
-    const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-    const fileExtension = file.name.split('.').pop().toLowerCase();
-    if (!validExtensions.includes(fileExtension)) {
-      setUploadError('Invalid file type. Please upload an image file.');
-      return;
-    }
-
-    setSelectedFile(file);
-    setUploadError(null); // Clear any previous errors
+  const handlePhotoUpdate = (updatedPhotos) => {
+    setFormData(prev => ({
+      ...prev,
+      photos: updatedPhotos
+    }));
   };
 
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      setUploadError('Please select a file to upload.');
-      return;
-    }
-
-    // Check if there are remaining presigned URLs
-    if (usedUrls >= uploadUrls.length) {
-      setUploadError('You have reached your upload limit.');
-      return;
-    }
-
-    try {
-      const presignedUrl = uploadUrls[usedUrls].url; // Get the presigned URL for the next upload
-      const s3Key = uploadUrls[usedUrls].s3key; // Use the S3 key that was generated with the presigned urls
-
-      const response = await fetch(presignedUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': selectedFile.type,
-        },
-        body: selectedFile,
-      });
-
-      if (response.ok) {
-        setFormData((prev) => ({
-          ...prev,
-          photos: [
-            ...prev.photos,
-            { s3key: s3Key, caption }, // Persist the S3 key and caption
-          ],
-        }));
-        setUsedUrls((prev) => prev + 1); // Increment the used URLs count
-        setSelectedFile(null); // Clear the selected file
-        setCaption(''); // Clear the caption
-        setUploadError(null); // Clear any previous errors
-        alert('Image uploaded successfully!');
-      } else {
-        setUploadError('Failed to upload the image. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      setUploadError('An error occurred during the upload.');
-    }
+  const handleProfilePhotoSelect = (profilePhotoValue) => {
+    // If the value is an S3 key (string without data:image prefix), store it as is
+    // Otherwise, it's a base64 image which we'll store directly
+    setFormData(prev => ({
+      ...prev,
+      profile: profilePhotoValue
+    }));
   };
-
-  const renderTooltip = (props) => (
-    <Tooltip {...props}>
-      You've reached your upload limit for images.
-    </Tooltip>
-  );
 
  return (
     <>
@@ -276,49 +234,57 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedI
           )}
       </div>
 <br />
-     {/* Upload Images Section */}
-      <div className="text-center my-3">
-        <Form.Group controlId="imageUpload">
-          <Form.Label>Upload Images</Form.Label>
-          <Form.Control
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            disabled={usedUrls >= uploadUrls.length} // Disable if all URLs are used
-          />
-        </Form.Group>
-        {selectedFile && (
-          <div className="my-3">
-            <ControlledCarousel
-              photos={[{ url: URL.createObjectURL(selectedFile), caption }]} // Preview the selected image
-              id={loggedInUser?.id || pendingID}
-            />
-            <Form.Group controlId="imageCaption">
-              <Form.Label>Image Caption</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter a caption for the image"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-              />
-            </Form.Group>
-          </div>
-        )}
-        {uploadError && <p className="text-danger">{uploadError}</p>}
-        <OverlayTrigger
-          placement="top"
-          overlay={renderTooltip}
-          show={usedUrls >= uploadUrls.length} // Show tooltip when limit is reached
-        >
-          <Button
-            variant="primary"
-            onClick={handleUpload}
-            disabled={usedUrls >= uploadUrls.length} // Disable button if limit is reached
-          >
-            {usedUrls >= uploadUrls.length ? 'Upload Limit Reached' : 'Upload Image'}
-          </Button>
-        </OverlayTrigger>
+     {/* Photo Manager Section */}
+      <div className="my-4">
+        <PhotoManager
+          photos={formData.photos}
+          onPhotoUpdate={handlePhotoUpdate}
+          onProfilePhotoSelect={handleProfilePhotoSelect}
+          uploadUrls={uploadUrls}
+          userId={loggedInUser?.id || pendingID}
+        />
       </div>
+
+      {/* Preview Toggle Button */}
+      <Button 
+        variant="secondary" 
+        className="mx-2" 
+        onClick={() => setShowPreview(!showPreview)}
+      >
+        {showPreview ? 'Hide Preview' : 'Preview Profile'}
+      </Button>
+
+      {/* Profile Preview */}
+      {showPreview && (
+        <div className="my-4 border rounded p-3">
+          <h3 className="text-center mb-3">Profile Preview</h3>
+          <MatchList
+            people={[{
+              id: loggedInUser?.id || pendingID || 'preview',
+              name: formData.name || 'Your Name',
+              age: formData.age || '0',
+              motto: formData.motto || 'Your Title',
+              lat: parseFloat(formData.latitude) || 0,
+              long: parseFloat(formData.longitude) || 0,
+              profile: formData.profile ? 
+                (formData.profile.startsWith('data:') ? formData.profile : `http://localhost:8080/photos/${formData.profile}`) : 
+                '/profile.svg',
+              description: JSON.stringify(editorDelta),
+              photos: formData.photos.map(photo => ({
+                url: photo.url || `http://localhost:8080/photos/${photo.s3key}`,
+                caption: photo.caption || ''
+              }))
+            }]}
+            loading={false}
+            User={{
+              id: loggedInUser?.id || pendingID || 'preview',
+              lat: parseFloat(formData.latitude) || 0,
+              long: parseFloat(formData.longitude) || 0
+            }}
+            refreshMatches={() => {}}
+          />
+        </div>
+      )}
 
       {/* Submit Button */}
       <Button variant="primary" onClick={handleSubmit}>

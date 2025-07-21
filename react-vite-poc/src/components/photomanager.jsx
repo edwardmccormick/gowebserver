@@ -1,0 +1,305 @@
+import { useState, useEffect } from 'react';
+import Card from 'react-bootstrap/Card';
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Croppie from 'croppie';
+import 'croppie/croppie.css';
+
+function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls, userId }) {
+  // Find the profile URL from uploadUrls (assuming it's named with 'profile' in the key)
+  const profileUploadUrl = uploadUrls.find(url => url.s3key.includes('profile'));
+  const [userPhotos, setUserPhotos] = useState(photos || []);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [caption, setCaption] = useState('');
+  const [uploadError, setUploadError] = useState(null);
+  const [usedUrls, setUsedUrls] = useState(0);
+  const [croppieInstance, setCroppieInstance] = useState(null);
+  const [croppingPhoto, setCroppingPhoto] = useState(null);
+  const [showCroppie, setShowCroppie] = useState(false);
+
+  useEffect(() => {
+    setUserPhotos(photos || []);
+  }, [photos]);
+
+  // Initialize Croppie when needed
+  useEffect(() => {
+    if (showCroppie && croppingPhoto) {
+      const element = document.getElementById('croppie-container');
+      if (element) {
+        const croppie = new Croppie(element, {
+          viewport: { width: 200, height: 200, type: 'square' },
+          boundary: { width: 300, height: 300 },
+          enableOrientation: true
+        });
+        
+        croppie.bind({
+          url: croppingPhoto.url
+        });
+        
+        setCroppieInstance(croppie);
+      }
+    }
+    
+    return () => {
+      if (croppieInstance) {
+        croppieInstance.destroy();
+      }
+    };
+  }, [showCroppie, croppingPhoto]);
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file extension
+    const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    if (!validExtensions.includes(fileExtension)) {
+      setUploadError('Invalid file type. Please upload an image file.');
+      return;
+    }
+
+    setSelectedFile(file);
+    setUploadError(null);
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setUploadError('Please select a file to upload.');
+      return;
+    }
+
+    // Check if there are remaining presigned URLs
+    if (usedUrls >= uploadUrls.length) {
+      setUploadError('You have reached your upload limit.');
+      return;
+    }
+
+    try {
+      const presignedUrl = uploadUrls[usedUrls].url;
+      const s3Key = uploadUrls[usedUrls].s3key;
+
+      const response = await fetch(presignedUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': selectedFile.type,
+        },
+        body: selectedFile,
+      });
+
+      if (response.ok) {
+        const newPhoto = { 
+          s3key: s3Key, 
+          caption,
+          url: URL.createObjectURL(selectedFile) // Temporary URL for display
+        };
+        
+        const updatedPhotos = [...userPhotos, newPhoto];
+        setUserPhotos(updatedPhotos);
+        onPhotoUpdate(updatedPhotos);
+        
+        setUsedUrls((prev) => prev + 1);
+        setSelectedFile(null);
+        setCaption('');
+        setUploadError(null);
+      } else {
+        setUploadError('Failed to upload the image. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setUploadError('An error occurred during the upload.');
+    }
+  };
+
+  const handleDeletePhoto = (photoToDelete) => {
+    const updatedPhotos = userPhotos.filter(photo => photo.s3key !== photoToDelete.s3key);
+    setUserPhotos(updatedPhotos);
+    onPhotoUpdate(updatedPhotos);
+  };
+
+  const handleMakeProfilePhoto = (photo) => {
+    setCroppingPhoto(photo);
+    setShowCroppie(true);
+  };
+
+  const handleCropComplete = async () => {
+    if (croppieInstance) {
+      try {
+        // Get the cropped image as a blob
+        const blob = await croppieInstance.result({
+          type: 'blob',
+          size: 'viewport',
+          format: 'jpeg',
+          quality: 0.9
+        });
+        
+        // Also get base64 for preview
+        const base64 = await croppieInstance.result({
+          type: 'base64',
+          size: 'viewport',
+          format: 'jpeg',
+          quality: 0.9
+        });
+        
+        // If we have a profile upload URL, upload the cropped image to S3
+        if (profileUploadUrl) {
+          try {
+            const response = await fetch(profileUploadUrl.url, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'image/jpeg',
+              },
+              body: blob,
+            });
+            
+            if (response.ok) {
+              // Pass the S3 key to the parent component
+              onProfilePhotoSelect(profileUploadUrl.s3key);
+              console.log('Profile photo uploaded successfully');
+            } else {
+              console.error('Failed to upload profile photo');
+              // Fall back to base64 if upload fails
+              onProfilePhotoSelect(base64);
+            }
+          } catch (error) {
+            console.error('Error uploading profile photo:', error);
+            // Fall back to base64 if upload fails
+            onProfilePhotoSelect(base64);
+          }
+        } else {
+          // If no profile upload URL is available, use base64
+          onProfilePhotoSelect(base64);
+        }
+        
+        setShowCroppie(false);
+        setCroppingPhoto(null);
+      } catch (error) {
+        console.error('Error cropping image:', error);
+      }
+    }
+  };
+
+  const handleCancelCrop = () => {
+    setShowCroppie(false);
+    setCroppingPhoto(null);
+  };
+
+  const handleCaptionChange = (photoIndex, newCaption) => {
+    const updatedPhotos = [...userPhotos];
+    updatedPhotos[photoIndex].caption = newCaption;
+    setUserPhotos(updatedPhotos);
+    onPhotoUpdate(updatedPhotos);
+  };
+
+  return (
+    <div className="photo-manager">
+      <h3>Photo Manager</h3>
+      
+      {showCroppie ? (
+        <div className="croppie-wrapper my-3">
+          <div id="croppie-container"></div>
+          <div className="d-flex justify-content-center mt-3">
+            <Button variant="secondary" className="me-2" onClick={handleCancelCrop}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleCropComplete}>
+              Set as Profile Photo
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Upload new photo section */}
+          <div className="upload-section mb-4">
+            <Form.Group controlId="photoUpload">
+              <Form.Label>Upload New Photo</Form.Label>
+              <Form.Control
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                disabled={usedUrls >= uploadUrls.length}
+              />
+            </Form.Group>
+            
+            {selectedFile && (
+              <div className="my-2">
+                <img 
+                  src={URL.createObjectURL(selectedFile)} 
+                  alt="Preview" 
+                  style={{ maxHeight: '150px', maxWidth: '100%' }} 
+                  className="mb-2"
+                />
+                <Form.Group controlId="photoCaption">
+                  <Form.Label>Caption</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Add a caption"
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                  />
+                </Form.Group>
+              </div>
+            )}
+            
+            {uploadError && <p className="text-danger">{uploadError}</p>}
+            
+            <Button
+              variant="primary"
+              onClick={handleUpload}
+              disabled={!selectedFile || usedUrls >= uploadUrls.length}
+              className="mt-2"
+            >
+              {usedUrls >= uploadUrls.length ? 'Upload Limit Reached' : 'Upload Photo'}
+            </Button>
+          </div>
+
+          {/* Photo gallery */}
+          <h4>Your Photos</h4>
+          <Row xs={1} md={2} lg={3} className="g-4">
+            {userPhotos.map((photo, index) => (
+              <Col key={photo.s3key || index}>
+                <Card>
+                  <Card.Img 
+                    variant="top" 
+                    src={photo.url || `http://localhost:8080/photos/${photo.s3key}`} 
+                    style={{ height: '200px', objectFit: 'cover' }}
+                  />
+                  <Card.Body>
+                    <Form.Group>
+                      <Form.Control
+                        type="text"
+                        placeholder="Add a caption"
+                        value={photo.caption || ''}
+                        onChange={(e) => handleCaptionChange(index, e.target.value)}
+                      />
+                    </Form.Group>
+                    <div className="d-flex justify-content-between mt-2">
+                      <Button 
+                        variant="outline-primary" 
+                        size="sm"
+                        onClick={() => handleMakeProfilePhoto(photo)}
+                      >
+                        Make Profile Photo
+                      </Button>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm"
+                        onClick={() => handleDeletePhoto(photo)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default PhotoManager;

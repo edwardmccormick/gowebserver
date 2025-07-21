@@ -18,6 +18,7 @@ type Person struct {
 	LatLocation  float64        `json:"lat" db:"lat" gorm:"type:float not null"`
 	LongLocation float64        `json:"long" db:"long" gorm:"type:float not null"`
 	Profile      string         `json:"profile" db:"profile" gorm:"type:varchar(255)"`
+	ProfilePhoto ProfilePhoto   `json:"profile_photo" gorm:"foreignKey:PersonID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Details      Details        `json:"details" db:"details" gorm:"embedded"`
 	Photos       []ProfilePhoto `json:"photos" gorm:"foreignKey:PersonID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Establish relationship
 	Description  string         `json:"description" db:"description" gorm:"type:text"`
