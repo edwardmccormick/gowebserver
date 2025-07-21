@@ -7,8 +7,9 @@ Front-end:
 [ x ] a split in the signup flow between a 'basic' profile and a 'complete' or 'advanced' profile, with all the metrics
 [ x ] the ability to update your profile
 - This can probably be almost identical as the signup flow, except we show you what you currently have
-[ ] upload photograph user flow, if not an actual implementation
-- Drag and drop functionality, add from your photo gallery on phone
+[ x ] upload photograph user flow, if not an actual implementation
+- Actual implementation - Presigned URL to upload files, S3 keys get saved, presigned URLs to display the image files, everybody goes home happy.
+- Drag and drop functionality, add from your photo gallery on phone (this depends a lot on the implementation for )
 [ ] - Crop a photo to get a square 'profile' picture, otherwise it's going to look weird lol
 [ ] the ability to sign up from Facebook, or Google, or Apple, or....LinkedIn?!?!?! Github!??!?! lol
 - This might be the most easy to implement, although probably some troubling possibilities like, long term.
