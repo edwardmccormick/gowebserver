@@ -59,7 +59,7 @@ function NavBar({
               title={
                     <div>
                         <img className="focus-ring" 
-                            src={ User ? User.profile : './profile.svg'}
+                            src={ User ? User.profile.url : './profile.svg'}
                             style={{borderRadius: '50%'}}
                             height='50'
                             width='50' 
@@ -85,7 +85,7 @@ function NavBar({
                   <NavDropdown.Item className='text-center'>    
                   
                   </NavDropdown.Item>
-                  <NavDropdown.Item href="#action/3.1" className='text-center'>Currently logged in as: <br /> {User.name}</NavDropdown.Item>
+                  <NavDropdown.Item  className='text-center'>Currently logged in as: <br /> {User.name}</NavDropdown.Item>
                   <NavDropdown.Item
                   onClick={onClickProfile}
                   >
@@ -98,7 +98,7 @@ function NavBar({
                     Account
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
-                  <NavDropdown.Item href="#action/3.2" className='text-center'>
+                  <NavDropdown.Item  className='text-center'>
                     <Logout 
                     setLoggedInUser={setLoggedInUser} 
                     setJWT={setJWT}

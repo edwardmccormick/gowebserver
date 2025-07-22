@@ -15,14 +15,14 @@ func HashPassword(pw string) string {
 
 var people = []Person{
 	// {ID: 0, Name: "Bobby", Age: 25, Motto: "Always Ready", LatLocation: 29.534261019806404, LongLocation: 98.47049550692051, Profile: "./man_square1.jpg"},
-	{ID: 1, Name: "Joe", Age: 31, Motto: "Always Faithful", LatLocation: 29.52016959410149, LongLocation: -98.49401109752402, Profile: ProfilePhoto{S3Key: "example/man_square2.jpg"}, Photos: deepCopyPhotoArray(PhotoArray)},
-	{ID: 2, Name: "Fred", Age: 28, Motto: "Always Prepared", LatLocation: 29.453596593823395, LongLocation: -98.47166788793534, Profile: ProfilePhoto{S3Key: "example/pexels-kelvin809-810775.jpg"}, Photos: deepCopyPhotoArray(PhotoArray)},
-	{ID: 3, Name: "Turd Furguson", Age: 41, Motto: "It's a funny name", LatLocation: 29.419922273698763, LongLocation: -98.48366872664229, Profile: ProfilePhoto{S3Key: "example/turdfurguson.jpg"}, Photos: deepCopyPhotoArray(PhotoArray)},
-	{ID: 4, Name: "Don", Age: 79, Motto: "I want you Bigly", LatLocation: 38.898, LongLocation: -77.037, Profile: ProfilePhoto{S3Key: "example/President-Donald-Trump-Official-Presidential-Portrait.png"}, Photos: deepCopyPhotoArray(PhotoArray)},
-	{ID: 5, Name: "The Founder", Age: 42, Motto: "I just want this fucking thing to work", LatLocation: 38.858, LongLocation: -92.294, Profile: ProfilePhoto{S3Key: "example/tedProfilePicture.jpg"}, Photos: deepCopyPhotoArray(PhotoArray)},
-	{ID: 6, Name: "Training Data", Age: 32, Motto: "Somebody has to carry this fucking site", LatLocation: 38.858, LongLocation: -92.859, Profile: ProfilePhoto{S3Key: "example/image-Scarlett-Johansson-Images.jpg"}, Photos: deepCopyPhotoArray(PhotoArray2)},
-	{ID: 7, Name: "Scale is Hard", Age: 32, Motto: "I'm famous! Yay!", LatLocation: 50, LongLocation: -100, Profile: ProfilePhoto{S3Key: "example/Lenna.jpg"}, Photos: deepCopyPhotoArray(PhotoArray2)},
-	{ID: 8, Name: "Natalie", Age: 39, Motto: "Yes, that one", LatLocation: 49, LongLocation: -100, Profile: ProfilePhoto{S3Key: "example/natalie.jpg"}, Photos: deepCopyPhotoArray(PhotoArray2)},
+	{ID: 1, Name: "Joe", Age: 31, Motto: "Always Faithful", LatLocation: 29.52016959410149, LongLocation: -98.49401109752402, Profile: ProfilePhoto{S3Key: "1/profile"}, Photos: deepCopyPhotoArray(PhotoArray)},
+	{ID: 2, Name: "Fred", Age: 28, Motto: "Always Prepared", LatLocation: 29.453596593823395, LongLocation: -98.47166788793534, Profile: ProfilePhoto{S3Key: "2/profile"}, Photos: deepCopyPhotoArray(PhotoArray)},
+	{ID: 3, Name: "Turd Furguson", Age: 41, Motto: "It's a funny name", LatLocation: 29.419922273698763, LongLocation: -98.48366872664229, Profile: ProfilePhoto{S3Key: "3/profile"}, Photos: deepCopyPhotoArray(PhotoArray)},
+	{ID: 4, Name: "Don", Age: 79, Motto: "I want you Bigly", LatLocation: 38.898, LongLocation: -77.037, Profile: ProfilePhoto{S3Key: "4/profile"}, Photos: deepCopyPhotoArray(PhotoArray)},
+	{ID: 5, Name: "The Founder", Age: 42, Motto: "I just want this fucking thing to work", LatLocation: 38.858, LongLocation: -92.294, Profile: ProfilePhoto{S3Key: "5/profile"}, Photos: deepCopyPhotoArray(PhotoArray)},
+	{ID: 6, Name: "Training Data", Age: 32, Motto: "Somebody has to carry this fucking site", LatLocation: 38.858, LongLocation: -92.859, Profile: ProfilePhoto{S3Key: "6/profile"}, Photos: deepCopyPhotoArray(PhotoArray2)},
+	{ID: 7, Name: "Scale is Hard", Age: 32, Motto: "I'm famous! Yay!", LatLocation: 50, LongLocation: -100, Profile: ProfilePhoto{S3Key: "7/profile"}, Photos: deepCopyPhotoArray(PhotoArray2)},
+	{ID: 8, Name: "Natalie", Age: 39, Motto: "Yes, that one", LatLocation: 49, LongLocation: -100, Profile: ProfilePhoto{S3Key: "8/profile"}, Photos: deepCopyPhotoArray(PhotoArray2)},
 }
 
 var users = []User{

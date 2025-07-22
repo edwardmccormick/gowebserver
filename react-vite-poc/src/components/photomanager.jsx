@@ -7,9 +7,10 @@ import Col from 'react-bootstrap/Col';
 import Croppie from 'croppie';
 import 'croppie/croppie.css';
 
-function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls, userId }) {
-  // Find the profile URL from uploadUrls (assuming it's named with 'profile' in the key)
-  const profileUploadUrl = uploadUrls.find(url => url.s3key.includes('profile'));
+function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls, uploadProfileUrls, userId }) {
+  // Find the profile URLs from uploadUrls
+  console.log(uploadProfileUrls)
+  const profileUploadUrl = uploadProfileUrls.find(urlObj => urlObj.s3key && urlObj.s3key.includes('/profile'));
   const [userPhotos, setUserPhotos] = useState(photos || []);
   const [selectedFile, setSelectedFile] = useState(null);
   const [caption, setCaption] = useState('');
@@ -20,6 +21,7 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
   const [showCroppie, setShowCroppie] = useState(false);
 
   useEffect(() => {
+    // Include all photos, including profile photos, in the PhotoManager
     setUserPhotos(photos || []);
   }, [photos]);
 
@@ -93,7 +95,8 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
         const newPhoto = { 
           s3key: s3Key, 
           caption,
-          url: URL.createObjectURL(selectedFile) // Temporary URL for display
+          url: URL.createObjectURL(selectedFile), // Temporary URL for display
+          originalName: selectedFile.name // Store original filename for reference
         };
         
         const updatedPhotos = [...userPhotos, newPhoto];
@@ -120,7 +123,10 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
   };
 
   const handleMakeProfilePhoto = (photo) => {
-    setCroppingPhoto(photo);
+    setCroppingPhoto({
+      ...photo,
+      file: selectedFile && selectedFile.name === photo.originalName ? selectedFile : null
+    });
     setShowCroppie(true);
   };
 
@@ -132,47 +138,63 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
           type: 'blob',
           size: 'viewport',
           format: 'jpeg',
-          quality: 0.9
+          quality: 1.0
         });
-        
+
         // Also get base64 for preview
         const base64 = await croppieInstance.result({
           type: 'base64',
           size: 'viewport',
           format: 'jpeg',
-          quality: 0.9
+          quality: 1.0
         });
-        
-        // If we have a profile upload URL, upload the cropped image to S3
-        if (profileUploadUrl) {
-          try {
-            const response = await fetch(profileUploadUrl.url, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'image/jpeg',
-              },
-              body: blob,
-            });
-            
-            if (response.ok) {
-              // Pass the S3 key to the parent component
-              onProfilePhotoSelect(profileUploadUrl.s3key);
-              console.log('Profile photo uploaded successfully');
-            } else {
-              console.error('Failed to upload profile photo');
-              // Fall back to base64 if upload fails
-              onProfilePhotoSelect(base64);
-            }
-          } catch (error) {
-            console.error('Error uploading profile photo:', error);
-            // Fall back to base64 if upload fails
-            onProfilePhotoSelect(base64);
+
+        let profileS3Key = null;
+
+        // Only upload raw profile after user clicks "Make Profile Photo"
+        if (croppingPhoto) {
+          let rawBlob;
+          if (croppingPhoto.file) {
+            rawBlob = croppingPhoto.file;
+          } else if (croppingPhoto.url) {
+            const response = await fetch(croppingPhoto.url);
+            rawBlob = await response.blob();
           }
+          // I left this here but handling the 'raw' profile photo was kind of much; 
+          // I think most people will either a) add it to their profile or b) delete it. Keeping a copy seemed
+          // like a good idea but jesus the implementation went sideways quick. Passing the photo a little more clearly will,
+          // I think work better.
+          // if (rawBlob) {
+          //   await fetch(rawProfileUploadUrl.url, {
+          //     method: 'PUT',
+          //     headers: {
+          //       'Content-Type': rawBlob.type || 'image/jpeg',
+          //     },
+          //     body: rawBlob,
+          //   });
+          // }
+        }
+
+        // Upload cropped profile photo
+        if (profileUploadUrl) {
+          const response = await fetch(profileUploadUrl.url, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'image/jpeg',
+            },
+            body: blob,
+          });
+          if (response.ok) {
+            profileS3Key = profileUploadUrl.s3key;
+          }
+        }
+
+        if (profileS3Key) {
+          onProfilePhotoSelect(profileS3Key);
         } else {
-          // If no profile upload URL is available, use base64
           onProfilePhotoSelect(base64);
         }
-        
+
         setShowCroppie(false);
         setCroppingPhoto(null);
       } catch (error) {
@@ -257,45 +279,86 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
 
           {/* Photo gallery */}
           <h4>Your Photos</h4>
-          <Row xs={1} md={2} lg={3} className="g-4">
-            {userPhotos.map((photo, index) => (
-              <Col key={photo.s3key || index}>
-                <Card>
-                  <Card.Img 
-                    variant="top" 
-                    src={photo.url || `http://localhost:8080/photos/${photo.s3key}`} 
-                    style={{ height: '200px', objectFit: 'cover' }}
-                  />
-                  <Card.Body>
-                    <Form.Group>
-                      <Form.Control
-                        type="text"
-                        placeholder="Add a caption"
-                        value={photo.caption || ''}
-                        onChange={(e) => handleCaptionChange(index, e.target.value)}
-                      />
-                    </Form.Group>
-                    <div className="d-flex justify-content-between mt-2">
-                      <Button 
-                        variant="outline-primary" 
-                        size="sm"
-                        onClick={() => handleMakeProfilePhoto(photo)}
-                      >
-                        Make Profile Photo
-                      </Button>
-                      <Button 
-                        variant="outline-danger" 
-                        size="sm"
-                        onClick={() => handleDeletePhoto(photo)}
-                      >
-                        Remove
-                      </Button>
+            <Row xs={1} md={2} lg={3} className="g-4">
+              {userPhotos.length === 0 ? (
+                <Col>
+                  <Card className="border-primary">
+                    <div className="position-absolute top-0 start-0 bg-primary text-white p-1">
+                      Current Profile
                     </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+                    <Card.Img 
+                      variant="top" 
+                      src="./profile.svg"
+                      style={{ height: '200px', objectFit: 'cover' }}
+                    />
+                    <Card.Body>
+                      <span className="text-muted">No photos uploaded yet</span>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ) : (
+                userPhotos.map((photo, index) => {
+                  const isProfilePhoto = photo.s3key && photo.s3key.endsWith('/profile');
+                  const isRawProfilePhoto = photo.s3key && photo.s3key.endsWith('/rawprofile');
+                  return (
+                    <Col key={photo.s3key || index}>
+                      <Card className={isProfilePhoto ? 'border-primary' : ''}>
+                        {isProfilePhoto && (
+                          <div className="position-absolute top-0 start-0 bg-primary text-white p-1">
+                            Current Profile
+                          </div>
+                        )}
+                        {isRawProfilePhoto && (
+                          <div className="position-absolute top-0 start-0 bg-secondary text-white p-1">
+                            Raw Profile
+                          </div>
+                        )}
+                        <Card.Img 
+                          variant="top" 
+                          src={photo.url || "./profile.svg"} 
+                          style={{ height: '200px', objectFit: 'cover' }}
+                        />
+                        <Card.Body>
+                          <Form.Group>
+                            <Form.Control
+                              type="text"
+                              placeholder="Add a caption"
+                              value={photo.caption || ''}
+                              onChange={(e) => handleCaptionChange(index, e.target.value)}
+                              disabled={isProfilePhoto}
+                            />
+                          </Form.Group>
+                          <div className="d-flex justify-content-between mt-2">
+                            {!isProfilePhoto && (
+                              <Button 
+                                variant="outline-primary" 
+                                size="sm"
+                                onClick={() => handleMakeProfilePhoto(photo)}
+                              >
+                                Make Profile Photo
+                              </Button>
+                            )}
+                            {!isProfilePhoto && (
+                              <Button 
+                                variant="outline-danger" 
+                                size="sm"
+                                onClick={() => handleDeletePhoto(photo)}
+                                disabled={isRawProfilePhoto}
+                              >
+                                Remove
+                              </Button>
+                            )}
+                            {isProfilePhoto && (
+                              <span className="text-muted">Current profile photo</span>
+                            )}
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  );
+                })
+              )}
+            </Row>
         </>
       )}
     </div>

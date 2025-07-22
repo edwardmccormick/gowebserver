@@ -10,7 +10,15 @@ import ControlledCarousel from './carousel';
 import MatchList from './matchlist';
 import PhotoManager from './photomanager';
 
-export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedInUser, uploadUrls}) {
+export function CreateProfile({
+  setLoggedInUser, 
+  pendingID, 
+  setPendingID, 
+  loggedInUser, 
+  uploadUrls,
+  uploadProfileUrls,
+}) {
+  console.log(uploadProfileUrls)
   const [formData, setFormData] = useState(() => {
     // If loggedInUser exists and has a name, use its values to populate the form
     if (loggedInUser && loggedInUser.name) {
@@ -94,7 +102,7 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedI
       motto: formData.motto,
       lat: parseFloat(formData.latitude),
       long: parseFloat(formData.longitude),
-      profile: formData.profile,
+      profile: { s3key: formData.profile || "" },
       description: JSON.stringify(editorDelta), // Use the Delta content from the editor
       details: formData.details,
       photos: uniquePhotos,
@@ -181,7 +189,7 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedI
           />
         </div>
 
-        <div className="col-3 m-1 p-1">
+        {/* <div className="col-3 m-1 p-1">
           <Form.Label htmlFor="profile">Profile Picture URL</Form.Label>
           <Form.Control
             id="profile"
@@ -190,7 +198,7 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedI
             value={formData.profile}
             onChange={handleChange}
           />
-        </div>
+        </div> */}
 
         <div className="col-1 m-1 p-1">
           <Form.Label htmlFor="latitude">Latitude</Form.Label>
@@ -241,6 +249,7 @@ export function CreateProfile({setLoggedInUser, pendingID, setPendingID, loggedI
           onPhotoUpdate={handlePhotoUpdate}
           onProfilePhotoSelect={handleProfilePhotoSelect}
           uploadUrls={uploadUrls}
+          uploadProfileUrls={uploadProfileUrls}
           userId={loggedInUser?.id || pendingID}
         />
       </div>

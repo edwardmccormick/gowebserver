@@ -25,10 +25,11 @@ function ControlledCarousel({photos, id}) {
   return (
     
     // <Carousel activeIndex={index} onSelect={handleSelect}>
-    photos.length==0 || photos==undefined ? (
+    photos==undefined || photos.length==0 ? (
         <div className="d-flex align-items-center">
           <strong role="status">Loading...</strong>
-          <div className="spinner-border ms-auto" aria-hidden="true"></div>
+          <div className="spinner-border ms-auto text-center" aria-hidden="true"></div>
+          <p>This user has no images to display.</p>
         </div>
       ) : (
     <Carousel height='450' width='450' className='img-fluid bg-dark-subtle'>

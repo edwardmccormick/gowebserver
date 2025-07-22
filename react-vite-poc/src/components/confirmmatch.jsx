@@ -92,7 +92,7 @@ function ConfirmMatchList({
         <Accordion.Item className='w-100' eventKey={match.OfferedProfile.id} key={match.OfferedProfile.id}>
           <Accordion.Header className='w-100' key={`${match.OfferedProfile.id}100`}>
             <img
-              src={match.OfferedProfile.profile ? match.OfferedProfile.profile : '/profile.svg'}
+              src={match.OfferedProfile.profile.url ? match.OfferedProfile.profile.url : '/profile.svg'}
               style={{ borderRadius: '50%' }}
               className="m-1 p-1"
               height="50"
@@ -103,7 +103,7 @@ function ConfirmMatchList({
           </Accordion.Header>
           <Accordion.Body key={`${match.OfferedProfile.id}10000`}>
             <div className='text-start'>
-              <img src={match.OfferedProfile.profile} className='m-1 p-1 rounded float-start' height={'250'} width={'250'} />
+              <img src={match.OfferedProfile.profile.url} className='m-1 p-1 rounded float-start' height={'250'} width={'250'} />
                 <p>(Bender) There we were in the park when suddenly some old lady says I stole her purse. I chucked the professor at her but she kept coming. So I had to hit her with this purse I found.</p>
                 <p>(Bender) Boy, who knew a cooler could also make a handy wang coffin?!</p>
                 <p>Leela Futurama Quotes: (Amy After Bender destroys Fry's tent) Bender, wasn't that Fry's Tent? (Bender Responds Scoffing) Bender, Mominey mum meh. (Leela) Bender Raises a good point. Where is Fry?</p>

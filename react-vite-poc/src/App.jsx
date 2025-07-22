@@ -18,6 +18,7 @@ function App() {
   const [loggedInUser, setLoggedInUser] = useState(null); // State to store the logged-in user
   const [jwt, setJWT] = useState(null);
   const [uploadUrls, setUploadUrls] = useState([]); // State to store upload URLs
+  const [uploadProfileUrls, setUploadProfileUrls] = useState([]); // State to store profile upload URLs
   const [searchResults, setSearchResults] = useState([]);
   const [matches, setMatches] = useState([]);
   const [matchLoading, setMatchLoading] = useState(false);
@@ -173,6 +174,7 @@ function App() {
                     setLoggedInUser={setLoggedInUser} 
                     setJWT={setJWT}
                     setUploadUrls={setUploadUrls}
+                    setUploadProfileUrls={setUploadProfileUrls}
                   />   
                 </div>   
                 <div><h4>Or</h4></div>
@@ -181,6 +183,7 @@ function App() {
                     setPendingID={setPendingID} 
                     setJWT={setJWT}
                     setUploadUrls={setUploadUrls}
+                    setUploadProfileUrls={setUploadProfileUrls}
                   />
                 </div>
               </div></div>
@@ -216,6 +219,7 @@ function App() {
             setPendingID={setPendingID}
             loggedInUser={loggedInUser}
             uploadUrls={uploadUrls}
+            uploadProfileUrls={uploadProfileUrls}
           />
         </div>
     </div>

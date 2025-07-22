@@ -6,6 +6,7 @@ export function SignUp({
   setPendingID , 
   setJWT,
   setUploadUrls,
+  setUploadProfileUrls,
 }) {
   const [formData, setFormData] = useState({
     email: '',
@@ -36,6 +37,7 @@ export function SignUp({
         const data = await response.json();
         setPendingID(data.id); // Update the logged-in user in App.jsx
         setUploadUrls(data.upload_urls); // Set the upload URLs for the user
+        setUploadProfileUrls(data.profile_upload_urls); // Set the profile upload URLs for the user
         console.log(data.person);
         setJWT(data.token);
         alert('Signup successful');

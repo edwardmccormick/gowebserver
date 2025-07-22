@@ -127,7 +127,7 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
                   className="p-2 fs-5 m-2 text-right d-flex flex-row justify-content-between align-items-center"
                 >
                       <img
-                        src={pending.OfferedProfile.profile ? pending.OfferedProfile.profile : '/profile.svg'}
+                        src={pending.OfferedProfile.profile.url ? pending.OfferedProfile.profile.url : '/profile.svg'}
                         style={{ borderRadius: '50%' }}
                         className="m-1 p-1"
                         height="50"
@@ -152,7 +152,7 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
                     }}
                   >
                     <img
-                      src={pending.AcceptedProfile.profile ? pending.AcceptedProfile.profile : '/profile.svg'}
+                      src={pending.AcceptedProfile.profile.url ? pending.AcceptedProfile.profile.url : '/profile.svg'}
                       style={{ borderRadius: '50%' }}
                       className="m-1 p-1"
                       height="50"

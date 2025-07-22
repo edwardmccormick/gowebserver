@@ -8,6 +8,7 @@ function SignIn({
   setLoggedInUser , 
   setJWT,
   setUploadUrls,
+  setUploadProfileUrls,
 }) {
     const [formData, setFormData] = useState({
     email: '',
@@ -37,6 +38,8 @@ function SignIn({
         setLoggedInUser(data.person); // Update the logged-in user in App.jsx
         setJWT(data.token);
         setUploadUrls(data.upload_urls); // Set the upload URLs for the user
+        setUploadProfileUrls(data.profile_upload_urls); // Set the profile upload URLs for the user
+        console.log(`data.profile_upload_urls: ${JSON.stringify(data.profile_upload_urls)}`);
         alert('Login successful!');
       } else {
         alert('Invalid email or password.');

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -78,22 +79,25 @@ func Signup(c *gin.Context) {
 	s3Client := s3.New(awsSession)
 	bucketName := os.Getenv("AWS_S3_BUCKET")
 	var uploadUrls []ProfilePhoto
+	var profileUploadUrls []ProfilePhoto
 
-	// Generate a dedicated presigned URL for profile photo
+	// Generate dedicated presigned URLs for profile photos (both raw and cropped)
 	profileKey := fmt.Sprintf("%d/profile", newUser.ID)
+	
+	// Cropped profile photo URL
 	profileReq, _ := s3Client.PutObjectRequest(&s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(profileKey),
 	})
-	profileUrl, err := profileReq.Presign(15 * time.Minute)
+	profileUrl, err := profileReq.Presign(180 * time.Minute)
 	if err == nil {
-		uploadUrls = append(uploadUrls, ProfilePhoto{
+		profileUploadUrls = append(profileUploadUrls, ProfilePhoto{
 			Url:      profileUrl,
 			S3Key:    profileKey,
 			PersonID: newUser.ID,
 		})
 	}
-
+	
 	// Generate presigned URLs for regular photos
 	for i := 0; i < 10; i++ {
 		key := fmt.Sprintf("%d/file%d", newUser.ID, i+1)
@@ -101,7 +105,7 @@ func Signup(c *gin.Context) {
 			Bucket: aws.String(bucketName),
 			Key:    aws.String(key),
 		})
-		url, err := req.Presign(15 * time.Minute) // Presigned URL valid for 15 minutes
+		url, err := req.Presign(180 * time.Minute) // Presigned URL valid for 180 minutes
 		if err != nil {
 			fmt.Printf("Failed to generate presigned URL for key %s: %v\n", key, err)
 			continue
@@ -118,10 +122,12 @@ func Signup(c *gin.Context) {
 		Token      string         `json:"token"`
 		ID         uint           `json:"id"`
 		UploadUrls []ProfilePhoto `json:"upload_urls,omitempty"` // Optional field for upload URLs
+		ProfileUploadUrls []ProfilePhoto `json:"profile_upload_urls,omitempty"` // Optional field for profile upload URLs
 	}{
 		Token:      tokenString,
 		ID:         newUser.ID,
 		UploadUrls: uploadUrls,
+		ProfileUploadUrls: profileUploadUrls,
 	}
 	c.IndentedJSON(http.StatusCreated, resp)
 
@@ -165,7 +171,7 @@ func Login(c *gin.Context) {
 	}
 
 	var person = Person{ID: user.ID}
-	db.Preload("Photos").First(&person)
+	db.Preload("Photos").Preload("Profile").First(&person)
 
 	// Generate presigned upload URLs
 	awsSession, err := session.NewSession(&aws.Config{
@@ -179,21 +185,38 @@ func Login(c *gin.Context) {
 	s3Client := s3.New(awsSession)
 	bucketName := os.Getenv("AWS_S3_BUCKET")
 	var uploadUrls []ProfilePhoto
+	var profileUploadUrls []ProfilePhoto
 
-	// Generate a dedicated presigned URL for profile photo
+	// Generate dedicated presigned URLs for profile photos (both raw and cropped)
 	profileKey := fmt.Sprintf("%d/profile", user.ID)
+		
+	// Cropped profile photo URL
 	profileReq, _ := s3Client.PutObjectRequest(&s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(profileKey),
 	})
-	profileUrl, err := profileReq.Presign(15 * time.Minute)
+	profileUrl, err := profileReq.Presign(180 * time.Minute)
 	if err == nil {
-		uploadUrls = append(uploadUrls, ProfilePhoto{
+		profileUploadUrls = append(profileUploadUrls, ProfilePhoto{
 			Url:      profileUrl,
 			S3Key:    profileKey,
 			PersonID: user.ID,
 		})
 	}
+	
+	// Raw profile photo URL
+	// rawProfileReq, _ := s3Client.PutObjectRequest(&s3.PutObjectInput{
+	// 	Bucket: aws.String(bucketName),
+	// 	Key:    aws.String(rawProfileKey),
+	// })
+	// rawProfileUrl, err := rawProfileReq.Presign(180 * time.Minute)
+	// if err == nil {
+	// 	uploadUrls = append(uploadUrls, ProfilePhoto{
+	// 		Url:      rawProfileUrl,
+	// 		S3Key:    rawProfileKey,
+	// 		PersonID: user.ID,
+	// 	})
+	// }
 
 	// Generate presigned URLs for regular photos
 	for i := 0; i < 10; i++ {
@@ -202,7 +225,7 @@ func Login(c *gin.Context) {
 			Bucket: aws.String(bucketName),
 			Key:    aws.String(key),
 		})
-		url, err := req.Presign(15 * time.Minute) // Presigned URL valid for 15 minutes
+		url, err := req.Presign(180 * time.Minute) // Presigned URL valid for 180 minutes
 		if err != nil {
 			fmt.Printf("Failed to generate presigned URL for key %s: %v\n", key, err)
 			continue
@@ -217,6 +240,7 @@ func Login(c *gin.Context) {
 	// Use a WaitGroup to manage concurrency
 	var wg sync.WaitGroup
 
+	// Generate presigned URLs for all photos
 	for j := range person.Photos {
 		wg.Add(1)
 		go func(photo *ProfilePhoto) {
@@ -226,7 +250,7 @@ func Login(c *gin.Context) {
 				Bucket: aws.String(bucketName),
 				Key:    aws.String(photo.S3Key),
 			})
-			url, err := req.Presign(180 * time.Minute) // Presigned URL valid for 60 minutes
+			url, err := req.Presign(180 * time.Minute) // Presigned URL valid for 180 minutes
 			if err != nil {
 				fmt.Printf("Failed to generate presigned URL for S3Key %s: %v\n", photo.S3Key, err)
 				return
@@ -234,6 +258,60 @@ func Login(c *gin.Context) {
 			photo.Url = url // Update the Url field with the presigned URL
 		}(&person.Photos[j])
 	}
+	
+	// // Generate presigned URLs for viewing profile photos
+	// profileKey := fmt.Sprintf("%d/profile", user.ID)
+	// rawProfileKey := fmt.Sprintf("%d/rawprofile", user.ID)
+	// These values already are declared above!
+	
+	// Cropped profile photo URL for viewing
+	profileGetReq, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(profileKey),
+	})
+	profileViewUrl, err := profileGetReq.Presign(180 * time.Minute) // Presigned URL valid for 180 minutes
+	if err == nil {
+		// Check if profile photo exists in the database
+		if person.Profile.ID == 0 {
+			// Create a new profile photo entry
+			person.Profile = ProfilePhoto{
+				PersonID: user.ID,
+				S3Key:    profileKey,
+				Url:      profileViewUrl,
+			}
+		} else {
+			// Update existing profile photo URL
+			person.Profile.Url = profileViewUrl
+		}
+	}
+	
+	// // Raw profile photo URL for viewing
+	// rawProfileGetReq, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
+	// 	Bucket: aws.String(bucketName),
+	// 	Key:    aws.String(rawProfileKey),
+	// })
+	// rawProfileViewUrl, err := rawProfileGetReq.Presign(180 * time.Minute)
+	// if err == nil {
+	// 	// Find or create the raw profile photo entry
+	// 	var rawProfileFound bool
+	// 	for i := range person.Photos {
+	// 		if person.Photos[i].S3Key == rawProfileKey {
+	// 			person.Photos[i].Url = rawProfileViewUrl
+	// 			rawProfileFound = true
+	// 			break
+	// 		}
+	// 	}
+		
+	// 	if !rawProfileFound {
+	// 		// Add raw profile photo to photos array
+	// 		person.Photos = append(person.Photos, ProfilePhoto{
+	// 			PersonID: user.ID,
+	// 			S3Key:    rawProfileKey,
+	// 			Url:      rawProfileViewUrl,
+	// 			Caption:  "Raw Profile Photo",
+	// 		})
+	// 	}
+	// }
 
 	// Wait for all goroutines to finish
 	wg.Wait()
@@ -243,10 +321,12 @@ func Login(c *gin.Context) {
 		Token      string         `json:"token"`
 		Person     Person         `json:"person"`
 		UploadUrls []ProfilePhoto `json:"upload_urls,omitempty"` // Optional field for upload URLs
+		ProfileUploadUrls []ProfilePhoto `json:"profile_upload_urls,omitempty"` // Optional field for profile upload URLs
 	}{
 		Token:      tokenString,
 		Person:     person,
 		UploadUrls: uploadUrls,
+		ProfileUploadUrls: profileUploadUrls,
 	}
 
 	c.JSON(http.StatusOK, resp)
@@ -371,6 +451,17 @@ func GetPeople(c *gin.Context) {
 	// Use a WaitGroup to manage concurrency
 	var wg sync.WaitGroup
 	for i := range people {
+		// Filter out profile photos from the Photos array
+		var filteredPhotos []ProfilePhoto
+		for _, photo := range people[i].Photos {
+			// Skip photos with "profile" in the S3Key (both regular profile and raw profile)
+			if !strings.Contains(photo.S3Key, "/profile") {
+				filteredPhotos = append(filteredPhotos, photo)
+			}
+		}
+		people[i].Photos = filteredPhotos
+
+		// Generate presigned URLs for regular photos
 		for j := range people[i].Photos {
 			wg.Add(1)
 			go func(photo *ProfilePhoto) {
@@ -388,22 +479,25 @@ func GetPeople(c *gin.Context) {
 				photo.Url = url // Update the Url field with the presigned URL
 			}(&people[i].Photos[j])
 		}
-		wg.Add(1)
-		go func(Profile *ProfilePhoto) {
-			defer wg.Done()
-			// Generate presigned URL
-			req, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
-				Bucket: aws.String(bucketName),
-				Key:    aws.String(Profile.S3Key),
-			})
-			url, err := req.Presign(180 * time.Minute) // Presigned URL valid for 180 minutes
-			if err != nil {
-				fmt.Printf("Failed to generate presigned URL for S3Key %s: %v\n", Profile.S3Key, err)
-				return
-			}
-			Profile.Url = url // Update the Url field with the presigned URL
-		}(&people[i].Profile)
 
+		// Generate presigned URL for profile photo
+		if people[i].Profile.S3Key != "" {
+			wg.Add(1)
+			go func(profile *ProfilePhoto) {
+				defer wg.Done()
+				// Generate presigned URL
+				req, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
+					Bucket: aws.String(bucketName),
+					Key:    aws.String(profile.S3Key),
+				})
+				url, err := req.Presign(180 * time.Minute) // Presigned URL valid for 180 minutes
+				if err != nil {
+					fmt.Printf("Failed to generate presigned URL for profile S3Key %s: %v\n", profile.S3Key, err)
+					return
+				}
+				profile.Url = url // Update the Url field with the presigned URL
+			}(&people[i].Profile)
+		}
 	}
 
 	// Wait for all goroutines to finish
