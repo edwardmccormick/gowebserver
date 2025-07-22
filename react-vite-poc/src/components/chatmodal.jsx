@@ -146,7 +146,7 @@ export function ChatModal({match, person, User, unreadmessages}) {
       onClick={() => setShowModal(true)}
     >
       <img
-        src={person.profile ? person.profile : '/profile.svg'}
+        src={person.profile.url ? person.profile.url : '/profile.svg'}
         style={{ borderRadius: '50%' }}
         className="m-1 p-1"
         height="50"
@@ -175,7 +175,7 @@ export function ChatModal({match, person, User, unreadmessages}) {
 
       <Modal.Header closeButton>
         <Modal.Title>Chat with {person.name} <img
-              src={person.profile ? person.profile : '/profile.svg'}
+              src={person.profile.url ? person.profile.url : '/profile.svg'}
               style={{ borderRadius: '50%' }}
               className="m-1 p-1"
               height="50"
@@ -285,7 +285,7 @@ export function ChatModalButton({ match, person, setSelectedPerson, setSelectedM
       onClick={handleShow}
     >
       <img
-        src={person.profile ? person.profile : '/profile.svg'}
+        src={person.profile.url ? person.profile.url : '/profile.svg'}
         style={{ borderRadius: '50%' }}
         className="m-1 p-1"
         height="50"

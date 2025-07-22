@@ -78,7 +78,7 @@ func Signup(c *gin.Context) {
 	s3Client := s3.New(awsSession)
 	bucketName := os.Getenv("AWS_S3_BUCKET")
 	var uploadUrls []ProfilePhoto
-	
+
 	// Generate a dedicated presigned URL for profile photo
 	profileKey := fmt.Sprintf("%d/profile", newUser.ID)
 	profileReq, _ := s3Client.PutObjectRequest(&s3.PutObjectInput{
@@ -93,7 +93,7 @@ func Signup(c *gin.Context) {
 			PersonID: newUser.ID,
 		})
 	}
-	
+
 	// Generate presigned URLs for regular photos
 	for i := 0; i < 10; i++ {
 		key := fmt.Sprintf("%d/file%d", newUser.ID, i+1)
@@ -179,7 +179,7 @@ func Login(c *gin.Context) {
 	s3Client := s3.New(awsSession)
 	bucketName := os.Getenv("AWS_S3_BUCKET")
 	var uploadUrls []ProfilePhoto
-	
+
 	// Generate a dedicated presigned URL for profile photo
 	profileKey := fmt.Sprintf("%d/profile", user.ID)
 	profileReq, _ := s3Client.PutObjectRequest(&s3.PutObjectInput{
@@ -194,7 +194,7 @@ func Login(c *gin.Context) {
 			PersonID: user.ID,
 		})
 	}
-	
+
 	// Generate presigned URLs for regular photos
 	for i := 0; i < 10; i++ {
 		key := fmt.Sprintf("%d/file%d", user.ID, i+1)
@@ -234,7 +234,6 @@ func Login(c *gin.Context) {
 			photo.Url = url // Update the Url field with the presigned URL
 		}(&person.Photos[j])
 	}
-	
 
 	// Wait for all goroutines to finish
 	wg.Wait()
@@ -287,8 +286,8 @@ func PostPeople(c *gin.Context) {
 
 	// Save the Person record first
 	result := db.Clauses(clause.OnConflict{
-  			UpdateAll: true,
-			}).Create(&newPerson)
+		UpdateAll: true,
+	}).Create(&newPerson)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
@@ -352,7 +351,7 @@ func GetUsers(c *gin.Context) {
 
 func GetPeople(c *gin.Context) {
 	var people []Person
-	if result := db.Preload("Photos").Find(&people); result.Error != nil {
+	if result := db.Preload("Photos").Preload("Profile").Find(&people); result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
@@ -381,7 +380,7 @@ func GetPeople(c *gin.Context) {
 					Bucket: aws.String(bucketName),
 					Key:    aws.String(photo.S3Key),
 				})
-				url, err := req.Presign(60 * time.Minute) // Presigned URL valid for 15 minutes
+				url, err := req.Presign(60 * time.Minute) // Presigned URL valid for 60 minutes
 				if err != nil {
 					fmt.Printf("Failed to generate presigned URL for S3Key %s: %v\n", photo.S3Key, err)
 					return
@@ -389,6 +388,22 @@ func GetPeople(c *gin.Context) {
 				photo.Url = url // Update the Url field with the presigned URL
 			}(&people[i].Photos[j])
 		}
+		wg.Add(1)
+		go func(Profile *ProfilePhoto) {
+			defer wg.Done()
+			// Generate presigned URL
+			req, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
+				Bucket: aws.String(bucketName),
+				Key:    aws.String(Profile.S3Key),
+			})
+			url, err := req.Presign(180 * time.Minute) // Presigned URL valid for 180 minutes
+			if err != nil {
+				fmt.Printf("Failed to generate presigned URL for S3Key %s: %v\n", Profile.S3Key, err)
+				return
+			}
+			Profile.Url = url // Update the Url field with the presigned URL
+		}(&people[i].Profile)
+
 	}
 
 	// Wait for all goroutines to finish
@@ -447,7 +462,7 @@ func GetPeopleByID(c *gin.Context) {
 	fmt.Println(id)
 
 	var person = Person{ID: uint(id)}
-	results := db.Preload("Photos").First(&person)
+	results := db.Preload("Photos").Preload("Profile").First(&person)
 	if results.Error != nil {
 		fmt.Println(results.Error)
 	}

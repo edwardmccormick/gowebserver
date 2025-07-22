@@ -40,7 +40,7 @@ function MatchMap({ people, User }) {
         .setLngLat([person.long, person.lat])
         .setPopup(new mapboxgl.Popup().setHTML(`
           <div style="text-align: center;">
-            <img src="${person.profile || '/profile.svg'}" style="width: 50px; height: 50px; border-radius: 50%; margin-bottom: 8px;" />
+            <img src="${person.profile.url || '/profile.svg'}" style="width: 50px; height: 50px; border-radius: 50%; margin-bottom: 8px;" />
             <h6>${person.name}</h6>
             <p>${person.motto}</p>
             <small>${person.distance} miles away</small>

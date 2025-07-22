@@ -133,7 +133,7 @@ function MatchList({
         <Accordion.Item className='w-100' eventKey={person.id} key={person.id}>
           <Accordion.Header className='w-100' key={`${person.id}100`}>
             <img
-              src={person.profile ? person.profile : '/profile.svg'}
+              src={person.profile.url ? person.profile.url : '/profile.svg'}
               style={{ borderRadius: '50%' }}
               className="m-1 p-1"
               height="50"
@@ -144,7 +144,7 @@ function MatchList({
           </Accordion.Header>
           <Accordion.Body key={`${person.id}10000`}>
             <div className='text-start'>
-              <img src={person.profile} className='m-1 p-1 rounded float-start' height={'250'} width={'auto'} />
+              <img src={person.profile.url} className='m-1 p-1 rounded float-start' height={'250'} width={'auto'} />
                 { person?.description ? 
                 (
                   <div
