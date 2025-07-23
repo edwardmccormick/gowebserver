@@ -276,8 +276,8 @@ export function CreateProfile({
               lat: parseFloat(formData.latitude) || 0,
               long: parseFloat(formData.longitude) || 0,
               profile: formData.profile ? 
-                (formData.profile.startsWith('data:') ? formData.profile : `http://localhost:8080/photos/${formData.profile}`) : 
-                '/profile.svg',
+                formData?.profile 
+                : '/profile.svg',
               description: JSON.stringify(editorDelta),
               photos: formData.photos.map(photo => ({
                 url: photo.url || `http://localhost:8080/photos/${photo.s3key}`,

@@ -56,6 +56,7 @@ type ProfilePhoto struct {
 	ID       uint   `json:"id" gorm:"primaryKey"`
 	PersonID uint   `json:"person_id" gorm:"not null"` // Foreign key to Person.ID
 	Url      string `json:"url" gorm:"-"`
+	Upload   string `json:"upload" gorm:"-"`
 	S3Key    string `json:"s3key"`
 	Caption  string `json:"caption"`
 }
