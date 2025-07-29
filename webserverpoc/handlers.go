@@ -100,7 +100,7 @@ func Signup(c *gin.Context) {
 
 	// Generate presigned URLs for regular photos
 	for i := 0; i < 10; i++ {
-		key := fmt.Sprintf("%d/file%d", newUser.ID, i+1)
+		key := fmt.Sprintf("%d/image%d", newUser.ID, i+1)
 		req, _ := s3Client.PutObjectRequest(&s3.PutObjectInput{
 			Bucket: aws.String(bucketName),
 			Key:    aws.String(key),
@@ -597,16 +597,79 @@ func GetPhotosByID(c *gin.Context) {
 		return
 	}
 	fmt.Println(id)
-	if id == 0 || id == 1 || id == 2 || id == 3 {
-		c.IndentedJSON(http.StatusOK, PhotoArray2)
+
+	var profilePhotos = []ProfilePhoto{}
+	results := db.Where("person_id = ?", uint(id)).Find(&profilePhotos)
+	if results.Error != nil {
+		fmt.Println(results.Error)
+	}
+	if results.RowsAffected == 0 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found for that id"})
 		return
 	}
-	if id == 4 || id == 5 || id == 6 || id == 7 || id == 8 || id == 9 || id == 10 || id == 11 || id == 12 || id == 13 {
-		c.IndentedJSON(http.StatusOK, PhotoArray1)
+
+		// Load AWS credentials from environment variables
+	awsSession, err := session.NewSession(&aws.Config{
+		Region: aws.String(os.Getenv("AWS_REGION")),
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize AWS session"})
 		return
 	}
-	// TODO: Implement a Document DB instance and associated call
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found for that id"})
+
+	s3Client := s3.New(awsSession)
+	bucketName := os.Getenv("AWS_S3_BUCKET")
+
+	// Use a WaitGroup to wait for all goroutines to finish
+    var wg sync.WaitGroup
+    for j := range profilePhotos {
+        wg.Add(1)
+        go func(photo *ProfilePhoto) {
+            defer wg.Done()
+
+            // Generate presigned URL for viewing
+            getReq, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
+                Bucket: aws.String(bucketName),
+                Key:    aws.String(photo.S3Key),
+            })
+            getUrl, err := getReq.Presign(60 * time.Minute) // Presigned URL valid for 60 minutes
+            if err != nil {
+                fmt.Printf("Failed to generate presigned GET URL for S3Key %s: %v\n", photo.S3Key, err)
+                return
+            }
+            photo.Url = getUrl
+
+            // Generate presigned URL for uploading
+            putReq, _ := s3Client.PutObjectRequest(&s3.PutObjectInput{
+                Bucket: aws.String(bucketName),
+                Key:    aws.String(photo.S3Key),
+            })
+            putUrl, err := putReq.Presign(60 * time.Minute) // Presigned URL valid for 60 minutes
+            if err != nil {
+                fmt.Printf("Failed to generate presigned PUT URL for S3Key %s: %v\n", photo.S3Key, err)
+                return
+            }
+            photo.Upload = putUrl
+
+            // Generate presigned URL for deleting
+            deleteReq, _ := s3Client.DeleteObjectRequest(&s3.DeleteObjectInput{
+                Bucket: aws.String(bucketName),
+                Key:    aws.String(photo.S3Key),
+            })
+            deleteUrl, err := deleteReq.Presign(60 * time.Minute) // Presigned URL valid for 60 minutes
+            if err != nil {
+                fmt.Printf("Failed to generate presigned DELETE URL for S3Key %s: %v\n", photo.S3Key, err)
+                return
+            }
+            photo.Delete = deleteUrl
+        }(&profilePhotos[j])
+    }
+
+    // Wait for all goroutines to finish
+    wg.Wait()
+
+
+	c.IndentedJSON(http.StatusOK, profilePhotos)
 }
 
 // Matchmaking and chat functionality
@@ -807,3 +870,4 @@ func ChatMessagesFromMongo(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusOK, collection)
 }
+

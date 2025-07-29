@@ -56,7 +56,8 @@ type ProfilePhoto struct {
 	ID       uint   `json:"id" gorm:"primaryKey"`
 	PersonID uint   `json:"person_id" gorm:"not null"` // Foreign key to Person.ID
 	Url      string `json:"url" gorm:"-"`
-	Upload   string `json:"upload" gorm:"-"`
+	Upload   string `json:"upload,omitempty" gorm:"-"`
+	Delete   string  `json:"delete,omitempty" gorm:"-"`
 	S3Key    string `json:"s3key"`
 	Caption  string `json:"caption"`
 }
@@ -77,18 +78,18 @@ type Conversation struct {
 }
 
 type Details struct {
-	Bouginess               int `json:"bouginess"`
-	Cats                    int `json:"cats"`
-	Dogs                    int `json:"dogs"`
-	Drinking                int `json:"drinking"`
-	EnergyLevel             int `json:"energy_levels"`
-	Food                    int `json:"food"`
-	ImportantanceOfPolitics int `json:"importantance_of_politics"`
-	Kids                    int `json:"kids"`
-	Outdoorsyness           int `json:"outdoorsy_ness"`
-	Religion                int `json:"religion"`
-	Smoking                 int `json:"smoking"`
-	Travel                  int `json:"travel"`
+	Bouginess               int `json:"bouginess,omitempty"`
+	Cats                    int `json:"cats,omitempty"`
+	Dogs                    int `json:"dogs,omitempty"`
+	Drinking                int `json:"drinking,omitempty"`
+	EnergyLevel             int `json:"energy_levels,omitempty"`
+	Food                    int `json:"food,omitempty"`
+	ImportantanceOfPolitics int `json:"importantance_of_politics,omitempty"`
+	Kids                    int `json:"kids,omitempty"`
+	Outdoorsyness           int `json:"outdoorsy_ness,omitempty"`
+	Religion                int `json:"religion,omitempty"`
+	Smoking                 int `json:"smoking,omitempty"`
+	Travel                  int `json:"travel,omitempty"`
 }
 
 type Match struct {

@@ -254,6 +254,11 @@ export function CreateProfile({
         />
       </div>
 
+      <DetailsSelections
+        onChange={handleDetailsChange}
+        selectedValues={formData.details}
+      />
+
       {/* Preview Toggle Button */}
       <Button 
         variant="secondary" 
