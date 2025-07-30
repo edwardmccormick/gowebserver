@@ -64,6 +64,38 @@ export function CreateProfile({
     }));
   };
 
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    const confirmLocationAccess = window.confirm(
+      'We would like to access your location to help populate your latitude and longitude. Do you allow this?'
+    );
+
+    if (!confirmLocationAccess) {
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+
+        // Update the formData with the location, rounded to 3 decimal places
+        setFormData((prev) => ({
+          ...prev,
+          latitude: latitude.toFixed(3),
+          longitude: longitude.toFixed(3),
+        }));
+      },
+      (error) => {
+        console.error('Error fetching location:', error);
+        alert('Unable to fetch your location. Please try again.');
+      }
+    );
+  };
+
   const isQuillLoaded = useQuillLoader(); // Hook to load Quill scripts
   // State to hold the editor's content in Delta format
   const [editorDelta, setEditorDelta] = useState(() => {
@@ -102,7 +134,7 @@ export function CreateProfile({
       motto: formData.motto,
       lat: parseFloat(formData.latitude),
       long: parseFloat(formData.longitude),
-      profile: { s3key: formData.profile || "" },
+      profile: { S3Key: formData.profile.S3Key || "" },
       description: JSON.stringify(editorDelta), // Use the Delta content from the editor
       details: formData.details,
       photos: uniquePhotos,
@@ -178,7 +210,7 @@ export function CreateProfile({
           />
         </div>
 
-        <div className="col-3 m-1 p-1">
+        <div className="col-6 m-1 p-1">
           <Form.Label htmlFor="motto">Title</Form.Label>
           <Form.Control
             id="motto"
@@ -200,7 +232,7 @@ export function CreateProfile({
           />
         </div> */}
 
-        <div className="col-1 m-1 p-1">
+        <div className="col-2 m-1 p-1">
           <Form.Label htmlFor="latitude">Latitude</Form.Label>
           <Form.Control
             id="latitude"
@@ -211,7 +243,7 @@ export function CreateProfile({
           />
         </div>
 
-        <div className="col-1 m-1 p-1">
+        <div className="col-2 m-1 p-1">
           <Form.Label htmlFor="longitude">Longitude</Form.Label>
           <Form.Control
             id="longitude"
@@ -220,6 +252,15 @@ export function CreateProfile({
             value={formData.longitude}
             onChange={handleChange}
           />
+        </div>
+        <div className="col-2 m-1 p-1">
+          <Button 
+            variant="info" 
+            className="mx-2" 
+            onClick={handleGetLocation}
+          >
+            Use My Location
+          </Button>
         </div>
       </div>
         {/* <div className="mx-auto text-center m-1 p-1 w-75">

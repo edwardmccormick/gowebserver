@@ -220,6 +220,7 @@ function App() {
             loggedInUser={loggedInUser}
             uploadUrls={uploadUrls}
             uploadProfileUrls={uploadProfileUrls}
+            setUploadUrls={setUploadUrls}
           />
         </div>
     </div>

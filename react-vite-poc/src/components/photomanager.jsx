@@ -7,7 +7,7 @@ import Col from 'react-bootstrap/Col';
 import Croppie from 'croppie';
 import 'croppie/croppie.css';
 
-function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls, uploadProfileUrls, userId }) {
+function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls, uploadProfileUrls, setUploadUrls }) {
   // Find the profile URLs from uploadUrls
   console.log(uploadProfileUrls)
   const profileUploadUrl = uploadProfileUrls.find(urlObj => urlObj.s3key && urlObj.s3key.includes('/profile'));
@@ -19,6 +19,7 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
   const [croppieInstance, setCroppieInstance] = useState(null);
   const [croppingPhoto, setCroppingPhoto] = useState(null);
   const [showCroppie, setShowCroppie] = useState(false);
+  const [replacePhoto, setReplacePhoto] = useState(null);
 
   useEffect(() => {
     // Include all photos, including profile photos, in the PhotoManager
@@ -73,15 +74,22 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
       return;
     }
 
-    // Check if there are remaining presigned URLs
-    if (usedUrls >= uploadUrls.length) {
-      setUploadError('You have reached your upload limit.');
-      return;
-    }
-
     try {
-      const presignedUrl = uploadUrls[usedUrls].url;
-      const s3Key = uploadUrls[usedUrls].s3key;
+      let presignedUrl, s3Key;
+
+      if (replacePhoto) {
+        // Use the upload URL of the photo being replaced
+        presignedUrl = replacePhoto.upload;
+        s3Key = replacePhoto.s3key;
+      } else {
+        // Use the next available upload URL
+        if (usedUrls >= uploadUrls.length) {
+          setUploadError('You have reached your upload limit.');
+          return;
+        }
+        presignedUrl = uploadUrls[usedUrls].url;
+        s3Key = uploadUrls[usedUrls].s3key;
+      }
 
       const response = await fetch(presignedUrl, {
         method: 'PUT',
@@ -92,18 +100,30 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
       });
 
       if (response.ok) {
-        const newPhoto = { 
-          s3key: s3Key, 
-          caption,
-          url: URL.createObjectURL(selectedFile), // Temporary URL for display
-          originalName: selectedFile.name // Store original filename for reference
-        };
-        
-        const updatedPhotos = [...userPhotos, newPhoto];
-        setUserPhotos(updatedPhotos);
-        onPhotoUpdate(updatedPhotos);
-        
-        setUsedUrls((prev) => prev + 1);
+        if (replacePhoto) {
+          // Replace the existing photo view
+          const updatedPhotos = userPhotos.map(photo =>
+            photo.s3key === replacePhoto.s3key
+              ? { ...photo, url: URL.createObjectURL(selectedFile) } // Update the photo view
+              : photo
+          );
+          setUserPhotos(updatedPhotos);
+          onPhotoUpdate(updatedPhotos);
+          setReplacePhoto(null); // Clear replacePhoto state
+        } else {
+          // Add the new photo to the photo collection
+          const newPhoto = {
+            s3key: s3Key,
+            caption,
+            url: URL.createObjectURL(selectedFile), // Temporary URL for display
+            originalName: selectedFile.name, // Store original filename for reference
+          };
+          const updatedPhotos = [...userPhotos, newPhoto];
+          setUserPhotos(updatedPhotos);
+          onPhotoUpdate(updatedPhotos);
+          setUsedUrls((prev) => prev + 1);
+        }
+
         setSelectedFile(null);
         setCaption('');
         setUploadError(null);
@@ -116,10 +136,37 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
     }
   };
 
-  const handleDeletePhoto = (photoToDelete) => {
-    const updatedPhotos = userPhotos.filter(photo => photo.s3key !== photoToDelete.s3key);
-    setUserPhotos(updatedPhotos);
-    onPhotoUpdate(updatedPhotos);
+  const handleDeletePhoto = async (photoToDelete) => {
+    try {
+      // Make a DELETE request to the presigned Delete URL
+      const response = await fetch(photoToDelete.delete, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Remove the photo from the local state if the deletion was successful
+        const updatedPhotos = userPhotos.filter(photo => photo.s3key !== photoToDelete.s3key);
+        setUserPhotos(updatedPhotos);
+        onPhotoUpdate(updatedPhotos);
+
+        // Add the upload URL back to uploadProfileUrls
+        setUploadUrls(prev => [
+        ...prev,
+        { url: photoToDelete.upload, s3key: photoToDelete.s3key }
+      ]);
+      } else {
+        console.error('Failed to delete the photo from S3:', response.statusText);
+        setUploadError('Failed to delete the photo. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting photo:', error);
+      setUploadError('An error occurred while deleting the photo.');
+    }
+  };
+
+  const handleReplacePhoto = (photoToReplace) => {
+    setReplacePhoto(photoToReplace); // Set the photo to be replaced
+    setSelectedFile(null); // Clear any previously selected file
   };
 
   const handleMakeProfilePhoto = (photo) => {
@@ -208,6 +255,11 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
     setCroppingPhoto(null);
   };
 
+  const handleCancelReplace = () => {
+    setReplacePhoto(null); // Clear replacePhoto state
+    setSelectedFile(null); // Clear the selected file
+  };
+
   const handleCaptionChange = (photoIndex, newCaption) => {
     const updatedPhotos = [...userPhotos];
     updatedPhotos[photoIndex].caption = newCaption;
@@ -273,8 +325,14 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
               disabled={!selectedFile || usedUrls >= uploadUrls.length}
               className="mt-2"
             >
-              {usedUrls >= uploadUrls.length ? 'Upload Limit Reached' : 'Upload Photo'}
+              {usedUrls >= uploadUrls.length ? 'Upload Limit Reached' : 
+              (replacePhoto ? 'Replace Photo' : 'Upload Photo')}
             </Button>
+            {replacePhoto && (
+            <Button variant="secondary" onClick={handleCancelReplace} className="ms-2">
+              Cancel
+            </Button>
+            )}
           </div>
 
           {/* Photo gallery */}
@@ -322,7 +380,7 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
                           <Form.Group>
                             <Form.Control
                               type="text"
-                              placeholder="Add a caption"
+                              placeholder={isProfilePhoto ? 'Your current profile photo' : "Add a caption"}
                               value={photo.caption || ''}
                               onChange={(e) => handleCaptionChange(index, e.target.value)}
                               disabled={isProfilePhoto}
@@ -330,6 +388,7 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
                           </Form.Group>
                           <div className="d-flex justify-content-between mt-2">
                             {!isProfilePhoto && (
+                              <>
                               <Button 
                                 variant="outline-primary" 
                                 size="sm"
@@ -337,6 +396,15 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
                               >
                                 Make Profile Photo
                               </Button>
+
+                              <Button 
+                                variant="outline-warning" 
+                                size="sm"
+                                onClick={() => handleReplacePhoto(photo)}
+                              >
+                                Replace
+                              </Button>
+                              </>
                             )}
                             {!isProfilePhoto && (
                               <Button 
