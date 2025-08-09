@@ -220,7 +220,7 @@ func Login(c *gin.Context) {
 
 	// Generate presigned URLs for regular photos
 	for i := 0; i < 10; i++ {
-		key := fmt.Sprintf("%d/file%d", user.ID, i+1)
+		key := fmt.Sprintf("%d/image%d", user.ID, i+1)
 		req, _ := s3Client.PutObjectRequest(&s3.PutObjectInput{
 			Bucket: aws.String(bucketName),
 			Key:    aws.String(key),
