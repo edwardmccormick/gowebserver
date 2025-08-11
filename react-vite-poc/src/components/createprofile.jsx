@@ -117,8 +117,10 @@ export function CreateProfile({
     const uniquePhotos = [];
     const seenKeys = new Set();
     
+    // First, process only photos that have valid S3 keys
     formData.photos.forEach(photo => {
-      if (!seenKeys.has(photo.s3key)) {
+      // Only include photos that have a valid S3 key (skip any temporary local uploads)
+      if (photo.s3key && !seenKeys.has(photo.s3key)) {
         seenKeys.add(photo.s3key);
         uniquePhotos.push({
           S3Key: photo.s3key,
@@ -168,9 +170,28 @@ export function CreateProfile({
 
 
   const handlePhotoUpdate = (updatedPhotos) => {
+    // Prevent duplicate photos by checking S3 keys
+    const uniquePhotos = [];
+    const seenKeys = new Set();
+    
+    // First add photos with S3 keys (ensuring uniqueness)
+    updatedPhotos.forEach(photo => {
+      if (photo.s3key && !seenKeys.has(photo.s3key)) {
+        seenKeys.add(photo.s3key);
+        uniquePhotos.push(photo);
+      }
+    });
+    
+    // Then add any photos without S3 keys (like temporary uploads)
+    updatedPhotos.forEach(photo => {
+      if (!photo.s3key) {
+        uniquePhotos.push(photo);
+      }
+    });
+    
     setFormData(prev => ({
       ...prev,
-      photos: updatedPhotos
+      photos: uniquePhotos
     }));
   };
 

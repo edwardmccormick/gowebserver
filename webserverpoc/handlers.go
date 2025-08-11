@@ -387,10 +387,16 @@ func PostPeople(c *gin.Context) {
 		existingS3Keys[photo.S3Key] = photo.ID
 	}
 
+	// Track which photos are in the update request
+	requestedPhotoKeys := make(map[string]bool)
+	
 	// Process each photo in the request
 	for i := range newPerson.Photos {
 		photo := &newPerson.Photos[i]
 		photo.PersonID = newPerson.ID // Ensure the foreign key is set correctly
+		
+		// Mark this photo as requested to keep
+		requestedPhotoKeys[photo.S3Key] = true
 
 		// Check if this S3 key already exists
 		if existingID, exists := existingS3Keys[photo.S3Key]; exists {
@@ -408,6 +414,23 @@ func PostPeople(c *gin.Context) {
 			if err := db.Create(photo).Error; err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to save photo: %v", err)})
 				return
+			}
+		}
+	}
+	
+	// Delete photos that are no longer included in the request
+	// This ensures we don't keep accumulating photos when updating the profile
+	for _, existingPhoto := range existingPhotos {
+		if !requestedPhotoKeys[existingPhoto.S3Key] {
+			// Skip deleting profile photos (they're handled separately)
+			if strings.HasSuffix(existingPhoto.S3Key, "/profile") {
+				continue
+			}
+			
+			// This photo is no longer needed, delete it
+			if err := db.Delete(&ProfilePhoto{}, existingPhoto.ID).Error; err != nil {
+				fmt.Printf("Failed to delete unused photo %d: %v\n", existingPhoto.ID, err)
+				// Continue without returning error - this is not critical
 			}
 		}
 	}

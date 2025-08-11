@@ -15,7 +15,12 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
   const [selectedFile, setSelectedFile] = useState(null);
   const [caption, setCaption] = useState('');
   const [uploadError, setUploadError] = useState(null);
-  const [usedUrls, setUsedUrls] = useState(0);
+  // Track which upload URLs have been used already by checking against existing photos
+  const [usedUrls, setUsedUrls] = useState(() => {
+    // Count how many images are already using the upload URLs pattern (imageN)
+    return photos ? photos.filter(photo => 
+      photo.s3key && photo.s3key.match(/\/image\d+$/)).length : 0;
+  });
   const [croppieInstance, setCroppieInstance] = useState(null);
   const [croppingPhoto, setCroppingPhoto] = useState(null);
   const [showCroppie, setShowCroppie] = useState(false);
@@ -82,13 +87,22 @@ function PhotoManager({ photos, onPhotoUpdate, onProfilePhotoSelect, uploadUrls,
         presignedUrl = replacePhoto.upload;
         s3Key = replacePhoto.s3key;
       } else {
-        // Use the next available upload URL
-        if (usedUrls >= uploadUrls.length) {
+        // Find the next available upload URL that isn't already used
+        // by checking if any existing photos are using it
+        const existingPhotoKeys = userPhotos.map(p => p.s3key).filter(Boolean);
+        
+        // Find the first upload URL that isn't already in use
+        const availableUrlIndex = uploadUrls.findIndex(url => 
+          url.s3key && !existingPhotoKeys.includes(url.s3key)
+        );
+        
+        if (availableUrlIndex === -1 || usedUrls >= uploadUrls.length) {
           setUploadError('You have reached your upload limit.');
           return;
         }
-        presignedUrl = uploadUrls[usedUrls].url;
-        s3Key = uploadUrls[usedUrls].s3key;
+        
+        presignedUrl = uploadUrls[availableUrlIndex].url;
+        s3Key = uploadUrls[availableUrlIndex].s3key;
       }
 
       const response = await fetch(presignedUrl, {
