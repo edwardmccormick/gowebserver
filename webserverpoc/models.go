@@ -58,7 +58,7 @@ type ProfilePhoto struct {
 	Url      string `json:"url" gorm:"-"`
 	Upload   string `json:"upload,omitempty" gorm:"-"`
 	Delete   string  `json:"delete,omitempty" gorm:"-"`
-	S3Key    string `json:"s3key"`
+	S3Key    string `json:"s3key" gorm:"not null,unique"`
 	Caption  string `json:"caption"`
 }
 
@@ -84,7 +84,7 @@ type Details struct {
 	Drinking                int `json:"drinking,omitempty"`
 	EnergyLevel             int `json:"energy_levels,omitempty"`
 	Food                    int `json:"food,omitempty"`
-	ImportantanceOfPolitics int `json:"importantance_of_politics,omitempty"`
+	ImportanceOfPolitics int `json:"importance_of_politics,omitempty"`
 	Kids                    int `json:"kids,omitempty"`
 	Outdoorsyness           int `json:"outdoorsy_ness,omitempty"`
 	Religion                int `json:"religion,omitempty"`

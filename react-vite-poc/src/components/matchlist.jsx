@@ -5,6 +5,7 @@ import { getPreciseDistance } from 'geolib';
 import Button from 'react-bootstrap/Button';
 import { useQuillLoader, QuillEditor } from './editor';
 import MatchMap from './MatchMap';
+import DetailFlags from './DetailFlags';
 
 function MatchList({
     people, 
@@ -140,11 +141,18 @@ function MatchList({
               width="50"
               alt={`${person.name}'s profile`}
             />
-            <strong>{person.name}</strong> — {person.motto} - Distance: { person.distance } miles
+            <strong>{person.name}</strong> <span>{person.motto} - Distance: { person.distance } miles</span>
+            {person.details && <DetailFlags details={person.details} limit={3} topValues={true} />}
           </Accordion.Header>
           <Accordion.Body key={`${person.id}10000`}>
             <div className='text-start'>
               <img src={person.profile.url !== null && person.profile.url !== "" ? person.profile.url : '/profile.svg'} className='m-1 p-1 rounded float-start' height={'250'} width={'auto'} />
+              {person.details && (
+                <div className="mb-3">
+                  <h5>Personality Indicators:</h5>
+                  <DetailFlags details={person.details} />
+                </div>
+              )}
                 { person?.description ? 
                 (
                   <div

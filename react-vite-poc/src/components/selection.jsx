@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Accordion from 'react-bootstrap/Accordion';
+import DetailFlag from './DetailFlag';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
+import details from '../../../details.json';
 
 function SelectionFormat({ array, subject, onChange, selectedValue = null }) {
   const [selected, setSelected] = useState(selectedValue);
@@ -18,7 +22,17 @@ function SelectionFormat({ array, subject, onChange, selectedValue = null }) {
   return (
     <Accordion className="mb-3">
       <Accordion.Item eventKey="0">
-        <Accordion.Header>{subject} - {getHeaderText()}</Accordion.Header>
+        <Accordion.Header>
+          <div className="d-flex align-items-center">
+            <div className="me-2">{subject}</div>
+            {selected !== null && selected !== undefined && (
+              <DetailFlag detailKey={subject} score={selected} />
+            )}
+            {(selected === null || selected === undefined) && (
+              <span className="text-secondary ms-2">- {getHeaderText()}</span>
+            )}
+          </div>
+        </Accordion.Header>
         <Accordion.Body>
           <div className="d-flex flex-column gap-2">
             {array.map((item, index) => (
@@ -26,9 +40,24 @@ function SelectionFormat({ array, subject, onChange, selectedValue = null }) {
                 key={index}
                 variant={selected === index ? "primary" : "outline-secondary"}
                 onClick={() => handleSelect(index)}
-                className="text-start"
+                className="text-start d-flex justify-content-between align-items-center"
               >
-                {index} - {item}
+                <span>{index} - {item}</span>
+                {selected === index && (
+                  <OverlayTrigger
+                    placement="right"
+                    delay={{ show: 100, hide: 100 }}
+                    overlay={(props) => (
+                      <Tooltip id={`tooltip-button-${subject}-${index}`} {...props}>
+                        {item}
+                      </Tooltip>
+                    )}
+                  >
+                    <div className="d-inline-block">
+                      <DetailFlag detailKey={subject} score={index} />
+                    </div>
+                  </OverlayTrigger>
+                )}
               </Button>
             ))}
           </div>

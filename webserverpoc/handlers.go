@@ -365,7 +365,7 @@ func PostPeople(c *gin.Context) {
 	}
 
 	// Save the Person record first
-	result := db.Clauses(clause.OnConflict{
+	result := db.Omit("Photos", "Profile").Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).Create(&newPerson)
 	if result.Error != nil {
