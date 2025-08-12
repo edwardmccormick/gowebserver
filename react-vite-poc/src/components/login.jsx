@@ -9,6 +9,7 @@ function SignIn({
   setJWT,
   setUploadUrls,
   setUploadProfileUrls,
+  refreshMatches,
 }) {
     const [formData, setFormData] = useState({
     email: '',
@@ -40,6 +41,12 @@ function SignIn({
         setUploadUrls(data.upload_urls); // Set the upload URLs for the user
         setUploadProfileUrls(data.profile_upload_urls); // Set the profile upload URLs for the user
         console.log(`data.profile_upload_urls: ${JSON.stringify(data.profile_upload_urls)}`);
+        
+        // Call refreshMatches to load user matches after successful login
+        if (refreshMatches) {
+          setTimeout(() => refreshMatches(), 500); // Small delay to ensure user state is updated
+        }
+        
         alert('Login successful!');
       } else {
         alert('Invalid email or password.');

@@ -175,6 +175,7 @@ function App() {
                     setJWT={setJWT}
                     setUploadUrls={setUploadUrls}
                     setUploadProfileUrls={setUploadProfileUrls}
+                    refreshMatches={refreshMatches}
                   />   
                 </div>   
                 <div><h4>Or</h4></div>

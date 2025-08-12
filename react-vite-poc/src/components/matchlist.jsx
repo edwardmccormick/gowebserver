@@ -141,7 +141,7 @@ function MatchList({
               width="50"
               alt={`${person.name}'s profile`}
             />
-            <strong>{person.name}</strong> <span>{person.motto} - Distance: { person.distance } miles</span>
+            <strong>{person.name}</strong> <span className='mx-2'>{person.motto} - Distance: { person.distance } miles</span>
             {person.details && <DetailFlags details={person.details} limit={3} topValues={true} />}
           </Accordion.Header>
           <Accordion.Body key={`${person.id}10000`}>

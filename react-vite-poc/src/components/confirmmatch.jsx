@@ -99,7 +99,7 @@ function ConfirmMatchList({
               width="50"
               alt={`${match.OfferedProfile.name}'s profile`}
             />
-            <strong>{match.OfferedProfile.name}</strong> — {match.OfferedProfile.motto} - Distance: { match.distance } miles - liked your profile on { convertISODateToLocal(match.offered)}
+            <strong>{match.OfferedProfile.name}</strong> <span className='mx-2'>{match.OfferedProfile.motto} - Distance: { match.distance } miles - liked your profile on { convertISODateToLocal(match.offered)}</span>
           </Accordion.Header>
           <Accordion.Body key={`${match.OfferedProfile.id}10000`}>
             <div className='text-start'>
@@ -119,6 +119,7 @@ function ConfirmMatchList({
                 <ControlledCarousel
                   key={`${match.OfferedProfile.id}1000000`}
                   id={match.OfferedProfile.id}
+                  photos={match.OfferedProfile.photos}
                 />
               </div>
               <div className="mx-auto w-50 d-flex flex-row justify-content-around align-items-center">

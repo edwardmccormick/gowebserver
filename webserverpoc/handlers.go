@@ -717,7 +717,12 @@ func GetMatchByID(c *gin.Context) {
 		return
 	}
 	var matches []Match
-	results := db.Where("offered = ?", uint(id)).Or("accepted = ?", uint(id)).Preload("OfferedProfile").Preload("AcceptedProfile").Find(&matches)
+	// Preload the profiles with their photos
+	results := db.Where("offered = ?", uint(id)).Or("accepted = ?", uint(id)).
+		Preload("OfferedProfile.Photos").Preload("OfferedProfile.Profile").
+		Preload("AcceptedProfile.Photos").Preload("AcceptedProfile.Profile").
+		Find(&matches)
+	
 	if results.Error != nil {
 		fmt.Println(results.Error)
 	}
@@ -726,7 +731,91 @@ func GetMatchByID(c *gin.Context) {
 		return
 	}
 
+	// Load AWS credentials from environment variables
+	awsSession, err := session.NewSession(&aws.Config{
+		Region: aws.String(os.Getenv("AWS_REGION")),
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize AWS session"})
+		return
+	}
+
+	s3Client := s3.New(awsSession)
+	bucketName := os.Getenv("AWS_S3_BUCKET")
+
+	// Use a WaitGroup to manage concurrency
+	var wg sync.WaitGroup
+
+	// Process each match to add presigned URLs
+	for i := range matches {
+		// Process OfferedProfile
+		processProfilePhotos(&matches[i].OfferedProfile, s3Client, bucketName, &wg)
+		
+		// Process AcceptedProfile
+		processProfilePhotos(&matches[i].AcceptedProfile, s3Client, bucketName, &wg)
+	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+
 	c.IndentedJSON(http.StatusOK, matches)
+}
+
+// Helper function to process profile photos and generate presigned URLs
+func processProfilePhotos(person *Person, s3Client *s3.S3, bucketName string, wg *sync.WaitGroup) {
+	if person == nil || person.ID == 0 {
+		return
+	}
+
+	// Find the profile photo in Photos
+	var profilePhoto *ProfilePhoto
+	for j := range person.Photos {
+		if person.Photos[j].S3Key == fmt.Sprintf("%d/profile", person.ID) {
+			profilePhoto = &person.Photos[j]
+			break // Stop after finding the first match
+		}
+	}
+
+	// If found, generate the signed URL and update Profile
+	if profilePhoto != nil {
+		req, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
+			Bucket: aws.String(bucketName),
+			Key:    aws.String(profilePhoto.S3Key),
+		})
+		url, err := req.Presign(180 * time.Minute)
+		if err == nil {
+			person.Profile = *profilePhoto // Copy all fields
+			person.Profile.Url = url       // Update the URL
+		}
+	}
+
+	// Now filter out profile photos from Photos
+	var filteredPhotos []ProfilePhoto
+	for _, photo := range person.Photos {
+		if !strings.Contains(photo.S3Key, "/profile") {
+			filteredPhotos = append(filteredPhotos, photo)
+		}
+	}
+	person.Photos = filteredPhotos
+
+	// Generate presigned URLs for regular photos
+	for j := range person.Photos {
+		wg.Add(1)
+		go func(photo *ProfilePhoto) {
+			defer wg.Done()
+			// Generate presigned URL
+			req, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
+				Bucket: aws.String(bucketName),
+				Key:    aws.String(photo.S3Key),
+			})
+			url, err := req.Presign(60 * time.Minute) // Presigned URL valid for 60 minutes
+			if err != nil {
+				fmt.Printf("Failed to generate presigned URL for S3Key %s: %v\n", photo.S3Key, err)
+				return
+			}
+			photo.Url = url // Update the Url field with the presigned URL
+		}(&person.Photos[j])
+	}
 }
 
 func GetMatchByPersonID(c *gin.Context) {
@@ -738,7 +827,12 @@ func GetMatchByPersonID(c *gin.Context) {
 		return
 	}
 	var matches []Match
-	results := db.Where("offered = ?", uint(id)).Or("accepted = ?", uint(id)).Preload("OfferedProfile").Preload("AcceptedProfile").Find(&matches)
+	// Preload the profiles with their photos
+	results := db.Where("offered = ?", uint(id)).Or("accepted = ?", uint(id)).
+		Preload("OfferedProfile.Photos").Preload("OfferedProfile.Profile").
+		Preload("AcceptedProfile.Photos").Preload("AcceptedProfile.Profile").
+		Find(&matches)
+	
 	if results.Error != nil {
 		fmt.Println(results.Error)
 	}
@@ -747,8 +841,34 @@ func GetMatchByPersonID(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, matches)
+	// Load AWS credentials from environment variables
+	awsSession, err := session.NewSession(&aws.Config{
+		Region: aws.String(os.Getenv("AWS_REGION")),
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize AWS session"})
+		return
+	}
 
+	s3Client := s3.New(awsSession)
+	bucketName := os.Getenv("AWS_S3_BUCKET")
+
+	// Use a WaitGroup to manage concurrency
+	var wg sync.WaitGroup
+
+	// Process each match to add presigned URLs
+	for i := range matches {
+		// Process OfferedProfile
+		processProfilePhotos(&matches[i].OfferedProfile, s3Client, bucketName, &wg)
+		
+		// Process AcceptedProfile
+		processProfilePhotos(&matches[i].AcceptedProfile, s3Client, bucketName, &wg)
+	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+
+	c.IndentedJSON(http.StatusOK, matches)
 }
 
 func PostMatch(c *gin.Context) {
@@ -840,7 +960,46 @@ func ChatMessagesFromSQL(c *gin.Context) {
 		return
 	}
 
-	// fmt.Println(people) // Print the people slice to the console for debugging pu
+	c.IndentedJSON(http.StatusOK, messages)
+}
+
+// Get chat messages for a specific match
+func GetChatMessagesForMatch(c *gin.Context) {
+	// Extract the match ID from the URL parameter
+	matchIDStr := c.Param("id")
+	matchID, err := strconv.Atoi(matchIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid match ID"})
+		return
+	}
+
+	// First check if there are any messages for this match
+	var messageCount int64
+	if err := db.Model(&ChatMessage{}).Where("match_id = ?", matchID).Count(&messageCount).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check message count"})
+		return
+	}
+
+	// If no messages exist, generate an introduction message
+	if messageCount == 0 {
+		message, err := GenerateMatchIntroduction(uint(matchID))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to generate introduction: %v", err)})
+			return
+		}
+		
+		// Return the newly created introduction message
+		c.IndentedJSON(http.StatusOK, []ChatMessage{*message})
+		return
+	}
+
+	// If messages exist, retrieve all messages for this match
+	var messages []ChatMessage
+	if err := db.Where("match_id = ?", matchID).Order("time").Find(&messages).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch chat messages"})
+		return
+	}
+
 	c.IndentedJSON(http.StatusOK, messages)
 }
 

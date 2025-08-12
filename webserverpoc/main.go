@@ -73,6 +73,13 @@ func main() {
 		fmt.Printf("Error during automigration: %v", err)
 	}
 	fmt.Println("Database schema migrated successfully.")
+	
+	// Initialize the AI client
+	if err := InitializeAIClient(); err != nil {
+		fmt.Printf("Error initializing AI client: %v", err)
+	} else {
+		fmt.Println("AI client initialized successfully.")
+	}
 
 	// Connect to MongoDB
 	mongoClient, err = ConnectToMongoDBWithConfig(config)
@@ -117,6 +124,9 @@ func main() {
 	router.GET("/greet/:name", GreetUserByName)
 	router.GET("/chat", ChatMessagesFromSQL)
 	router.GET("/chat/:id", ChatMessagesFromMongo)
+	
+	// Chat messages API with AI introduction generation
+	router.GET("/chatmessages/:id", GetChatMessagesForMatch)
 	if isRunningInDockerContainer() {
 		router.Run("0.0.0.0:8080")
 	} else {
