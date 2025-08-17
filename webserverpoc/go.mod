@@ -1,9 +1,10 @@
 module github.com/edwardmccormick/gowebserver
 
-go 1.24.4
+go 1.25.0
 
 require (
 	github.com/asmarques/geodist v1.0.1
+	github.com/aws/aws-sdk-go v1.55.7
 	github.com/gin-contrib/cors v1.7.5
 	github.com/gin-gonic/gin v1.10.1
 	github.com/golang-jwt/jwt/v5 v5.2.2
@@ -20,7 +21,6 @@ require (
 	cloud.google.com/go/auth v0.9.3 // indirect
 	cloud.google.com/go/compute/metadata v0.5.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/aws/aws-sdk-go v1.55.7 // indirect
 	github.com/bytedance/sonic v1.13.2 // indirect
 	github.com/bytedance/sonic/loader v0.2.4 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
