@@ -36,6 +36,55 @@ func JwtMiddleware(c *gin.Context) {
         return
     }
 
+    // Set the token in the context for other middlewares to use
+    c.Set("token", parsedToken)
+    
+    // Extract user ID from claims
+    if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok {
+        if userID, exists := claims["sub"].(float64); exists {
+            c.Set("userID", uint(userID))
+        }
+    }
+
+    c.Next()
+}
+
+// AdminMiddleware checks if the user is an admin after JWT authentication
+func AdminMiddleware(c *gin.Context) {
+    // First ensure the user is authenticated with a valid JWT
+    JwtMiddleware(c)
+    
+    // Check if the request was aborted by the JwtMiddleware
+    if c.IsAborted() {
+        return
+    }
+    
+    // Get the user ID from the context
+    userIDValue, exists := c.Get("userID")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unable to identify user"})
+        c.Abort()
+        return
+    }
+    
+    userID := userIDValue.(uint)
+    
+    // Find the user in the database
+    var user User
+    if result := db.First(&user, userID); result.Error != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+        c.Abort()
+        return
+    }
+    
+    // Check if the user is an admin
+    if !user.IsAdmin {
+        c.JSON(http.StatusForbidden, gin.H{"error": "Admin access required"})
+        c.Abort()
+        return
+    }
+    
+    // User is an admin, proceed
     c.Next()
 }
 

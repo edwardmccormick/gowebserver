@@ -24,7 +24,8 @@ function ConfirmMatchList({
     matches, 
     loading,
     User,
-    refreshMatches
+    refreshMatches,
+    jwt // Add JWT prop
   }) {
 
   const [submittedLikes, setSubmittedLikes] = useState({}); // Track submitted likes
@@ -60,6 +61,7 @@ function ConfirmMatchList({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': jwt, // Include the JWT token for authentication
         },
         body: JSON.stringify(payload),
       });

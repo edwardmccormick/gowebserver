@@ -8,6 +8,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import ClaudeAdvancedSearch from './components/advancedsearchclaude';
 import ConfirmMatchList from './components/confirmmatch';
 import SignUp from './components/signup'; 
+import AdminDashboard from './components/admindashboard';
 import { LogIn } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'; // Import your CSS file
@@ -27,6 +28,7 @@ function App() {
   const [showConfirmMatch, setShowConfirmMatch] = useState(true)
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false); // Toggle ClaudeAdvancedSearch visibility
   const [showFAQ, setShowFAQ] = useState(false);
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false); // Toggle AdminDashboard visibility
   const [animationStarted, setAnimationStarted] = useState(false); // Controls the logo animation
   const [showText, setShowText] = useState(false); // Controls the visibility of the <h1>
   const [pendingID, setPendingID] = useState(null); // Controls the visibility of the sign-up flow
@@ -52,31 +54,39 @@ function App() {
       setOffereds([]);
         return;
       }; 
-    fetch('http://localhost:8080/people')
+    fetch('http://localhost:8080/people', {
+      headers: {
+        'Authorization': jwt, // Include the JWT token for authentication
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
         setPeople(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [loggedInUser]);
+  }, [loggedInUser, jwt]); // Add jwt as a dependency
 
     // Add this useEffect hook
   useEffect(() => {
     
-    if (showAdvancedSearch || showConfirmMatch || showFAQ) { 
+    if (showAdvancedSearch || showConfirmMatch || showFAQ || showAdminDashboard) { 
       // Scroll to the top of the page when the user logs in
       window.scrollTo({ top: 0, behavior: 'smooth' });
       // Only call refreshMatches if loggedInUser is not null
       refreshMatches();
     }
-  }, [showAdvancedSearch, showConfirmMatch, showFAQ]); // Dependency array: this effect runs when loggedInUser changes
+  }, [showAdvancedSearch, showConfirmMatch, showFAQ, showAdminDashboard]); // Dependency array: this effect runs when tab visibility changes
 
 
   const refreshMatches = () => {
       if (loggedInUser == null || loggedInUser == undefined) return; 
       else if (matches == null || matches == undefined) {console.log("This needs a fetch from refreshMatches")}
-    fetch(`http://localhost:8080/matches/${loggedInUser.id}`)
+    fetch(`http://localhost:8080/matches/${loggedInUser.id}`, {
+      headers: {
+        'Authorization': jwt, // Include the JWT token for authentication
+      },
+    })
       .then((res) => res.json())
       .then((data) => { 
         console.log(data);
@@ -222,6 +232,8 @@ function App() {
             uploadUrls={uploadUrls}
             uploadProfileUrls={uploadProfileUrls}
             setUploadUrls={setUploadUrls}
+            setUploadProfileUrls={setUploadProfileUrls}
+            jwt={jwt}
           />
         </div>
     </div>
@@ -253,6 +265,13 @@ function App() {
           setShowFAQ(true)
           setShowConfirmMatch(false);
           setShowAdvancedSearch(false);
+          setShowAdminDashboard(false);
+        }}
+        onAdminClick={() => {
+          setShowAdminDashboard(true)
+          setShowFAQ(false)
+          setShowConfirmMatch(false);
+          setShowAdvancedSearch(false);
         }}
         onClickProfile={() => {
           setPendingID(loggedInUser.id)
@@ -269,6 +288,7 @@ function App() {
           loading={matchLoading}
           User={loggedInUser}
           refreshMatches={refreshMatches}
+          jwt={jwt}
           className='m-5 p-4'
         />
         )}
@@ -284,6 +304,7 @@ function App() {
           loading={loading}
           User = {loggedInUser}
           refreshMatches= {refreshMatches}
+          jwt={jwt}
         />
       </div>
 
@@ -299,6 +320,20 @@ function App() {
       <>
         <div className={`m-3 p-3 fade-container ${!showFAQ ? 'hidden' : 'visible'}`}>
           <FAQ className='p-2 m-2'/>
+        </div>
+      </>
+
+      <>
+        <div className={`text-center mx-auto container m-5 p-4 fade-container ${!showAdminDashboard ? 'hidden' : 'visible'}`}>
+          {loggedInUser?.is_admin && (
+            <AdminDashboard jwt={jwt} />
+          )}
+          {!loggedInUser?.is_admin && (
+            <div className="alert alert-danger">
+              <h3>Access Denied</h3>
+              <p>You need admin privileges to view this page.</p>
+            </div>
+          )}
         </div>
       </>
       { jwt ? <p>JWT: {jwt}</p> : null }

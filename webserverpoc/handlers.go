@@ -435,8 +435,94 @@ func PostPeople(c *gin.Context) {
 		}
 	}
 
-	// Return the created Person record
-	c.IndentedJSON(http.StatusCreated, newPerson)
+	// Generate presigned upload URLs
+	awsSession, err := session.NewSession(&aws.Config{
+		Region: aws.String(os.Getenv("AWS_REGION")),
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize AWS session"})
+		return
+	}
+
+	s3Client := s3.New(awsSession)
+	bucketName := os.Getenv("AWS_S3_BUCKET")
+	var uploadUrls []ProfilePhoto
+	var profileUploadUrls []ProfilePhoto
+
+	// Generate dedicated presigned URL for profile photo
+	profileKey := fmt.Sprintf("%d/profile", newPerson.ID)
+
+	// Cropped profile photo URL
+	profileReq, _ := s3Client.PutObjectRequest(&s3.PutObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(profileKey),
+	})
+	profileUrl, err := profileReq.Presign(180 * time.Minute)
+	if err == nil {
+		profileUploadUrls = append(profileUploadUrls, ProfilePhoto{
+			Url:      profileUrl,
+			S3Key:    profileKey,
+			PersonID: newPerson.ID,
+		})
+	}
+
+	// Generate presigned URLs for regular photos
+	for i := 0; i < 10; i++ {
+		key := fmt.Sprintf("%d/image%d", newPerson.ID, i+1)
+		req, _ := s3Client.PutObjectRequest(&s3.PutObjectInput{
+			Bucket: aws.String(bucketName),
+			Key:    aws.String(key),
+		})
+		url, err := req.Presign(180 * time.Minute) // Presigned URL valid for 180 minutes
+		if err != nil {
+			fmt.Printf("Failed to generate presigned URL for key %s: %v\n", key, err)
+			continue
+		}
+		uploadUrls = append(uploadUrls, ProfilePhoto{
+			Url:      url,
+			S3Key:    key,
+			PersonID: newPerson.ID,
+		})
+	}
+
+	// Generate presigned URLs for viewing all photos
+	// Use a WaitGroup to manage concurrency
+	var wg sync.WaitGroup
+
+	// Generate presigned URLs for all photos
+	for j := range newPerson.Photos {
+		wg.Add(1)
+		go func(photo *ProfilePhoto) {
+			defer wg.Done()
+			// Generate presigned URL
+			req, _ := s3Client.GetObjectRequest(&s3.GetObjectInput{
+				Bucket: aws.String(bucketName),
+				Key:    aws.String(photo.S3Key),
+			})
+			url, err := req.Presign(180 * time.Minute) // Presigned URL valid for 180 minutes
+			if err != nil {
+				fmt.Printf("Failed to generate presigned URL for S3Key %s: %v\n", photo.S3Key, err)
+				return
+			}
+			photo.Url = url // Update the Url field with the presigned URL
+		}(&newPerson.Photos[j])
+	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+
+	// Return the created Person record with presigned URLs
+	resp := struct {
+		Person            Person         `json:"person"`
+		UploadUrls        []ProfilePhoto `json:"upload_urls,omitempty"`         // Optional field for upload URLs
+		ProfileUploadUrls []ProfilePhoto `json:"profile_upload_urls,omitempty"` // Optional field for profile upload URLs
+	}{
+		Person:            newPerson,
+		UploadUrls:        uploadUrls,
+		ProfileUploadUrls: profileUploadUrls,
+	}
+
+	c.IndentedJSON(http.StatusCreated, resp)
 }
 
 func GetUsers(c *gin.Context) {
@@ -452,11 +538,80 @@ func GetUsers(c *gin.Context) {
 
 // Search and find people and profile information
 
+// PersonWithDistance extends Person to include distance information
+type PersonWithDistance struct {
+	Person
+	Distance float64 `json:"distance"` // Distance in miles
+}
+
 func GetPeople(c *gin.Context) {
+	// Initialize variables we'll use in both branches
 	var people []Person
-	if result := db.Preload("Photos").Preload("Profile").Find(&people); result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-		return
+	var userLat, userLong float64
+	var hasLocation bool
+	
+	// Extract the JWT token from the Authorization header
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		// If no token is provided, return all people without distance filtering
+		if result := db.Preload("Photos").Preload("Profile").Find(&people); result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+			return
+		}
+		hasLocation = false // No user location available
+	} else {
+		// Parse and validate the token
+		parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+			return jwtSecret, nil
+		})
+		if err != nil || !parsedToken.Valid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			return
+		}
+
+		// Extract user ID from token claims
+		claims, ok := parsedToken.Claims.(jwt.MapClaims)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse token claims"})
+			return
+		}
+
+		// Get the user ID from the token
+		userID, ok := claims["sub"].(float64)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID in token"})
+			return
+		}
+
+		// Get the current user's location from the database
+		var currentUser Person
+		result := db.First(&currentUser, uint(userID))
+		if result.Error != nil {
+			// If we can't get the user, fall back to returning all people without distance filtering
+			if result := db.Preload("Photos").Preload("Profile").Find(&people); result.Error != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+				return
+			}
+			hasLocation = false
+		} else {
+			// Now we have the user's location, let's apply the distance filter
+			userLat = currentUser.LatLocation
+			userLong = currentUser.LongLocation
+			hasLocation = true
+
+			// Default radius is 50 miles
+			const defaultRadius = 50.0
+
+			// Calculate the bounding box for faster initial filtering
+			minLat, maxLat, minLong, maxLong := CalculateBoundingBox(userLat, userLong, defaultRadius)
+
+			// Get people within the bounding box
+			if result := db.Where("lat_location BETWEEN ? AND ? AND long_location BETWEEN ? AND ? AND id != ?", 
+				minLat, maxLat, minLong, maxLong, uint(userID)).Preload("Photos").Preload("Profile").Find(&people); result.Error != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+				return
+			}
+		}
 	}
 
 	// Load AWS credentials from environment variables
@@ -547,8 +702,33 @@ func GetPeople(c *gin.Context) {
 	// Wait for all goroutines to finish
 	wg.Wait()
 
-	// fmt.Println(people) // Print the people slice to the console for debugging pu
-	c.IndentedJSON(http.StatusOK, people)
+	// If we have user location, calculate distances and filter by 50 miles
+	if hasLocation {
+		// Create a new slice for people with distances
+		peopleWithDistance := make([]PersonWithDistance, 0, len(people))
+		
+		// Default radius is 50 miles
+		const defaultRadius = 50.0
+		
+		// Calculate exact distance for each person and filter
+		for _, person := range people {
+			// Skip the current user
+			distance := CalculateHaversineDistance(userLat, userLong, person.LatLocation, person.LongLocation)
+			
+			// Only include people within the exact distance limit
+			if distance <= defaultRadius {
+				peopleWithDistance = append(peopleWithDistance, PersonWithDistance{
+					Person:   person,
+					Distance: math.Round(distance*10) / 10, // Round to 1 decimal place
+				})
+			}
+		}
+		
+		c.IndentedJSON(http.StatusOK, peopleWithDistance)
+	} else {
+		// If no user location, return people without distance
+		c.IndentedJSON(http.StatusOK, people)
+	}
 }
 
 func GetPeopleByLocation(c *gin.Context) {
@@ -973,34 +1153,44 @@ func GetChatMessagesForMatch(c *gin.Context) {
 		return
 	}
 
-	// First check if there are any messages for this match
-	var messageCount int64
-	if err := db.Model(&ChatMessage{}).Where("match_id = ?", matchID).Count(&messageCount).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check message count"})
+	message, err := GenerateMatchIntroduction(uint(matchID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to generate introduction: %v", err)})
 		return
 	}
+	
+	// Return the newly created introduction message
+	c.IndentedJSON(http.StatusOK, []ChatMessage{*message})
+	return
 
-	// If no messages exist, generate an introduction message
-	if messageCount == 0 {
-		message, err := GenerateMatchIntroduction(uint(matchID))
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to generate introduction: %v", err)})
-			return
-		}
+	// // First check if there are any messages for this match
+	// var messageCount int64
+	// if err := db.Model(&ChatMessage{}).Where("match_id = ?", matchID).Count(&messageCount).Error; err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check message count"})
+	// 	return
+	// }
+
+	// // If no messages exist, generate an introduction message
+	// if messageCount == 0 {
+	// 	message, err := GenerateMatchIntroduction(uint(matchID))
+	// 	if err != nil {
+	// 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to generate introduction: %v", err)})
+	// 		return
+	// 	}
 		
-		// Return the newly created introduction message
-		c.IndentedJSON(http.StatusOK, []ChatMessage{*message})
-		return
-	}
+	// 	// Return the newly created introduction message
+	// 	c.IndentedJSON(http.StatusOK, []ChatMessage{*message})
+	// 	return
+	// }
 
-	// If messages exist, retrieve all messages for this match
-	var messages []ChatMessage
-	if err := db.Where("match_id = ?", matchID).Order("time").Find(&messages).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch chat messages"})
-		return
-	}
+	// // If messages exist, retrieve all messages for this match
+	// var messages []ChatMessage
+	// if err := db.Where("match_id = ?", matchID).Order("time").Find(&messages).Error; err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch chat messages"})
+	// 	return
+	// }
 
-	c.IndentedJSON(http.StatusOK, messages)
+	// c.IndentedJSON(http.StatusOK, messages)
 }
 
 func ChatMessagesFromMongo(c *gin.Context) {

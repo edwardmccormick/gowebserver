@@ -22,6 +22,7 @@ function NavBar({
   onMeetClick,
   onFAQClick,
   onClickProfile,
+  onAdminClick,
   }) {
 
   
@@ -35,6 +36,9 @@ function NavBar({
             <Nav.Link onClick={onSearchClick}>Search</Nav.Link>
             <Nav.Link onClick={onMeetClick}> Meet </Nav.Link>
             <Nav.Link onClick={onFAQClick}>FAQ</Nav.Link>
+            {User?.is_admin && (
+              <Nav.Link onClick={onAdminClick} className="text-danger">Admin</Nav.Link>
+            )}
             <ChatSelect
               User={User}
               refreshMatches={refreshMatches}

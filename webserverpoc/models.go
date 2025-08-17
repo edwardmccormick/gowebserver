@@ -30,6 +30,7 @@ type User struct {
 	Person       Person    `json:"user" db:"user" gorm:"foreignKey:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Email        string    `json:"email" db:"email" gorm:"type:varchar(255);not null"`
 	PasswordHash string    `json:"-" db:"password_hash" gorm:"type:varchar(255);not null"`
+	IsAdmin      bool      `json:"is_admin" db:"is_admin" gorm:"default:false"`
 	LastLogin    time.Time `json:"last_login" db:"last_login" gorm:"<-:update"`
 	CreatedAt    time.Time `json:"create_time" db:"create_time" gorm:"<-:create"`
 	UpdatedAt    time.Time `json:"update_time" db:"update_time" gorm:"<-:update"`
@@ -60,6 +61,8 @@ type ProfilePhoto struct {
 	Delete   string  `json:"delete,omitempty" gorm:"-"`
 	S3Key    string `json:"s3key" gorm:"not null,unique"`
 	Caption  string `json:"caption"`
+	CreatedAt time.Time `json:"create_time" db:"create_time" gorm:"<-:create"`
+	UpdatedAt time.Time `json:"update_time" db:"update_time" gorm:"<-:update"`
 }
 
 type ChatMessage struct {
@@ -70,6 +73,8 @@ type ChatMessage struct {
 	Who  uint      `json:"who" gorm:"not null" bson:"who"` // Foreign key to Person.ID
 	// WhoProfile Person    `gorm:"foreignKey:Who;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Foreign key relationship
 	Message string `json:"message" gorm:"type:text;not null" bson:"message"`
+	CreatedAt time.Time `json:"create_time" db:"create_time" gorm:"<-:create"`
+	UpdatedAt time.Time `json:"update_time" db:"update_time" gorm:"<-:update"`
 }
 
 type Conversation struct {

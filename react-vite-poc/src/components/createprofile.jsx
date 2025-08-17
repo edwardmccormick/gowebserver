@@ -17,6 +17,9 @@ export function CreateProfile({
   loggedInUser, 
   uploadUrls,
   uploadProfileUrls,
+  setUploadUrls,
+  setUploadProfileUrls,
+  jwt, // Add JWT prop
 }) {
   console.log(uploadProfileUrls)
   const [formData, setFormData] = useState(() => {
@@ -147,13 +150,26 @@ export function CreateProfile({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': jwt, // Include the JWT token for authentication
         },
         body: JSON.stringify(payload),
       });
 
       if (response.ok) {
         const data = await response.json();
-        setLoggedInUser(data); // Update the logged-in user in App.jsx
+        // Update the logged-in user, upload URLs, and profile upload URLs
+        setLoggedInUser(data.person); // Now it's in a 'person' property
+        
+        // Update the upload URLs if they're in the response
+        if (data.upload_urls && data.upload_urls.length > 0) {
+          setUploadUrls(data.upload_urls);
+        }
+        
+        // Update the profile upload URLs if they're in the response
+        if (data.profile_upload_urls && data.profile_upload_urls.length > 0) {
+          setUploadProfileUrls(data.profile_upload_urls);
+        }
+        
         setPendingID(null);
         console.log('Profile created successfully:', data);
         alert(loggedInUser && loggedInUser.name ? 'Updated your profile! Nice' : 'Completed your profile! Nice');

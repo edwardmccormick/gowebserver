@@ -127,6 +127,16 @@ func main() {
 	
 	// Chat messages API with AI introduction generation
 	router.GET("/chatmessages/:id", GetChatMessagesForMatch)
+	
+	// Admin routes - protected by AdminMiddleware
+	adminRoutes := router.Group("/admin")
+	adminRoutes.Use(AdminMiddleware)
+	{
+		adminRoutes.GET("/users", AdminGetAllUsers)
+		adminRoutes.GET("/chats", AdminGetAllChats)
+		adminRoutes.GET("/recent", AdminGetRecentUpdates)
+		adminRoutes.POST("/set-admin", AdminSetUserAdmin)
+	}
 	if isRunningInDockerContainer() {
 		router.Run("0.0.0.0:8080")
 	} else {

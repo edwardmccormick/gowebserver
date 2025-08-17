@@ -11,7 +11,8 @@ function MatchList({
     people, 
     loading,
     User,
-    refreshMatches
+    refreshMatches,
+    jwt // Add JWT prop
   }) {
 
   const [submittedLikes, setSubmittedLikes] = useState({}); // Track submitted likes
@@ -51,6 +52,7 @@ function MatchList({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': jwt, // Include the JWT token for authentication
         },
         body: JSON.stringify(payload),
       });
