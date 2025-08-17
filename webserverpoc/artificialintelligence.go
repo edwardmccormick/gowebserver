@@ -76,20 +76,20 @@ func DetailToText(detailName string, value int) string {
 // formatDetailsForPrompt creates a readable summary of a person's details
 func formatDetailsForPrompt(person Person) string {
 	var details strings.Builder
-	
+
 	details.WriteString("Details:\n")
 
 	// Add dogs preference if available
 	if person.Details.Dogs != 0 {
-		details.WriteString(fmt.Sprintf("- Dogs: %d/10 - \"%s\"\n", 
+		details.WriteString(fmt.Sprintf("- Dogs: %d/10 - \"%s\"\n",
 			person.Details.Dogs, DetailToText("dogs", person.Details.Dogs)))
 	}
-	
+
 	// Add cats preference if available
 	if person.Details.Cats != 0 {
 		details.WriteString(fmt.Sprintf("- Cats: %d/10\n", person.Details.Cats))
 	}
-	
+
 	// Add kids preference if available
 	if person.Details.Kids != 0 {
 		details.WriteString(fmt.Sprintf("- Kids: %d/10\n", person.Details.Kids))
@@ -146,21 +146,21 @@ func formatDetailsForPrompt(person Person) string {
 // FormatPersonForPrompt formats person data for the AI prompt
 func FormatPersonForPrompt(person Person) string {
 	var personStr strings.Builder
-	
+
 	personStr.WriteString(fmt.Sprintf("Name: %s\n", person.Name))
 	personStr.WriteString(fmt.Sprintf("Age: %d\n", person.Age))
 	personStr.WriteString(fmt.Sprintf("Motto: %s\n", person.Motto))
 	personStr.WriteString(fmt.Sprintf("Location: %.6f, %.6f\n", person.LatLocation, person.LongLocation))
-	
+
 	// Format description - if it's JSON (Delta format), just mention it's a rich text description
 	if strings.HasPrefix(person.Description, "{") && strings.Contains(person.Description, "ops") {
 		personStr.WriteString("Description: [Rich text description available]\n")
 	} else if person.Description != "" {
 		personStr.WriteString(fmt.Sprintf("Description: %s\n", person.Description))
 	}
-	
+
 	personStr.WriteString(formatDetailsForPrompt(person))
-	
+
 	return personStr.String()
 }
 
@@ -190,27 +190,27 @@ Based on their profiles, create a message that:
 1. Introduces them to each other in a lighthearted, friendly way
 2. Highlights what they might have in common or complementary traits
 3. Suggests a fun ice breaker question related to their profiles 
-4. Keeps the tone casual, positive, and slightly humorous
+4. Keeps the tone casual, positive, and fun
 
-Your response should be around 3-5 sentences, direct, and conversation-starting. Do not mention their exact scores, but you can reference their preferences.
+Your response should be around 5-10 sentences, direct, and conversation-starting. Do not mention their exact scores, but please do reference why they might be a good match for each other.
 
 IMPORTANT: Format your response as if you're the dating app sending the first message in their chat. Don't include any meta commentary or notes to me.`, person1, person2)
 
 	// Call Gemini API
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	
+
 	result, err := geminiClient.Models.GenerateContent(
 		ctx,
 		"gemini-2.5-flash",
 		genai.Text(prompt),
 		nil,
 	)
-	
+
 	if err != nil {
 		return "", fmt.Errorf("failed to generate introduction: %v", err)
 	}
-	
+
 	return result.Text(), nil
 }
 
@@ -221,7 +221,7 @@ func CreateInitialChatMessage(match Match) (*ChatMessage, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Create a system message (ID 0 indicates system message)
 	message := &ChatMessage{
 		MatchID: int(match.ID),
@@ -229,7 +229,7 @@ func CreateInitialChatMessage(match Match) (*ChatMessage, error) {
 		Who:     0, // 0 indicates system/AI message
 		Message: introText,
 	}
-	
+
 	return message, nil
 }
 
@@ -241,17 +241,17 @@ func GenerateMatchIntroduction(matchID uint) (*ChatMessage, error) {
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to find match: %v", result.Error)
 	}
-	
+
 	// Generate the initial chat message
 	message, err := CreateInitialChatMessage(match)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Save the message to the database
 	if err := db.Create(message).Error; err != nil {
 		return nil, fmt.Errorf("failed to save introduction message: %v", err)
 	}
-	
+
 	return message, nil
 }
