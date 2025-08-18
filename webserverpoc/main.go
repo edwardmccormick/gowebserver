@@ -128,6 +128,9 @@ func main() {
 	// Chat messages API with AI introduction generation
 	router.GET("/chatmessages/:id", GetChatMessagesForMatch)
 	
+	// VibeChat API to generate conversation starters
+	router.POST("/vibechat/:id", JwtMiddleware, GenerateVibeChatForMatch)
+	
 	// Admin routes - protected by AdminMiddleware
 	adminRoutes := router.Group("/admin")
 	adminRoutes.Use(AdminMiddleware)

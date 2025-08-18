@@ -32,7 +32,7 @@ function countUndeliveredMessages(User, match) {
       }
 }
 
-function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
+function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch, jwt}) {
   const [showOffcanvas, setShowOffcanvas] = useState(false); // Controls the Offcanvas visibility
   // const [showModal, setShowModal] = useState(false); // Controls the ChatModal visibility
   // const [selectedPerson, setSelectedPerson] = useState(null); // Tracks the currently selected person
@@ -88,6 +88,8 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
                     match={match}
                     User={User} // Pass the User prop to the ChatModal
                     unreadmessages={countUndeliveredMessages(User, match)}
+                    jwt={jwt}
+                    
                   />
                   </div>
                   ) 
@@ -100,6 +102,7 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch}) {
                     match={match}
                     User={User} // Pass the User prop to the ChatModal
                     unreadmessages={countUndeliveredMessages(User, match)}
+                    jwt={jwt}
                   />
                   {/* <ChatModalButton
                     key={match.person.id}

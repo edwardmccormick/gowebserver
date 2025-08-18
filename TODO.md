@@ -60,6 +60,10 @@ Operational:
 [ ] Terms of service
 [ ] Privacy statement, or whatever other legally required documents we're going to need. These are more 'go live' than 'alpha' pieces, but still....they might be easy wins.
 [ ] Would I consider a cofounder? Would I consider an angel? Would I consider some sort of equity arrangement to help us get 'off the ground'? Do I have the stones like those little Asian girls from Coffee Meets Bagel to tell Mark Cuban (rightly!) 
+[ ] Awesome well done. There is an issue that the message being broadcast does not get saved to MongoDB; please fix that and then create a new button        
+  and new method on artificialintelligence.go - this method should explicitly prompt Gemini, using the user's locations, the last 15 messages, and the     
+   user's profiles, to create a perfect date for the two to meet. The prompt should insist that if Gemini should use the tools available to find
+  locations and/or events rather than making any assumptions about what is or is not happening or what is or is not present at a given location.
 
 #FFFFFF - White
 #000000 - Black

@@ -18,6 +18,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm/clause"
 )
@@ -1153,93 +1154,231 @@ func GetChatMessagesForMatch(c *gin.Context) {
 		return
 	}
 
-	message, err := GenerateMatchIntroduction(uint(matchID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to generate introduction: %v", err)})
+	// Optional limit parameter for pagination
+	limitStr := c.DefaultQuery("limit", "50")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		limit = 50 // Default to 50 messages
+	}
+
+	// Optional offset parameter for pagination
+	offsetStr := c.DefaultQuery("offset", "0")
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil || offset < 0 {
+		offset = 0
+	}
+
+	// Check if MongoDB client is initialized
+	if mongoClient == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "MongoDB connection not available"})
 		return
 	}
-	
-	// Return the newly created introduction message
-	c.IndentedJSON(http.StatusOK, []ChatMessage{*message})
-	return
 
-	// // First check if there are any messages for this match
-	// var messageCount int64
-	// if err := db.Model(&ChatMessage{}).Where("match_id = ?", matchID).Count(&messageCount).Error; err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check message count"})
-	// 	return
-	// }
+	// Get chat history from MongoDB
+	messages, err := loadChatHistoryFromMongo(uint(matchID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to load chat history: %v", err)})
+		return
+	}
 
-	// // If no messages exist, generate an introduction message
-	// if messageCount == 0 {
-	// 	message, err := GenerateMatchIntroduction(uint(matchID))
-	// 	if err != nil {
-	// 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to generate introduction: %v", err)})
-	// 		return
-	// 	}
+	// If no messages exist, generate an introduction message
+	if len(messages) == 0 {
+		// Generate AI introduction
+		introMessage, err := GenerateMatchIntroduction(uint(matchID))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to generate introduction: %v", err)})
+			return
+		}
 		
-	// 	// Return the newly created introduction message
-	// 	c.IndentedJSON(http.StatusOK, []ChatMessage{*message})
-	// 	return
-	// }
+		// Add introduction message to MongoDB
+		var sessionChat Conversation
+		sessionChat.MatchID = uint(matchID)
+		sessionChat.Messages = []ChatMessage{*introMessage}
+		
+		err = dumpChatHistoryToMongo(sessionChat)
+		if err != nil {
+			fmt.Printf("Failed to save introduction message: %v\n", err)
+			// Continue anyway as we can still return the message
+		}
+		
+		// Return the introduction message
+		c.IndentedJSON(http.StatusOK, []ChatMessage{*introMessage})
+		return
+	}
 
-	// // If messages exist, retrieve all messages for this match
-	// var messages []ChatMessage
-	// if err := db.Where("match_id = ?", matchID).Order("time").Find(&messages).Error; err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch chat messages"})
-	// 	return
-	// }
+	// Sort messages by time to ensure chronological order
+	sortMessagesByTime(messages)
 
-	// c.IndentedJSON(http.StatusOK, messages)
+	// Calculate total message count for pagination info
+	totalCount := len(messages)
+	
+	// Apply offset and limit for pagination
+	start := offset
+	end := offset + limit
+	
+	// Ensure start and end are within bounds
+	if start >= totalCount {
+		start = 0
+		end = 0
+	} else if end > totalCount {
+		end = totalCount
+	}
+	
+	// Slice messages based on pagination parameters
+	pagedMessages := messages
+	if start < totalCount {
+		pagedMessages = messages[start:end]
+	} else {
+		pagedMessages = []ChatMessage{}
+	}
+
+	// Return the messages with pagination metadata
+	response := struct {
+		Messages   []ChatMessage `json:"messages"`
+		Pagination struct {
+			Total  int `json:"total"`
+			Offset int `json:"offset"`
+			Limit  int `json:"limit"`
+			Count  int `json:"count"`
+		} `json:"pagination"`
+	}{
+		Messages: pagedMessages,
+		Pagination: struct {
+			Total  int `json:"total"`
+			Offset int `json:"offset"`
+			Limit  int `json:"limit"`
+			Count  int `json:"count"`
+		}{
+			Total:  totalCount,
+			Offset: offset,
+			Limit:  limit,
+			Count:  len(pagedMessages),
+		},
+	}
+
+	c.IndentedJSON(http.StatusOK, response)
+}
+
+// GenerateVibeChatForMatch creates and sends an AI-generated conversation starter
+func GenerateVibeChatForMatch(c *gin.Context) {
+	// Extract the match ID from the URL parameter
+	matchIDStr := c.Param("id")
+	matchID, err := strconv.Atoi(matchIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid match ID"})
+		return
+	}
+
+	// Get current user ID from JWT token (optional validation)
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	userID := userIDValue.(uint)
+
+	// Check if this user is part of the match
+	var match Match
+	result := db.Preload("OfferedProfile").Preload("AcceptedProfile").First(&match, matchID)
+	if result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Match not found"})
+		return
+	}
+
+	// Verify that the user is part of this match
+	if match.Offered != userID && match.Accepted != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not part of this match"})
+		return
+	}
+
+	// Get chat history from MongoDB
+	messages, err := loadChatHistoryFromMongo(uint(matchID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to load chat history: %v", err)})
+		return
+	}
+
+	// Sort messages by time to ensure chronological order
+	sortMessagesByTime(messages)
+
+	// Generate the vibe chat message
+	vibeMessage, err := GenerateVibeChat(uint(matchID), messages)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to generate vibe chat: %v", err)})
+		return
+	}
+
+	// Add the message to the existing conversation in MongoDB
+	err = addMessageToMongo(uint(matchID), *vibeMessage)
+	if err != nil {
+		fmt.Printf("Warning: Failed to save vibe chat message to MongoDB: %v\n", err)
+		// Continue anyway as we can still return the message
+	}
+
+	// Broadcast the new message to all connected clients in this chat
+	broadcastMessageToMatch(uint(matchID), vibeMessage)
+	
+	// Return the vibe chat message
+	c.IndentedJSON(http.StatusOK, vibeMessage)
 }
 
 func ChatMessagesFromMongo(c *gin.Context) {
-	// // Load the configuration
-	// var config *Config
-	// var err error
-
-	// if isRunningInDockerContainer() {
-	// 	config, err = LoadConfig("./config.json") // Adjust the path as needed
-	// 	if err != nil {
-	// 		fmt.Println("Error loading config:", err)
-	// 		return
-	// 	}
-	// } else {
-	// 	config, err = LoadConfig("./configlocal.json") // Adjust the path as needed
-	// 	if err != nil {
-	// 		fmt.Println("Error loading config:", err)
-	// 		return
-	// 	}
-	// }
-
-	// mongoClient, err := ConnectToMongoDBWithConfig(config)
-	// if err != nil {
-	// 	fmt.Println("Error connecting to MongoDB:", err)
-	// 	return
-	// }
-	// fmt.Println("Connected to MongoDB.")
-
-	// // Extract the ID from the URL parameter
+	// Extract the match ID from the URL parameter
 	str := c.Param("id")
-	id, err := strconv.Atoi(str)
+	matchID, err := strconv.Atoi(str)
 	if err != nil {
-		fmt.Println("Error:", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid match ID"})
 		return
 	}
 
-	collection := mongoClient.Database("gowebserver").Collection("chathistory")
-
-	var result struct {
-		History []ChatMessage `bson:"history"`
+	// Optional limit parameter for pagination
+	limitStr := c.DefaultQuery("limit", "50")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		limit = 50 // Default to 50 messages
 	}
-	err = collection.FindOne(context.TODO(), bson.M{"ID": id}).Decode(&result)
-	if err != nil {
-		fmt.Printf("Error loading chat history from MongoDB: %v\n", err)
+
+	// Check if MongoDB client is initialized
+	if mongoClient == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "MongoDB connection not available"})
 		return
 	}
 
-	// Send the last 30 messages to the user
+	// Use a consistent database name across the application
+	collection := mongoClient.Database("urmid").Collection("chathistory")
+	
+	// Create a context with timeout for database operations
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	c.IndentedJSON(http.StatusOK, collection)
+	// Find the conversation document for this match ID
+	var conversation Conversation
+	err = collection.FindOne(ctx, bson.M{"match_id": uint(matchID)}).Decode(&conversation)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// No history found is a normal situation for new conversations
+			c.IndentedJSON(http.StatusOK, []ChatMessage{})
+			return
+		}
+		
+		// Other database errors should be reported
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error loading chat history: %v", err)})
+		return
+	}
+
+	// Sort messages by time to ensure they appear in chronological order
+	if len(conversation.Messages) > 0 {
+		// Simple in-memory sort by time
+		sortMessagesByTime(conversation.Messages)
+		fmt.Printf("Loaded %d messages for match %d from MongoDB\n", len(conversation.Messages), matchID)
+	}
+
+	// If we have more messages than the limit, return only the most recent ones
+	messages := conversation.Messages
+	if len(messages) > limit {
+		messages = messages[len(messages)-limit:]
+	}
+
+	c.IndentedJSON(http.StatusOK, messages)
 }
 

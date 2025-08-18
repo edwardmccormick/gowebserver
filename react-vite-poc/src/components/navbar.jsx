@@ -46,6 +46,7 @@ function NavBar({
               pendings={pendings}
               offereds={offereds}
               setShowConfirmMatch={setShowConfirmMatch}
+              jwt={jwt}
             />
           </Nav>
           <Nav className="d.flex justify-content-around align-items-center">

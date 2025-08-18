@@ -69,19 +69,29 @@ function App() {
 
     // Add this useEffect hook
   useEffect(() => {
-    
     if (showAdvancedSearch || showConfirmMatch || showFAQ || showAdminDashboard) { 
       // Scroll to the top of the page when the user logs in
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      // Only call refreshMatches if loggedInUser is not null
+      // Call refreshMatches when tabs change
       refreshMatches();
     }
-  }, [showAdvancedSearch, showConfirmMatch, showFAQ, showAdminDashboard]); // Dependency array: this effect runs when tab visibility changes
+  }, [showAdvancedSearch, showConfirmMatch, showFAQ, showAdminDashboard]);
+  
+  // Fetch matches when user logs in
+  useEffect(() => {
+    if (loggedInUser && jwt) {
+      // Call refreshMatches when user logs in
+      refreshMatches();
+    }
+  }, [loggedInUser, jwt]); // Dependency array: this effect runs when user logs in
 
 
   const refreshMatches = () => {
-      if (loggedInUser == null || loggedInUser == undefined) return; 
-      else if (matches == null || matches == undefined) {console.log("This needs a fetch from refreshMatches")}
+      if (loggedInUser == null || loggedInUser == undefined || !jwt) return; 
+      
+      console.log("Fetching matches...");
+      setMatchLoading(true);
+      
     fetch(`http://localhost:8080/matches/${loggedInUser.id}`, {
       headers: {
         'Authorization': jwt, // Include the JWT token for authentication
@@ -89,19 +99,24 @@ function App() {
     })
       .then((res) => res.json())
       .then((data) => { 
-        console.log(data);
+        console.log("Received matches data:", data);
         const offered = data.filter((match) => (match.accepted_time == "0001-01-01T00:00:00Z" && match.offered == loggedInUser.id)); // This is what a null date looks like in Go
-        console.log(offered);
         const accepted = data.filter((match) => match.accepted_time > "2009-11-10T17:00:00Z"); // A non-null date
-        console.log(accepted);
         const pending = data.filter((match) => (match.accepted_time <= "2009-11-10T17:00:00Z" && match.offered != loggedInUser.id))
-        console.log(pending);
+        
+        console.log("Accepted matches:", accepted);
+        console.log("Pending matches:", pending);
+        console.log("Offered matches:", offered);
+        
         setMatches(accepted);
         setPendings(pending);
         setOffereds(offered);
         setMatchLoading(false);
       })
-      .catch(() => setMatchLoading(false));
+      .catch((error) => {
+        console.error("Error fetching matches:", error);
+        setMatchLoading(false);
+      });
   }; 
 
   // The Chat GPT component

@@ -255,3 +255,101 @@ func GenerateMatchIntroduction(matchID uint) (*ChatMessage, error) {
 
 	return message, nil
 }
+
+// GenerateVibeChat creates a new conversation starter based on recent messages
+func GenerateVibeChat(matchID uint, recentMessages []ChatMessage) (*ChatMessage, error) {
+	// Find the match
+	var match Match
+	dbResult := db.Preload("OfferedProfile").Preload("AcceptedProfile").First(&match, matchID)
+	if dbResult.Error != nil {
+		return nil, fmt.Errorf("failed to find match: %v", dbResult.Error)
+	}
+
+	// Format profiles for the prompt
+	person1 := FormatPersonForPrompt(match.OfferedProfile)
+	person2 := FormatPersonForPrompt(match.AcceptedProfile)
+
+	// Format recent messages for the prompt
+	var messagesForPrompt strings.Builder
+	messagesForPrompt.WriteString("Recent messages (from oldest to newest):\n")
+	
+	// Determine the number of messages to include
+	messageCount := len(recentMessages)
+	if messageCount > 15 {
+		// Only include the 15 most recent messages
+		recentMessages = recentMessages[messageCount-15:]
+	}
+
+	// Format each message
+	for i, msg := range recentMessages {
+		var sender string
+		if msg.Who == match.Offered {
+			sender = match.OfferedProfile.Name
+		} else if msg.Who == match.Accepted {
+			sender = match.AcceptedProfile.Name
+		} else if msg.Who == 0 {
+			sender = "AI Host"
+		} else {
+			sender = fmt.Sprintf("Unknown (%d)", msg.Who)
+		}
+		
+		messagesForPrompt.WriteString(fmt.Sprintf("%d. %s: %s\n", i+1, sender, msg.Message))
+	}
+
+	// Build the prompt for Gemini
+	prompt := fmt.Sprintf(`You are an AI conversation assistant for a dating app. You need to create a fresh, interesting conversation starter for two people who are chatting.
+
+PERSON 1:
+%s
+
+PERSON 2:
+%s
+
+%s
+
+Based on their profiles and recent conversation, create a message that:
+1. Is friendly, thoughtful, and engaging
+2. References their interests and compatibility points
+3. Introduces a new topic if the conversation has gone stale or steered into sensitive territory
+4. Asks a specific, interesting question that's easy to respond to
+5. Keeps the tone casual, positive, and fun
+
+Your response should be 2-4 sentences maximum, direct, and conversation-starting. Be genuine, warm, and helpful.
+
+IMPORTANT: Format your response as if you're the dating app's AI host sending a message to both users. Don't include any meta commentary or notes. Don't mention that you are an AI unless relevant to the conversation.`, person1, person2, messagesForPrompt.String())
+
+	// Ensure client is initialized
+	if geminiClient == nil {
+		if err := InitializeAIClient(); err != nil {
+			return nil, fmt.Errorf("failed to initialize AI client: %v", err)
+		}
+	}
+
+	// Call Gemini API
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Get response from Gemini
+	aiResponse, err := geminiClient.Models.GenerateContent(
+		ctx,
+		"gemini-2.5-flash",
+		genai.Text(prompt),
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate vibe chat message: %v", err)
+	}
+	
+	// Get the generated text from the response
+	generatedText := aiResponse.Text()
+	
+	// Create the chat message
+	message := &ChatMessage{
+		MatchID: int(matchID),
+		Time:    time.Now(),
+		Who:     0, // 0 indicates system/AI message
+		Message: generatedText,
+	}
+
+	return message, nil
+}
