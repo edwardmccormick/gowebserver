@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(grep:*)",
-      "WebFetch(domain:developer.mozilla.org)"
+      "WebFetch(domain:developer.mozilla.org)",
+      "Bash(go test:*)",
+      "Bash(npm test)",
+      "Bash(go tool cover:*)"
     ],
     "deny": [],
     "ask": []

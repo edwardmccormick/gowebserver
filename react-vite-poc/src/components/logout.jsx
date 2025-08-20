@@ -7,10 +7,7 @@ function Logout({
   jwt
   }) {
     
-  const handleChange = (e) => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({ ...prev, [id]: value }));
-  };
+  // No form to handle changes for in this component
 
   const handleSubmit = async () => {
     try {

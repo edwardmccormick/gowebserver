@@ -1,0 +1,493 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for src/components/faq.jsx</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/components</a> faq.jsx</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/0</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import Accordion from 'react-bootstrap/Accordion';
+&nbsp;
+function <span class="fstat-no" title="function not covered" >FAQ(</span>) {
+<span class="cstat-no" title="statement not covered" >  return (</span>
+    &lt;Accordion defaultActiveKey="0"&gt;
+      &lt;Accordion.Item eventKey="0"&gt;
+        &lt;Accordion.Header className='bg-success text-white'&gt;&lt;strong&gt;Wtf even is urmid anyway?&lt;/strong&gt;&lt;/Accordion.Header&gt;
+        &lt;Accordion.Body&gt;
+          &lt;div className="text-start"&gt;
+            &lt;p&gt;One man's response to all the shitty, exploitive dating apps currently out there.&lt;/p&gt;
+            &lt;p&gt;A cry in the wilderness about finding human connection in our dumpster fire of a world.&lt;/p&gt;
+            &lt;p&gt;Okay, sorry, less philosophizing, more actual explaining.&lt;/p&gt;
+            &lt;p&gt;Urmid is our attempt at fixing online dating. We stripped away the bullshit, the endless swiping, and the pressure to "pay to win." We wanted to build something simple, honest, and truly aligned with your success.&lt;/p&gt;
+            &lt;p&gt;Our model is (we hope?) refreshingly different. The core Urmid experience is free. You only pay a tiny fee if you want to take a connection to a real-world date (like, seriously, go outside!) and a small 'Success Fee' only when you ditch us because you've found what you were looking for. Yep, we actually want you to leave us.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/Accordion.Body&gt;
+      &lt;/Accordion.Item&gt;
+      &lt;Accordion.Item eventKey="1"&gt;
+        &lt;Accordion.Header className='bg-success-subtle text-white'&gt;&lt;strong&gt;So, seriously, everything is free?&lt;/strong&gt;&lt;/Accordion.Header&gt;
+        &lt;Accordion.Body&gt;
+          &lt;div className="text-start"&gt;
+            &lt;p&gt;Yup, you heard right, chief. Most of urmid is genuinely free. It's almost easier to tell you what's &lt;em&gt;not free:&lt;/em&gt;&lt;/p&gt;
+            &lt;br /&gt;
+            &lt;ul&gt;
+              &lt;li&gt;&lt;p&gt;&lt;strong&gt;Date request:&lt;/strong&gt; If you've hit it off with someone in a chat and want to exchange info to set up a real-world date (and you absolutely should, the internet's fine, but real life is better!), there's a tiny "Date Request" fee. We're currently in pre-alpha, so it's all free for now, but we're leaning towards something like 50 cents.&lt;/p&gt;&lt;/li&gt;
+              &lt;li&gt;&lt;p&gt;&lt;strong&gt;Success fee:&lt;/strong&gt; When you find whatever you're looking for – true love, passionate hookups, a polycule, someone to tie you up and insult you, or just someone to split a pizza with – and decide to close your account because urmid did its job, we'll charge you five dollars. Think of it as leaving five bucks on the nightstand for us to "buy ourselves something nice."&lt;/p&gt;&lt;/li&gt;
+            &lt;/ul&gt;
+            
+            &lt;br /&gt;
+            
+            &lt;p&gt;No hidden fees, no subscription plans, no bullshit. Just a simple, straightforward way to connect with people and maybe find something special.&lt;/p&gt;
+            &lt;p&gt;That's it, man.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/Accordion.Body&gt;
+      &lt;/Accordion.Item&gt;
+      &lt;Accordion.Item eventKey="2"&gt;
+        &lt;Accordion.Header&gt;&lt;strong&gt;FIFTY DOLLARS FOR A DATE?!?!? THAT'S OUTRAGEOUS!!!!&lt;/strong&gt;&lt;/Accordion.Header&gt;
+        &lt;Accordion.Body&gt;
+          &lt;div className="text-start"&gt;
+            &lt;p&gt;Woah, man, slow down. Take a deep breath.&lt;/p&gt;
+            &lt;p&gt;That's fifty cents. As in, half a dollar. Not enough for a coffee, more like enough for an extra shot of syrup in ours. So yeah, for fifty cents, you get a chance to meet someone cool, chase true love (or whatever else you're into), and maybe even take it to Poundtown™. Pretty good deal, if you ask us.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/Accordion.Body&gt;
+      &lt;/Accordion.Item&gt;
+      &lt;Accordion.Item eventKey="3"&gt;
+        &lt;Accordion.Header&gt;Huh. What's the catch?&lt;/Accordion.Header&gt;
+        &lt;Accordion.Body&gt;
+          &lt;div className="text-start"&gt;
+            &lt;p&gt;Nothing. We're really that stupid.&lt;/p&gt;
+            &lt;p&gt;If you know an angel investor, put them in touch, because at some point these bags full of money we're lighting on fire are going to start running low, and shit's going to get Lord the Flies pretty fucking quick.&lt;/p&gt;
+            
+          &lt;/div&gt;
+        &lt;/Accordion.Body&gt;
+      &lt;/Accordion.Item&gt;
+      &lt;Accordion.Item eventKey="4"&gt;
+        &lt;Accordion.Header&gt;So once you get to a million users or whatever, you're going to start charging us $50 a month or something, right?&lt;/Accordion.Header&gt;
+        &lt;Accordion.Body&gt;
+          &lt;div className="text-start"&gt;
+            &lt;p&gt;Honestly, if more than a handful of people read this FAQ, we've already exceeded expectations. But no, that's not the plan.&lt;/p&gt;
+            &lt;p&gt;Our founder is a certified nerd who built Urmid to be lean, fast, and unbelievably cheap to run. While we're designed to scale, we know that hitting tens of thousands of users will eventually mean some real server costs.&lt;/p&gt;
+            &lt;p&gt;When that happens, we'll likely become ad-supported. Yeah, ads can be annoying, but you're probably already ignoring them, just like you might be ignoring this very sentence. Our hope is that tasteful advertising will cover most of our operational expenses.&lt;/p&gt;
+            &lt;p&gt;&lt;strong&gt;Most.&lt;/strong&gt;&lt;/p&gt;
+            &lt;p&gt;But seriously: the plan is to stay free, forever. Our goal isn't to become another multi-billion-dollar dating behemoth (hi Match Group! Big fan of your investor relation reports, kthxbye!). We just want to build an app that actually helps people find happiness, and maybe – just maybe – our founder can finally quit his day job someday.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/Accordion.Body&gt;
+        &lt;/Accordion.Item&gt;
+      &lt;Accordion.Item eventKey="5"&gt;
+        &lt;Accordion.Header&gt;So there's really no catch? Are you, like, selling our DNA to the Russian mob? Is this a crypto scam?&lt;/Accordion.Header&gt;
+        &lt;Accordion.Body&gt;
+          &lt;div className="text-start"&gt;
+            &lt;p&gt;No but the Russian mob thing sounds interesting - put their people in touch with our people, would you?&lt;/p&gt;
+            &lt;p&gt;Urmid is built on a promise: Free forever. You pay a tiny fee for Date Requests when you find someone awesome. You pay a small 'Success Fee' when you leave us because you found somebody even more awesome. That's the deal. No fine print.&lt;/p&gt;
+            &lt;p&gt;We don't sell your data, we don't sell your DNA, and honestly, if we didn't legally have to keep an email address on file, we probably wouldn't even ask for that.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/Accordion.Body&gt;
+      &lt;/Accordion.Item&gt;
+            &lt;Accordion.Item eventKey="6"&gt;
+        &lt;Accordion.Header&gt;What if I don't want to pay 50 cents for a Date Request? Are you going to stop me from exchanging info in chat?&lt;/Accordion.Header&gt;
+        &lt;Accordion.Body&gt;
+          &lt;div className="text-start"&gt;
+            &lt;p&gt;We're not.&lt;/p&gt;
+            &lt;p&gt;Seriously, if 50 cents is going to break your dating budget, email us at ceo@urmid.com. We'll spot you a lifetime supply of internet cool points.&lt;/p&gt;
+            &lt;p&gt;Now, to keep things safe and not totally chaotic, we do have some clever monitoring in our Vibe Chats. It flags obvious (and not-so-obvious) attempts to exchange contact info like emails, phone numbers, or external websites. Not because we don't want you to connect – we absolutely do! But because spammers, trolls, and scammers use those exact same tactics. It's about protecting you, not preventing your love life.&lt;/p&gt;
+            &lt;p&gt;So, if you want to encode your Signal username by arranging pages from War and Peace into hexadecimal values within the chat... hey man, go off. Just know you'd be impressing each other by essentially swindling your future favorite tech billionaire out of 50 cents worth of server fuel. Your call.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/Accordion.Body&gt;
+      &lt;/Accordion.Item&gt;
+      &lt;Accordion.Item eventKey="7"&gt;
+        &lt;Accordion.Header&gt;Wait. You're okay with that?&lt;/Accordion.Header&gt;
+        &lt;Accordion.Body&gt;
+          &lt;div className="text-start"&gt;
+            &lt;p&gt;Look, we're a sticklers for rules, especially since we're the one who wrote 'em. But we're not your mom, or your parole officer. (Though I'm almost as fat as your mom, and definitely way sluttier than your parole officer.)&lt;/p&gt;
+            &lt;p&gt;It's the same deal with closing your account. You can tell us you're closing it for any reason – you're tired of our shenanigans (fair!), you've embraced a life of celibacy, you're moving to Mars. You can even tell us Urmid sucks, go get married, and yup, keep your five bucks. Spend it on your honeymoon, or on hookers, or on hookers on your honeymoon. We won't judge.&lt;/p&gt;
+            &lt;p&gt;We're more likely to start publicly begging for donations (shoutout to Wikipedia! We love... everything about you, actually) than to ever try to screw you over. We're about genuine connections, not nickel-and-diming you.&lt;/p&gt;
+            &lt;p&gt;Free. Forever. That's the promise.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/Accordion.Body&gt;
+      &lt;/Accordion.Item&gt;
+      &lt;Accordion.Item eventKey="8"&gt;
+        &lt;Accordion.Header&gt;How do you keep answering questions and I feel like I have more questions than before? HOW? WHY? WHAT, I guess?&lt;/Accordion.Header&gt;
+        &lt;Accordion.Body&gt;
+          &lt;div className="text-start"&gt;
+            &lt;p&gt;The 'how' is simple: our founder is an inveterate nerd who basically built Urmid on a whim. He stumbled upon some Reddit rants about how agonizing it is to find someone decent these days, and thought, "I can do better." He's a big guy (in both nerdiness and physical stature) who specializes in building incredibly snazzy, performant, and absurdly cheap cloud infrastructure. Like, borderline free.&lt;/p&gt;
+            &lt;p&gt;The 'why' is a bit more philosophical. The world needs more happiness, more genuine human connection, and yes, even more hooking up. Life's often a dumpster fire, but if Urmid can spark a little joy in people's lives and help them connect... that'd be pretty damn cool.&lt;/p&gt;
+            &lt;p&gt;And for those angel investors out there (you might want to cover your ears for this part): screw capitalism. Why should finding someone to hang out with, or even to get laid, suddenly come with a hefty price tag? It's ridiculous.&lt;/p&gt;
+            &lt;p&gt;So, yeah. This is genuinely an 'audacity of hope' kind of venture. Which, if you think about it, is a pretty accurate description of dating itself.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/Accordion.Body&gt;
+      &lt;/Accordion.Item&gt;
+      &lt;Accordion.Item eventKey="9"&gt;
+        &lt;Accordion.Header&gt;Okay, but nerdy is my love language. How?&lt;/Accordion.Header&gt;
+        &lt;Accordion.Body&gt;
+          &lt;div className="text-start"&gt;
+            &lt;p&gt;React front end, statically hosted by a CDN.&lt;/p&gt;
+            &lt;p&gt;Go backend, running on function-as-a-service providers who I will name drop in a fucking millisecond for some server credits (call me!), all routed through a variety of Restful and Websocket connections.&lt;/p&gt;
+            &lt;p&gt;Database architecture running on free/cheap managed services. Props there - if there's somebody else offering SQL on a free tier, I sure couldn't find them, but Oracle has a nice offering (and I will sing your praises more for some server credits, boys!). There are a couple of databases, though - the other is a serverless document database with a nice free tier offering.&lt;/p&gt;
+            &lt;p&gt;If that's interesting, or sensical to you, and you'd like to join us....well, I wouldn't hold my breath, I can't even hire &lt;em&gt;my own damn self&lt;/em&gt; yet. But what the hey: ceo@urmid.com; send your resume and....whatever else it is that people do to get noticed in tech nowadays. Nudes? Some sort of AI api key? Sure. Fire away.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/Accordion.Body&gt;
+      &lt;/Accordion.Item&gt;
+      &lt;Accordion.Item eventKey="10"&gt;
+        &lt;Accordion.Header&gt;Okay, but nerdy is my love language. How?&lt;/Accordion.Header&gt;
+        &lt;Accordion.Body&gt;
+          &lt;div className="text-start"&gt;
+            &lt;p&gt;React front end, statically hosted by a CDN.&lt;/p&gt;
+            &lt;p&gt;Go backend, running on function-as-a-service providers who I will name drop in a fucking millisecond for some server credits (call me!), all routed through a variety of Restful and Websocket connections.&lt;/p&gt;
+            &lt;p&gt;Database architecture running on free/cheap managed services. Props there - if there's somebody else offering SQL on a free tier, I sure couldn't find them, but Oracle has a nice offering (and I will sing your praises more for some server credits, boys!). There are a couple of databases, though - the other is a serverless document database with a nice free tier offering.&lt;/p&gt;
+            &lt;p&gt;If that's interesting, or sensical to you, and you'd like to join us....well, I wouldn't hold my breath, remember the part about not being able to hire &lt;em&gt;my damn self&lt;/em&gt; yet?&lt;/p&gt;
+            &lt;p&gt;But whatever. ceo@urmid.com; send your resume and....whatever else it is that people do to get noticed in tech nowadays. Nudes? Some sort of AI api key? Sure. Fire away.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/Accordion.Body&gt;
+      &lt;/Accordion.Item&gt;
+    &lt;/Accordion&gt;
+  );
+}
+&nbsp;
+export default FAQ;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2025-08-20T22:33:27.642Z
+            </div>
+        <script src="../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../sorter.js"></script>
+        <script src="../../block-navigation.js"></script>
+    </body>
+</html>
+    

@@ -294,6 +294,35 @@ func addMessageToMongo(matchID uint, message ChatMessage) error {
 // SSEHandler creates a Server-Sent Events stream for real-time notifications
 func SSEHandler(c *gin.Context) {
 	fmt.Println("SSEHandler: Starting SSE connection handler")
+	
+	// Extract authentication token
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		// Try to get token from query parameter (less secure, but sometimes needed for SSE)
+		authHeader = c.Query("token")
+		if authHeader == "" {
+			c.JSON(401, gin.H{"error": "Authentication required"})
+			fmt.Println("SSEHandler: No authentication token provided")
+			return
+		}
+	}
+	
+	// Validate the token
+	tokenClaims, err := ValidateSSEToken(authHeader)
+	if err != nil {
+		c.JSON(401, gin.H{"error": "Invalid authentication token"})
+		fmt.Printf("SSEHandler: Invalid token: %v\n", err)
+		return
+	}
+	
+	// Get user ID from token claims
+	tokenUserID, ok := tokenClaims["sub"].(float64)
+	if !ok {
+		c.JSON(401, gin.H{"error": "Invalid token format"})
+		fmt.Println("SSEHandler: Token missing 'sub' claim or not a number")
+		return
+	}
+	
 	// Get user ID from URL parameter
 	userIDStr := c.Param("id")
 	userID, err := strconv.Atoi(userIDStr)
@@ -302,18 +331,10 @@ func SSEHandler(c *gin.Context) {
 		return
 	}
 
-	// Verify JWT authentication
-	tokenUserIDValue, exists := c.Get("userID")
-	if !exists {
-		c.JSON(401, gin.H{"error": "Authentication required"})
-		fmt.Println("SSEHandler: Authentication failed - no userID in context")
-		return
-	}
-
-	tokenUserID := tokenUserIDValue.(uint)
-	if uint(userID) != tokenUserID {
+	// Verify that token user ID matches requested user ID
+	if uint(userID) != uint(tokenUserID) {
 		c.JSON(403, gin.H{"error": "Not authorized to subscribe to this user's notifications"})
-		fmt.Printf("SSEHandler: Authorization failed - token userID %d doesn't match requested userID %d\n", tokenUserID, userID)
+		fmt.Printf("SSEHandler: Authorization failed - token userID %d doesn't match requested userID %d\n", uint(tokenUserID), userID)
 		return
 	}
 	
@@ -654,9 +675,9 @@ func WebsocketListener(c *gin.Context) {
 func dumpChatHistoryToMongo(sessionChat Conversation) error {
 	// Check if MongoDB client is initialized
 	if mongoClient == nil {
-		error := "Error: mongoClient is not initialized"
-		fmt.Println(error)
-		return fmt.Errorf(error)
+		errorMsg := "Error: mongoClient is not initialized"
+		fmt.Println(errorMsg)
+		return fmt.Errorf("%s", errorMsg)
 	}
 
 	// Use a consistent database name across the application
@@ -688,7 +709,7 @@ func dumpChatHistoryToMongo(sessionChat Conversation) error {
 			if err != nil {
 				errMsg := fmt.Sprintf("Failed to create new chat history: %v", err)
 				fmt.Println(errMsg)
-				return fmt.Errorf(errMsg)
+				return fmt.Errorf("%s", errMsg)
 			}
 			fmt.Printf("Successfully created new chat history for match %d with %d messages\n", 
 				sessionChat.MatchID, len(sessionChat.Messages))
@@ -698,7 +719,7 @@ func dumpChatHistoryToMongo(sessionChat Conversation) error {
 		// Other database errors
 		errMsg := fmt.Sprintf("Error querying MongoDB for match %d: %v", sessionChat.MatchID, err)
 		fmt.Println(errMsg)
-		return fmt.Errorf(errMsg)
+		return fmt.Errorf("%s", errMsg)
 	}
 
 	// Update existing conversation
@@ -706,7 +727,7 @@ func dumpChatHistoryToMongo(sessionChat Conversation) error {
 	if err != nil {
 		errMsg := fmt.Sprintf("Error updating chat history for match %d: %v", sessionChat.MatchID, err)
 		fmt.Println(errMsg)
-		return fmt.Errorf(errMsg)
+		return fmt.Errorf("%s", errMsg)
 	}
 
 	fmt.Printf("Successfully updated chat history for match %d with %d messages\n", 
@@ -723,7 +744,7 @@ func loadChatHistoryFromMongo(matchID uint) ([]ChatMessage, error) {
 	if mongoClient == nil {
 		errMsg := "Error: mongoClient is not initialized"
 		fmt.Println(errMsg)
-		return nil, fmt.Errorf(errMsg)
+		return nil, fmt.Errorf("%s", errMsg)
 	}
 
 	// Use a consistent database name across the application
@@ -745,7 +766,7 @@ func loadChatHistoryFromMongo(matchID uint) ([]ChatMessage, error) {
 		// Other database errors should be reported
 		errMsg := fmt.Sprintf("Error loading chat history for match %d: %v", matchID, err)
 		fmt.Println(errMsg)
-		return nil, fmt.Errorf(errMsg)
+		return nil, fmt.Errorf("%s", errMsg)
 	}
 	
 	// Sort messages by time to ensure they appear in chronological order

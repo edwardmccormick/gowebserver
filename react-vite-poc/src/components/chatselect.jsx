@@ -30,7 +30,7 @@ function countUndeliveredMessages(User, match) {
       }
 }
 
-function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch, jwt, unreadNotifications}) {
+function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch, jwt, unreadNotifications, clearChatNotification}) {
   const [showOffcanvas, setShowOffcanvas] = useState(false); // Controls the Offcanvas visibility
   // const [showModal, setShowModal] = useState(false); // Controls the ChatModal visibility
   // const [selectedPerson, setSelectedPerson] = useState(null); // Tracks the currently selected person

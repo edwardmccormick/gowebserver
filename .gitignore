@@ -54,3 +54,10 @@ go.work.sum
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Testing files
+coverage/
+**/junit.xml
+**/coverage/
+**/*.lcov
+!**/jest.config.js
