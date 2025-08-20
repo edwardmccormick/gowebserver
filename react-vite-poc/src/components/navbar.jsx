@@ -18,6 +18,8 @@ function NavBar({
   pendings, 
   offereds, 
   setShowConfirmMatch,
+  unreadNotifications,
+  clearChatNotification,
   onSearchClick,
   onMeetClick,
   onFAQClick,
@@ -47,6 +49,8 @@ function NavBar({
               offereds={offereds}
               setShowConfirmMatch={setShowConfirmMatch}
               jwt={jwt}
+              unreadNotifications={unreadNotifications}
+              clearChatNotification={clearChatNotification}
             />
           </Nav>
           <Nav className="d.flex justify-content-around align-items-center">

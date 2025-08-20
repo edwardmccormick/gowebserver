@@ -1259,6 +1259,119 @@ func GetChatMessagesForMatch(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, response)
 }
 
+// MarkMessagesAsRead marks all messages in a match as read for the current user
+func MarkMessagesAsRead(c *gin.Context) {
+	// Extract the match ID from the URL parameter
+	matchIDStr := c.Param("id")
+	matchID, err := strconv.Atoi(matchIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid match ID"})
+		return
+	}
+
+	// Get current user ID from JWT token
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	userID := userIDValue.(uint)
+
+	// Get the match from the database
+	var match Match
+	result := db.First(&match, matchID)
+	if result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Match not found"})
+		return
+	}
+
+	// Verify that the user is part of this match
+	if match.Offered != userID && match.Accepted != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not part of this match"})
+		return
+	}
+
+	// Reset unread count based on which user it is
+	if userID == match.Offered {
+		match.UnreadOffered = 0
+	} else if userID == match.Accepted {
+		match.UnreadAccepted = 0
+	}
+
+	// Save the match with updated counters
+	result = db.Save(&match)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error resetting unread count: %v", result.Error)})
+		return
+	}
+
+	// Return success response
+	c.JSON(http.StatusOK, gin.H{"message": "Messages marked as read"})
+}
+
+// GenerateDateSuggestionForMatch creates and sends a personalized date recommendation
+func GenerateDateSuggestionForMatch(c *gin.Context) {
+	// Extract the match ID from the URL parameter
+	matchIDStr := c.Param("id")
+	matchID, err := strconv.Atoi(matchIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid match ID"})
+		return
+	}
+
+	// Get current user ID from JWT token
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	userID := userIDValue.(uint)
+
+	// Check if this user is part of the match
+	var match Match
+	result := db.Preload("OfferedProfile").Preload("AcceptedProfile").First(&match, matchID)
+	if result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Match not found"})
+		return
+	}
+
+	// Verify that the user is part of this match
+	if match.Offered != userID && match.Accepted != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not part of this match"})
+		return
+	}
+
+	// Get chat history from MongoDB
+	messages, err := loadChatHistoryFromMongo(uint(matchID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to load chat history: %v", err)})
+		return
+	}
+
+	// Sort messages by time to ensure chronological order
+	sortMessagesByTime(messages)
+
+	// Generate the date suggestion message
+	dateMessage, err := GenerateDateSuggestion(uint(matchID), messages)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to generate date suggestion: %v", err)})
+		return
+	}
+
+	// Add the message to the existing conversation in MongoDB
+	err = addMessageToMongo(uint(matchID), *dateMessage)
+	if err != nil {
+		fmt.Printf("Warning: Failed to save date suggestion message to MongoDB: %v\n", err)
+		// Continue anyway as we can still return the message
+	}
+
+	// Broadcast the new message to all connected clients in this chat
+	broadcastMessageToMatch(uint(matchID), dateMessage)
+	
+	// Return the date suggestion message
+	c.IndentedJSON(http.StatusOK, dateMessage)
+}
+
 // GenerateVibeChatForMatch creates and sends an AI-generated conversation starter
 func GenerateVibeChatForMatch(c *gin.Context) {
 	// Extract the match ID from the URL parameter
@@ -1381,4 +1494,3 @@ func ChatMessagesFromMongo(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusOK, messages)
 }
-

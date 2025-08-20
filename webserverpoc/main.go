@@ -131,6 +131,15 @@ func main() {
 	// VibeChat API to generate conversation starters
 	router.POST("/vibechat/:id", JwtMiddleware, GenerateVibeChatForMatch)
 	
+	// PerfectDate API to generate personalized date suggestions
+	router.POST("/perfectdate/:id", JwtMiddleware, GenerateDateSuggestionForMatch)
+	
+	// Server-Sent Events (SSE) for real-time notifications
+	router.GET("/notifications/:id", JwtMiddleware, SSEHandler)
+	
+	// Mark chat messages as read
+	router.POST("/chat/markread/:id", JwtMiddleware, MarkMessagesAsRead)
+	
 	// Admin routes - protected by AdminMiddleware
 	adminRoutes := router.Group("/admin")
 	adminRoutes.Use(AdminMiddleware)

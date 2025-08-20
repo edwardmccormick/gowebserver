@@ -353,3 +353,122 @@ IMPORTANT: Format your response as if you're the dating app's AI host sending a 
 
 	return message, nil
 }
+
+// GenerateDateSuggestion creates a personalized date recommendation based on profiles and location
+func GenerateDateSuggestion(matchID uint, recentMessages []ChatMessage) (*ChatMessage, error) {
+	// Find the match
+	var match Match
+	dbResult := db.Preload("OfferedProfile").Preload("AcceptedProfile").First(&match, matchID)
+	if dbResult.Error != nil {
+		return nil, fmt.Errorf("failed to find match: %v", dbResult.Error)
+	}
+
+	// Format profiles for the prompt
+	person1 := FormatPersonForPrompt(match.OfferedProfile)
+	person2 := FormatPersonForPrompt(match.AcceptedProfile)
+	
+	// Format locations for the prompt
+	location1 := fmt.Sprintf("%.6f,%.6f", match.OfferedProfile.LatLocation, match.OfferedProfile.LongLocation)
+	location2 := fmt.Sprintf("%.6f,%.6f", match.AcceptedProfile.LatLocation, match.AcceptedProfile.LongLocation)
+	
+	// Calculate midpoint between users (approximation)
+	midLat := (match.OfferedProfile.LatLocation + match.AcceptedProfile.LatLocation) / 2
+	midLong := (match.OfferedProfile.LongLocation + match.AcceptedProfile.LongLocation) / 2
+	midpoint := fmt.Sprintf("%.6f,%.6f", midLat, midLong)
+	
+	// Format recent messages for the prompt
+	var messagesForPrompt strings.Builder
+	messagesForPrompt.WriteString("Recent messages (from oldest to newest):\n")
+	
+	// Determine the number of messages to include
+	messageCount := len(recentMessages)
+	if messageCount > 15 {
+		// Only include the 15 most recent messages
+		recentMessages = recentMessages[messageCount-15:]
+	}
+
+	// Format each message
+	for i, msg := range recentMessages {
+		var sender string
+		if msg.Who == match.Offered {
+			sender = match.OfferedProfile.Name
+		} else if msg.Who == match.Accepted {
+			sender = match.AcceptedProfile.Name
+		} else if msg.Who == 0 {
+			sender = "AI Host"
+		} else {
+			sender = fmt.Sprintf("Unknown (%d)", msg.Who)
+		}
+		
+		messagesForPrompt.WriteString(fmt.Sprintf("%d. %s: %s\n", i+1, sender, msg.Message))
+	}
+
+	// Build the prompt for Gemini
+	prompt := fmt.Sprintf(`You are an AI dating assistant for a dating app. You need to suggest a perfect date for two people who have matched.
+
+PERSON 1 PROFILE:
+%s
+PERSON 1 LOCATION: %s
+
+PERSON 2 PROFILE:
+%s
+PERSON 2 LOCATION: %s
+
+APPROXIMATE MIDPOINT BETWEEN USERS: %s
+
+RECENT CONVERSATION:
+%s
+
+Create a personalized date suggestion that:
+1. Recommends a specific activity based on their shared interests and preferences
+2. Suggests a specific location for their date that's convenient for both (use the midpoint as reference)
+3. Considers their energy levels, outdoorsiness, and preferences mentioned in their profiles
+4. References something from their conversation if relevant
+5. Is detailed enough to be actionable (specific venue names, activities)
+6. If the users have discussed days, dates, or times, please incorporate that in your recommendation
+7. Is thoughtful and considers both users' preferences equally
+8. If there is something specific about the venue or activity that the users might find appealing, use your search functionality to confirm the details prior to your recommendation
+9. If you recommend a location rather than an activity, use your search functionality to check whether there are any special events that coincide with the users timeline that they might enjoy.
+
+IMPORTANT: Do NOT make up places or events. If you recommend a specific venue or location, be clear that the users should verify it exists and check opening hours/availability. Use your web search tooling to check that it appears to exist, what the hours are today (or for a recommended date), and any other details.
+
+If the users are in different cities or far apart, acknowledge this and suggest options for a virtual date or meeting halfway.
+
+Your response should be 3-15 sentences, warm and helpful. Format as a message from the dating app's AI host.`, 
+		person1, location1, person2, location2, midpoint, messagesForPrompt.String())
+
+	// Ensure client is initialized
+	if geminiClient == nil {
+		if err := InitializeAIClient(); err != nil {
+			return nil, fmt.Errorf("failed to initialize AI client: %v", err)
+		}
+	}
+
+	// Call Gemini API
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Get response from Gemini
+	aiResponse, err := geminiClient.Models.GenerateContent(
+		ctx,
+		"gemini-2.5-flash",
+		genai.Text(prompt),
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate date suggestion: %v", err)
+	}
+	
+	// Get the generated text from the response
+	generatedText := aiResponse.Text()
+	
+	// Create the chat message
+	message := &ChatMessage{
+		MatchID: int(matchID),
+		Time:    time.Now(),
+		Who:     0, // 0 indicates system/AI message
+		Message: generatedText,
+	}
+
+	return message, nil
+}

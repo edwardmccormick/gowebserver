@@ -107,6 +107,11 @@ type Match struct {
 	AcceptedProfile Person    `gorm:"foreignKey:Accepted;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` // Foreign key relationship
 	AcceptedTime    time.Time `json:"accepted_time"`
 	VibeChat        bool      `json:"vibe_chat"`
+	
+	// Tracking unread messages
+	UnreadOffered   int       `json:"unread_offered" gorm:"default:0"`   // Number of unread messages for the offered user
+	UnreadAccepted  int       `json:"unread_accepted" gorm:"default:0"`  // Number of unread messages for the accepted user
+	LastMessageTime time.Time `json:"last_message_time"`                 // Timestamp of the last message
 
 	// OfferedChat  []ChatMessage `json:"offered_chat"`
 	// AcceptedChat []ChatMessage `json:"accepted_chat"`

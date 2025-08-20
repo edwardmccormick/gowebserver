@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"sort"
 	"strconv"
 	"sync"
@@ -19,6 +20,96 @@ import (
 var rooms = make(map[string]map[*websocket.Conn]bool)
 var roomsLock sync.Mutex // Protect access to the rooms map
 
+// Map to store in-memory messages by room ID that haven't been persisted to MongoDB yet
+var roomMessages = make(map[string][]ChatMessage)
+var roomMessagesLock sync.RWMutex // Read-write mutex for safe concurrent access
+
+// NotificationType defines the type of notification
+type NotificationType string
+
+const (
+	NotificationTypeMessage NotificationType = "chat_message"
+	NotificationTypeMatch   NotificationType = "match_update"
+)
+
+// NotificationEvent represents a notification to be sent via SSE
+type NotificationEvent struct {
+	Type      NotificationType `json:"type"`           // Type of notification
+	MatchID   uint            `json:"match_id"`       // Match ID related to the notification
+	Count     int             `json:"count"`          // Count of unread messages
+	Timestamp time.Time       `json:"timestamp"`      // When the notification was created
+}
+
+// NotificationCenter manages subscriptions for SSE notifications
+type NotificationCenter struct {
+	clients    map[string]map[chan NotificationEvent]bool
+	clientsLock sync.RWMutex
+}
+
+// Global notification center
+var notificationCenter = NotificationCenter{
+	clients: make(map[string]map[chan NotificationEvent]bool),
+}
+
+// Register adds a new client to the notification center
+func (nc *NotificationCenter) Register(userID string, ch chan NotificationEvent) {
+	nc.clientsLock.Lock()
+	defer nc.clientsLock.Unlock()
+
+	if nc.clients[userID] == nil {
+		nc.clients[userID] = make(map[chan NotificationEvent]bool)
+	}
+	nc.clients[userID][ch] = true
+	fmt.Printf("Client registered for notifications: %s\n", userID)
+}
+
+// Unregister removes a client from the notification center
+func (nc *NotificationCenter) Unregister(userID string, ch chan NotificationEvent) {
+	nc.clientsLock.Lock()
+	defer nc.clientsLock.Unlock()
+
+	if nc.clients[userID] != nil {
+		delete(nc.clients[userID], ch)
+		if len(nc.clients[userID]) == 0 {
+			delete(nc.clients, userID)
+		}
+	}
+	fmt.Printf("Client unregistered from notifications: %s\n", userID)
+}
+
+// Broadcast sends a notification to all subscribers for the given userID
+func (nc *NotificationCenter) Broadcast(userID string, event NotificationEvent) {
+	fmt.Printf("NotificationCenter: Broadcasting event to user %s: %+v\n", userID, event)
+	nc.clientsLock.RLock()
+	defer nc.clientsLock.RUnlock()
+
+	if nc.clients[userID] == nil {
+		fmt.Printf("NotificationCenter: No clients registered for user %s\n", userID)
+		return
+	}
+	
+	fmt.Printf("NotificationCenter: Found %d clients for user %s\n", len(nc.clients[userID]), userID)
+
+	for clientCh := range nc.clients[userID] {
+		// Try to send notification without blocking
+		select {
+		case clientCh <- event:
+			// Message sent
+		default:
+			// Channel is full or closed, remove it
+			go func(ch chan NotificationEvent) {
+				nc.clientsLock.Lock()
+				delete(nc.clients[userID], ch)
+				if len(nc.clients[userID]) == 0 {
+					delete(nc.clients, userID)
+				}
+				nc.clientsLock.Unlock()
+				close(ch)
+			}(clientCh)
+		}
+	}
+}
+
 // sortMessagesByTime sorts messages by their timestamp in ascending order
 func sortMessagesByTime(messages []ChatMessage) {
 	sort.Slice(messages, func(i, j int) bool {
@@ -28,7 +119,72 @@ func sortMessagesByTime(messages []ChatMessage) {
 
 // Map to store active connections by user ID
 var activeConnections = make(map[uint]*websocket.Conn)
-var activeConnectionsLock sync.Mutex // Protect access to the activeConnections map
+var activeConnectionsLock sync.RWMutex // Protect access to the activeConnections map
+
+// updateUnreadCounts increments unread message counters and sends notifications
+func updateUnreadCounts(matchID uint, senderID uint) {
+	fmt.Printf("updateUnreadCounts: Processing unread count for match %d, sender %d\n", matchID, senderID)
+	// Get the match from the database
+	var match Match
+	result := db.First(&match, matchID)
+	if result.Error != nil {
+		fmt.Printf("Error finding match %d: %v\n", matchID, result.Error)
+		return
+	}
+	
+	// Determine the recipient ID and increment their unread counter
+	var recipientID uint
+	if senderID == match.Offered {
+		// Sender is the offered user, so recipient is the accepted user
+		recipientID = match.Accepted
+		match.UnreadAccepted++
+	} else {
+		// Sender is the accepted user, so recipient is the offered user
+		recipientID = match.Offered
+		match.UnreadOffered++
+	}
+	
+	// Update the last message time
+	match.LastMessageTime = time.Now()
+	
+	// Save the match with updated counters
+	result = db.Save(&match)
+	if result.Error != nil {
+		fmt.Printf("Error updating match %d unread counts: %v\n", matchID, result.Error)
+		return
+	}
+	
+	// Check if recipient is active in the chat
+	activeConnectionsLock.RLock()
+	_, recipientActive := activeConnections[recipientID]
+	activeConnectionsLock.RUnlock()
+	
+	fmt.Printf("updateUnreadCounts: Recipient %d active in chat: %v\n", recipientID, recipientActive)
+	
+	// If recipient is not active, send SSE notification
+	if !recipientActive {
+		fmt.Printf("updateUnreadCounts: Sending notification to user %d for match %d\n", recipientID, matchID)
+		// Create notification event
+		var unreadCount int
+		if recipientID == match.Offered {
+			unreadCount = match.UnreadOffered
+		} else {
+			unreadCount = match.UnreadAccepted
+		}
+		
+		event := NotificationEvent{
+			Type:      NotificationTypeMessage,
+			MatchID:   matchID,
+			Count:     unreadCount,
+			Timestamp: time.Now(),
+		}
+		
+		// Send SSE notification
+		recipientIDStr := strconv.FormatUint(uint64(recipientID), 10)
+		fmt.Printf("updateUnreadCounts: Broadcasting to user %s, count: %d\n", recipientIDStr, event.Count)
+		notificationCenter.Broadcast(recipientIDStr, event)
+	}
+}
 
 // broadcastMessageToMatch sends a message to all connected clients in a match room
 func broadcastMessageToMatch(matchID uint, message *ChatMessage) {
@@ -41,6 +197,14 @@ func broadcastMessageToMatch(matchID uint, message *ChatMessage) {
 		fmt.Printf("Error marshaling message for broadcast: %v\n", err)
 		return
 	}
+	
+	// Add message to in-memory map for this room
+	roomMessagesLock.Lock()
+	if roomMessages[roomID] == nil {
+		roomMessages[roomID] = make([]ChatMessage, 0)
+	}
+	roomMessages[roomID] = append(roomMessages[roomID], *message)
+	roomMessagesLock.Unlock()
 	
 	// Lock the rooms map to safely access it
 	roomsLock.Lock()
@@ -61,6 +225,11 @@ func broadcastMessageToMatch(matchID uint, message *ChatMessage) {
 			// Note: We don't remove the connection here as it might be a temporary issue
 			// The connection will be properly cleaned up when it's closed
 		}
+	}
+	
+	// Update unread counters if the message is from a user (not system)
+	if message.Who != 0 {
+		updateUnreadCounts(matchID, message.Who)
 	}
 	
 	fmt.Printf("Broadcast message to %d clients in match %d\n", len(connections), matchID)
@@ -122,6 +291,118 @@ func addMessageToMongo(matchID uint, message ChatMessage) error {
 	return nil
 }
 
+// SSEHandler creates a Server-Sent Events stream for real-time notifications
+func SSEHandler(c *gin.Context) {
+	fmt.Println("SSEHandler: Starting SSE connection handler")
+	// Get user ID from URL parameter
+	userIDStr := c.Param("id")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	// Verify JWT authentication
+	tokenUserIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(401, gin.H{"error": "Authentication required"})
+		fmt.Println("SSEHandler: Authentication failed - no userID in context")
+		return
+	}
+
+	tokenUserID := tokenUserIDValue.(uint)
+	if uint(userID) != tokenUserID {
+		c.JSON(403, gin.H{"error": "Not authorized to subscribe to this user's notifications"})
+		fmt.Printf("SSEHandler: Authorization failed - token userID %d doesn't match requested userID %d\n", tokenUserID, userID)
+		return
+	}
+	
+	fmt.Printf("SSEHandler: Starting SSE stream for user %d\n", userID)
+
+	// Set headers for SSE
+	c.Writer.Header().Set("Content-Type", "text/event-stream")
+	c.Writer.Header().Set("Cache-Control", "no-cache")
+	c.Writer.Header().Set("Connection", "keep-alive")
+	c.Writer.Header().Set("Transfer-Encoding", "chunked")
+
+	// Create notification channel for this client
+	notificationChan := make(chan NotificationEvent, 10) // Buffer for 10 notifications
+
+	// Register client in the notification center
+	notificationCenter.Register(userIDStr, notificationChan)
+
+	// Make sure we unregister when client disconnects
+	defer notificationCenter.Unregister(userIDStr, notificationChan)
+
+	// Create a context that will be canceled when the client disconnects
+	ctx, cancel := context.WithCancel(c.Request.Context())
+	defer cancel()
+
+	// Monitor the connection status
+	go func() {
+		<-ctx.Done()
+		// Connection closed
+		fmt.Printf("SSE connection closed for user %s\n", userIDStr)
+	}()
+
+	// Stream events until client disconnects
+	c.Stream(func(w io.Writer) bool {
+		select {
+		case event, ok := <-notificationChan:
+			if !ok {
+				// Channel was closed
+				fmt.Printf("SSEHandler: Channel closed for user %d\n", userID)
+				return false
+			}
+
+			// Convert notification to JSON
+			eventData, err := json.Marshal(event)
+			if err != nil {
+				fmt.Printf("Error marshaling SSE event: %v\n", err)
+				return true // Continue streaming despite error
+			}
+
+			// Send the event
+			c.SSEvent("message", string(eventData))
+			fmt.Printf("SSEHandler: Sent event to user %d: %s\n", userID, string(eventData))
+			return true
+
+		case <-time.After(30 * time.Second):
+			// Send a heartbeat/keep-alive message
+			c.SSEvent("ping", time.Now().Unix())
+			fmt.Printf("SSEHandler: Sent ping to user %d\n", userID)
+			return true
+		}
+	})
+}
+
+// resetUnreadCount resets the unread message count for a user in a match
+func resetUnreadCount(matchID uint, userID uint) {
+	// Get the match from the database
+	var match Match
+	result := db.First(&match, matchID)
+	if result.Error != nil {
+		fmt.Printf("Error finding match %d: %v\n", matchID, result.Error)
+		return
+	}
+	
+	// Reset unread count based on which user it is
+	if userID == match.Offered {
+		match.UnreadOffered = 0
+	} else if userID == match.Accepted {
+		match.UnreadAccepted = 0
+	} else {
+		// User is not part of this match
+		return
+	}
+	
+	// Save the match with updated counters
+	result = db.Save(&match)
+	if result.Error != nil {
+		fmt.Printf("Error resetting unread count for match %d: %v\n", matchID, result.Error)
+	}
+}
+
 func WebsocketListener(c *gin.Context) {
 	conn, err := Upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
@@ -157,6 +438,16 @@ func WebsocketListener(c *gin.Context) {
 		sessionChat.Messages = []ChatMessage{}
 	} else {
 		sessionChat.Messages = messages
+		
+		// Add any in-memory messages that haven't been persisted yet
+		roomMessagesLock.RLock()
+		if inMemoryMsgs, exists := roomMessages[roomID]; exists && len(inMemoryMsgs) > 0 {
+			fmt.Printf("Found %d in-memory messages for match %d\n", len(inMemoryMsgs), matchID)
+			sessionChat.Messages = append(sessionChat.Messages, inMemoryMsgs...)
+			// Sort messages to ensure proper order after merging
+			sortMessagesByTime(sessionChat.Messages)
+		}
+		roomMessagesLock.RUnlock()
 		
 		// Check if we have any messages
 		if len(messages) == 0 {
@@ -220,8 +511,9 @@ func WebsocketListener(c *gin.Context) {
 	activeConnectionsLock.Lock()
 	activeConnections[uint(userID)] = conn
 	activeConnectionsLock.Unlock()
-
-
+	
+	// Reset unread message count when user opens the chat
+	resetUnreadCount(matchID, uint(userID))
 
 	defer func() {
 		fmt.Printf("WebSocket connection closing for user %d in room %s\n", userID, roomID)
@@ -229,6 +521,9 @@ func WebsocketListener(c *gin.Context) {
 		// Remove connection from the room when it disconnects
 		roomsLock.Lock()
 		delete(rooms[roomID], conn)
+		
+		// Check if this was the last connection in the room
+		isRoomEmpty := len(rooms[roomID]) == 0
 		roomsLock.Unlock()
 
 		// Remove the user's active connection
@@ -243,6 +538,13 @@ func WebsocketListener(c *gin.Context) {
 			err := dumpChatHistoryToMongo(sessionChat)
 			if err != nil {
 				fmt.Printf("Failed to save chat history: %v\n", err)
+			} else if isRoomEmpty {
+				// If this was the last connection in the room and we successfully saved to MongoDB,
+				// clear the in-memory messages for this room to free up memory
+				roomMessagesLock.Lock()
+				delete(roomMessages, roomID)
+				roomMessagesLock.Unlock()
+				fmt.Printf("Cleared in-memory messages for match %d after all users disconnected\n", matchID)
 			}
 		}
 	}()
@@ -289,6 +591,14 @@ func WebsocketListener(c *gin.Context) {
 		
 		// Add message to chat history
 		sessionChat.Messages = append(sessionChat.Messages, receivedMessage)
+		
+		// Also add to in-memory messages map for this room
+		roomMessagesLock.Lock()
+		if roomMessages[roomID] == nil {
+			roomMessages[roomID] = make([]ChatMessage, 0)
+		}
+		roomMessages[roomID] = append(roomMessages[roomID], receivedMessage)
+		roomMessagesLock.Unlock()
 
 		// Broadcast the message to all connections in the room except the sender
 		roomsLock.Lock()
@@ -302,9 +612,10 @@ func WebsocketListener(c *gin.Context) {
 			}
 		}
 		roomsLock.Unlock()
-
+		
+		// Update unread count for the recipient
+		updateUnreadCounts(matchID, uint(userID))
 	}
-
 }
 
 // func deliverUndeliveredMessages(conn *websocket.Conn, matchID int, userID uint) {
@@ -315,7 +626,7 @@ func WebsocketListener(c *gin.Context) {
 // 			msgBytes, _ := json.Marshal(msg)
 // 			conn.WriteMessage(websocket.TextMessage, msgBytes)
 // 		}
-
+//
 // 		// Delete undelivered messages after sending
 // 		db.Where("match_id = ? AND who != ?", matchID, userID).Delete(&ChatMessage{})
 // 	}
@@ -327,7 +638,7 @@ func WebsocketListener(c *gin.Context) {
 // 			activeConnectionsLock.Lock()
 // 			_, connected := activeConnections[match.Accepted]
 // 			activeConnectionsLock.Unlock()
-
+//
 // 			if !connected {
 // 				// Save the message to MySQL
 // 				message.MatchID = matchID

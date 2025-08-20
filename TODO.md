@@ -28,19 +28,19 @@ Front-end:
 
 Back-end:
 
-[ ] Data structures to support above, specifically prompts
-[ ] Database connection and data persistance
-[ ] Database seed/scorch functionality
-[ ] Data persistance for chat
+[ X ] Data structures to support above, specifically prompts
+[ X ] Database connection and data persistance
+[ X ] Database seed/scorch functionality
+[ X ] Data persistance for chat
 [ ] Password reset, including email user(?) - this might actually be easier once we go cloud-native
 [ ] Chat monitoring for urls, email@addresses or email (at) addresses, and...addresses?
 [ ] First message monitoring. No swear words, no racial slurs, that kind of thing.
 [ ] Chat monitoring, with *some* of that functionality.
 [ ] geo-encoding through zip codes
 [ ] some sort of 'share your location for better matches' kind of functionality
-[ ] Gemini Flash 'create a date' functionality. Although actually, I would rather that be a front-end function, but I don't think there's going to be a way to use an API key from the front end without exposing it, and....exposing it would be *not good*.
-[ ] Could probably do it from the front end with a lambda and an ALB/lambda address or something. Might be fun to mess with. Probably need POCs all directions there.
-[ ] Gemini Flash 'ice breaker' functionality.
+[ X ] Gemini Flash 'create a date' functionality. Although actually, I would rather that be a front-end function, but I don't think there's going to be a way to use an API key from the front end without exposing it, and....exposing it would be *not good*.
+[ - ] Could probably do it from the front end with a lambda and an ALB/lambda address or something. Might be fun to mess with. Probably need POCs all directions there.
+[ X ] Gemini Flash 'ice breaker' functionality.
 
 Architectural:
 
@@ -60,10 +60,8 @@ Operational:
 [ ] Terms of service
 [ ] Privacy statement, or whatever other legally required documents we're going to need. These are more 'go live' than 'alpha' pieces, but still....they might be easy wins.
 [ ] Would I consider a cofounder? Would I consider an angel? Would I consider some sort of equity arrangement to help us get 'off the ground'? Do I have the stones like those little Asian girls from Coffee Meets Bagel to tell Mark Cuban (rightly!) 
-[ ] Awesome well done. There is an issue that the message being broadcast does not get saved to MongoDB; please fix that and then create a new button        
-  and new method on artificialintelligence.go - this method should explicitly prompt Gemini, using the user's locations, the last 15 messages, and the     
-   user's profiles, to create a perfect date for the two to meet. The prompt should insist that if Gemini should use the tools available to find
-  locations and/or events rather than making any assumptions about what is or is not happening or what is or is not present at a given location.
+[ X ] When a user joins a chat room that's already open, we need to update them with not only the contents of the MongoDB history for that chat, but any messages that are being held 'in memory' prior to being written to MongoDB (because not all users have disconnected from the chat).
+[ X ] Let's explore options for presenting an alert or badge when a user has a new, unread message in a chat. Would you recommend changing any current structs? I had previously considered a 'dual method' i.e. saving the messages to MySQL first, so that it was 'easier' to get a count for each match
 
 #FFFFFF - White
 #000000 - Black

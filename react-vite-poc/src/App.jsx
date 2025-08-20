@@ -9,6 +9,7 @@ import ClaudeAdvancedSearch from './components/advancedsearchclaude';
 import ConfirmMatchList from './components/confirmmatch';
 import SignUp from './components/signup'; 
 import AdminDashboard from './components/admindashboard';
+import NotificationService from './components/notificationservice';
 import { LogIn } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'; // Import your CSS file
@@ -28,6 +29,7 @@ function App() {
   const [showConfirmMatch, setShowConfirmMatch] = useState(true)
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false); // Toggle ClaudeAdvancedSearch visibility
   const [showFAQ, setShowFAQ] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState({});
   const [showAdminDashboard, setShowAdminDashboard] = useState(false); // Toggle AdminDashboard visibility
   const [animationStarted, setAnimationStarted] = useState(false); // Controls the logo animation
   const [showText, setShowText] = useState(false); // Controls the visibility of the <h1>
@@ -67,6 +69,41 @@ function App() {
       .catch(() => setLoading(false));
   }, [loggedInUser, jwt]); // Add jwt as a dependency
 
+  // Handle new message notification
+  const handleNewMessage = (matchId, count) => {
+    // Update the unread messages count for this match
+    setUnreadNotifications(prev => ({
+      ...prev,
+      [matchId]: count
+    }));
+    
+    // Refresh matches to get the latest data
+    refreshMatches();
+  };
+  
+  // Clear notification for a specific chat
+  const clearChatNotification = (matchId) => {
+    setUnreadNotifications(prev => {
+      const newNotifications = {...prev};
+      delete newNotifications[matchId]; // Remove notification for this match
+      return newNotifications;
+    });
+  };
+  
+  // Reset notifications when user logs in or out
+  useEffect(() => {
+    // Clear notifications when user logs out
+    if (!loggedInUser || !jwt) {
+      setUnreadNotifications({});
+    }
+  }, [loggedInUser, jwt]);
+  
+  // Handle new match notification
+  const handleNewMatch = (matchId) => {
+    // Refresh matches to get the new match
+    refreshMatches();
+  };
+
     // Add this useEffect hook
   useEffect(() => {
     if (showAdvancedSearch || showConfirmMatch || showFAQ || showAdminDashboard) { 
@@ -84,6 +121,34 @@ function App() {
       refreshMatches();
     }
   }, [loggedInUser, jwt]); // Dependency array: this effect runs when user logs in
+  
+  // Initialize unread notifications from match data
+  useEffect(() => {
+    if (matches && matches.length > 0 && loggedInUser) {
+      const initialNotifications = {};
+      
+      matches.forEach(match => {
+        // Determine which unread count field to use based on current user
+        let unreadCount = 0;
+        if (match.Offered === loggedInUser.id) {
+          unreadCount = match.UnreadOffered || 0;
+        } else {
+          unreadCount = match.UnreadAccepted || 0;
+        }
+        
+        // Only add to notifications if there are unread messages
+        if (unreadCount > 0) {
+          initialNotifications[match.ID] = unreadCount;
+        }
+      });
+      
+      // Update the unread notifications state
+      setUnreadNotifications(prevNotifications => {
+        // Merge with existing notifications from SSE
+        return { ...initialNotifications, ...prevNotifications };
+      });
+    }
+  }, [matches, loggedInUser]);
 
 
   const refreshMatches = () => {
@@ -266,6 +331,8 @@ function App() {
         pendings={pendings}
         offereds={offereds}
         setShowConfirmMatch={setShowConfirmMatch}
+        unreadNotifications={unreadNotifications}
+        clearChatNotification={clearChatNotification}
         onSearchClick={() => {
           setShowAdvancedSearch(true)
           setShowConfirmMatch(false);
@@ -351,6 +418,15 @@ function App() {
           )}
         </div>
       </>
+      {/* Add the NotificationService component */}
+      {loggedInUser && jwt && (
+        <NotificationService 
+          jwt={jwt}
+          user={loggedInUser}
+          onNewMessage={handleNewMessage}
+          onNewMatch={handleNewMatch}
+        />
+      )}
       { jwt ? <p>JWT: {jwt}</p> : null }
     </div>
   </>

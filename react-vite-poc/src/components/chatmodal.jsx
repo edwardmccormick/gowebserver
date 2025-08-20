@@ -14,12 +14,41 @@ function convertISODateToLocal(dateString) {
 
 }
 
-export function ChatModal({match, person, User, unreadmessages, jwt}) {
+export function ChatModal({match, person, User, unreadmessages, jwt, clearChatNotification}) {
 
   const [showModal, setShowModal] = useState(false); // Controls the ChatModal visibility
+  const handleOpen = () => {
+    setShowModal(true);
+    // Clear notification when opening the chat
+    if (clearChatNotification && match?.ID) {
+      clearChatNotification(match.ID);
+    }
+  };
+  
   const handleClose = () => {
     // Keep message history when closing modal to prevent reloading
     setShowModal(false);
+  };
+  
+  // Function to mark messages as read when opening the chat
+  const markMessagesAsRead = async () => {
+    if (!match || !User || !jwt || !unreadmessages || unreadmessages === 0) return;
+    
+    try {
+      const response = await fetch(`http://localhost:8080/chat/markread/${match.ID}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': jwt,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to mark messages as read:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+    }
   };
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -101,6 +130,8 @@ export function ChatModal({match, person, User, unreadmessages, jwt}) {
         setMessageIds(new Set());
       }
       fetchChatHistory();
+      // Mark messages as read when opening the chat
+      markMessagesAsRead();
     }
   }, [showModal, historyLoaded]);
 
@@ -228,6 +259,48 @@ export function ChatModal({match, person, User, unreadmessages, jwt}) {
     }
   };
   
+  // Function to trigger the Perfect Date AI recommendation
+  const triggerPerfectDate = async () => {
+    if (!match || !User || !jwt) return;
+    
+    try {
+      // Show a sending indicator in the chat
+      setMessages(prev => [...prev, {
+        message: "Generating the perfect date suggestion...",
+        who: "System",
+        id: Date.now(),
+        time: new Date().toLocaleTimeString()
+      }]);
+      
+      // Call the PerfectDate API using the jwt prop
+      const response = await fetch(`http://localhost:8080/perfectdate/${match.ID}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': jwt,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}: ${await response.text()}`);
+      }
+      
+      // The AI message will be automatically added to the chat via the WebSocket
+      // No need to manually add it to the messages state
+      
+    } catch (error) {
+      console.error('Error getting perfect date suggestion:', error);
+      
+      // Show error message in chat
+      setMessages(prev => [...prev, {
+        message: `Failed to generate date suggestion: ${error.message}`,
+        who: "Alert",
+        id: Date.now(),
+        time: new Date().toLocaleTimeString()
+      }]);
+    }
+  };
+
   // Function to trigger the VibeChat AI conversation starter
   const triggerVibeChat = async () => {
     if (!match || !User || !jwt) return;
@@ -355,7 +428,7 @@ export function ChatModal({match, person, User, unreadmessages, jwt}) {
       key={`openchatwith${person.name}-${match.ID}`}
       variant="outline-success"
       className="p-2 fs-5 m-2 text-right d-flex flex-row justify-content-between align-items-center"
-      onClick={() => setShowModal(true)}
+      onClick={handleOpen}
     >
       <img
         src={person.profile.url ? person.profile.url : '/profile.svg'}
@@ -475,20 +548,29 @@ export function ChatModal({match, person, User, unreadmessages, jwt}) {
             </Button>
           </InputGroup>
         </div>
-        <Button
-          variant="secondary"
-          onClick={() => triggerVibeChat()}
-          className="col-3 mx-5 vibe-chat-btn"
-        >
-          Vibe Chat ❤️
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={handleClose}
-          className="col-3 mx-5"
-        >
-          Close
-        </Button>
+        <div className="d-flex justify-content-around w-100 mt-2">
+          <Button
+            variant="secondary"
+            onClick={() => triggerVibeChat()}
+            className="mx-2"
+          >
+            Vibe Chat ❤️
+          </Button>
+          <Button
+            variant="info"
+            onClick={() => triggerPerfectDate()}
+            className="mx-2"
+          >
+            Perfect Date 🍷
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={handleClose}
+            className="mx-2"
+          >
+            Close
+          </Button>
+        </div>
       </Modal.Footer>
     </Modal>
     </>

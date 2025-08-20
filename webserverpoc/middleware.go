@@ -10,7 +10,15 @@ import (
 var JwtSecret = []byte("supersecretkey") // Use a secure random key in production!
 
 func JwtMiddleware(c *gin.Context) {
+    // First try to get token from Authorization header
     token := c.GetHeader("Authorization")
+    
+    // If not found in header, check if it's in the query parameters (for SSE)
+    if token == "" {
+        token = c.Query("token")
+    }
+    
+    // If still not found, return error
     if token == "" {
         c.JSON(http.StatusUnauthorized, gin.H{"error": "No token provided"})
         c.Abort()

@@ -20,19 +20,17 @@ function convertISODateToLocal(dateString) {
 }
 
 function countUndeliveredMessages(User, match) {
-      let accepted_unread
-      let offered_unread 
-      (match.accepted_chat == undefined || match.accepted_chat == null || match.accepted_chat == {}) ? accepted_unread = 0 : accepted_unread = match.accepted_chat.length;
-      (match.offered_chat == null || match.offered_chat == undefined || match.offered_chat == {}) ? offered_unread = 0 : offered_unread = match.offered_chat.length;
-      if (match.offered == User.id) {
-        return offered_unread 
-       } 
-       else {
-        return accepted_unread;
+      // Use the new UnreadOffered and UnreadAccepted fields from the Match model
+      if (match.Offered == User.id) {
+        // Current user is the one who offered the match
+        return match.UnreadOffered || 0;
+      } else {
+        // Current user is the one who accepted the match
+        return match.UnreadAccepted || 0;
       }
 }
 
-function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch, jwt}) {
+function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch, jwt, unreadNotifications}) {
   const [showOffcanvas, setShowOffcanvas] = useState(false); // Controls the Offcanvas visibility
   // const [showModal, setShowModal] = useState(false); // Controls the ChatModal visibility
   // const [selectedPerson, setSelectedPerson] = useState(null); // Tracks the currently selected person
@@ -63,8 +61,15 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch, jwt
       <NavLink
         to="/chat" // Specify the route you want to navigate to
         onClick={toggleOffcanvasShow} // Keep the toggle functionality
+        className="position-relative"
       >
         Chat Selector
+        {unreadNotifications && Object.values(unreadNotifications).some(count => count > 0) && (
+          <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            {Object.values(unreadNotifications).reduce((sum, count) => sum + count, 0)}
+            <span className="visually-hidden">unread messages</span>
+          </span>
+        )}
       </NavLink>
       <Offcanvas show={showOffcanvas} onHide={handleOffcanvasClose}>
         <Offcanvas.Header closeButton>
@@ -89,7 +94,7 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch, jwt
                     User={User} // Pass the User prop to the ChatModal
                     unreadmessages={countUndeliveredMessages(User, match)}
                     jwt={jwt}
-                    
+                    clearChatNotification={clearChatNotification}
                   />
                   </div>
                   ) 
@@ -103,6 +108,7 @@ function ChatSelect({User, matches, pendings, offereds, setShowConfirmMatch, jwt
                     User={User} // Pass the User prop to the ChatModal
                     unreadmessages={countUndeliveredMessages(User, match)}
                     jwt={jwt}
+                    clearChatNotification={clearChatNotification}
                   />
                   {/* <ChatModalButton
                     key={match.person.id}
