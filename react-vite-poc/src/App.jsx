@@ -11,7 +11,7 @@ import SignUp from './components/signup';
 import AdminDashboard from './components/admindashboard';
 import NotificationService from './components/notificationservice';
 import { LogIn } from 'lucide-react';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import './styles/custom-theme.css'; // Import custom color theme
 import './App.css'; // Import your CSS file
 
 function App() {
@@ -244,7 +244,7 @@ function App() {
 
   return ( !jwt ? (
     <>
-      <div className="mx-auto p-3 text-center bg-black h-100" style={{height: '200vh', width: '100vw'}}>
+      <div className="mx-auto p-3 text-center bg-primary-custom h-100" style={{height: '200vh', width: '100vw'}}>
       
       
         <img src={"./urmid.svg"} className={`w-50 mx-auto text-center frontlogo ${animationStarted ? 'swoop' : ''}`} /> 
@@ -255,8 +255,8 @@ function App() {
       )} */}
           <div className='m-2 p-2 w-50 bg-white mx-auto text-center rounded form-container'>
             <div className="form-content">
-            <h1 className='bg-white'>And we all talk about it behind your back.</h1>
-              <h6 className='bg-white'>Look, no one is excited about this, so just make it quick. <br />
+            <h1 className='bg-white text-primary-custom'>And we all talk about it behind your back.</h1>
+              <h6 className='bg-white text-dark'>Look, no one is excited about this, so just make it quick. <br />
               Two roads diverged in the woods....yadda yadda. Pick what fits you best:</h6>
               <div className='d-flex justify-content-around align-items-center'>
                 <div className='col-5'>
@@ -268,7 +268,7 @@ function App() {
                     refreshMatches={refreshMatches}
                   />   
                 </div>   
-                <div><h4>Or</h4></div>
+                <div><h4 className="text-accent-custom">Or</h4></div>
                 <div className='col-5'>
                   <SignUp 
                     setPendingID={setPendingID} 
@@ -285,21 +285,21 @@ function App() {
        <br />
        <br />
        <br />
-       <p className="text-black">God this shit is so stupid, does it even work? A free dating site. Yes, totally fucking free. We use ads because honestly, you kind of piss us off and we're hoping you find the love of your life and get married. Because then you'll leave us alone. Asshole.</p>
+       <p className="text-white">God this shit is so stupid, does it even work? A free dating site. Yes, totally fucking free. We use ads because honestly, you kind of piss us off and we're hoping you find the love of your life and get married. Because then you'll leave us alone. Asshole.</p>
        </div>
 
   </>
   ) : (jwt && (pendingID || loggedInUser.name == null || loggedInUser.name == undefined || loggedInUser.name == "") ? (
-    <div className="mx-auto p-3 text-center bg-black h-100 app-container">
+    <div className="mx-auto p-3 text-center bg-secondary-custom h-100 app-container">
       {loggedInUser && loggedInUser.name ? (
         <>
         <h1 className="text-white">Yeah. I was wondering how to tell you that it was a little off-putting.</h1>
-        <h4 className="text-white">Although most of that is your pictures. And personality. And personal hygiene.</h4>
+        <h4 className="text-accent-custom">Although most of that is your pictures. And personality. And personal hygiene.</h4>
         </>
       ) : (
         <>
         <h1 className="text-white">Oh. Cool. You actually signed up for this hot mess?</h1>
-        <h4 className="text-white">Well we might as well make it official. Let's get some info for you</h4>
+        <h4 className="text-accent-custom">Well we might as well make it official. Let's get some info for you</h4>
         </>
       )
       }
@@ -320,7 +320,7 @@ function App() {
   ) : 
 
   <>
-    <div className='mx-auto text-center bg-white' style={{minHeight: '100vh', width: '100vw'}}>
+    <div className='mx-auto text-center bg-light' style={{minHeight: '100vh', width: '100vw'}}>
       <NavBar
         User={loggedInUser}
         setLoggedInUser={setLoggedInUser}

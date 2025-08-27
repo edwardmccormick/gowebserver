@@ -1,0 +1,355 @@
+/* Custom Color Palette Variables */
+:root {
+  /* Base Palette Colors */
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+  --color-red: #FF0000;
+  --color-bice-blue: #0E6BA8;
+  --color-reseda-green: #717744;
+  --color-pure-orange: #ED8B00;
+  
+  /* Semantic Color Mappings */
+  --color-primary: var(--color-bice-blue);
+  --color-secondary: var(--color-reseda-green);
+  --color-accent: var(--color-pure-orange);
+  --color-danger: var(--color-red);
+  --color-success: var(--color-reseda-green);
+  --color-warning: var(--color-pure-orange);
+  --color-info: var(--color-bice-blue);
+  --color-light: var(--color-white);
+  --color-dark: var(--color-black);
+  
+  /* Interactive State Variations */
+  --color-primary-hover: #0c5a8e;
+  --color-primary-active: #094d7a;
+  --color-secondary-hover: #5f6239;
+  --color-secondary-active: #4d512f;
+  --color-accent-hover: #d17800;
+  --color-accent-active: #b56600;
+  --color-danger-hover: #e60000;
+  --color-danger-active: #cc0000;
+}
+
+/* Bootstrap Component Overrides */
+
+/* Primary Button Styles */
+.btn-primary {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-white) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-hover) !important;
+  border-color: var(--color-primary-hover) !important;
+}
+
+.btn-primary:active, .btn-primary:focus {
+  background-color: var(--color-primary-active) !important;
+  border-color: var(--color-primary-active) !important;
+  box-shadow: 0 0 0 0.2rem rgba(14, 107, 168, 0.25) !important;
+}
+
+/* Secondary Button Styles */
+.btn-secondary {
+  background-color: var(--color-secondary) !important;
+  border-color: var(--color-secondary) !important;
+  color: var(--color-white) !important;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-secondary-hover) !important;
+  border-color: var(--color-secondary-hover) !important;
+}
+
+.btn-secondary:active, .btn-secondary:focus {
+  background-color: var(--color-secondary-active) !important;
+  border-color: var(--color-secondary-active) !important;
+  box-shadow: 0 0 0 0.2rem rgba(113, 119, 68, 0.25) !important;
+}
+
+/* Warning/Accent Button Styles */
+.btn-warning {
+  background-color: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: var(--color-white) !important;
+}
+
+.btn-warning:hover {
+  background-color: var(--color-accent-hover) !important;
+  border-color: var(--color-accent-hover) !important;
+}
+
+.btn-warning:active, .btn-warning:focus {
+  background-color: var(--color-accent-active) !important;
+  border-color: var(--color-accent-active) !important;
+  box-shadow: 0 0 0 0.2rem rgba(237, 139, 0, 0.25) !important;
+}
+
+/* Danger Button Styles */
+.btn-danger {
+  background-color: var(--color-danger) !important;
+  border-color: var(--color-danger) !important;
+  color: var(--color-white) !important;
+}
+
+.btn-danger:hover {
+  background-color: var(--color-danger-hover) !important;
+  border-color: var(--color-danger-hover) !important;
+}
+
+.btn-danger:active, .btn-danger:focus {
+  background-color: var(--color-danger-active) !important;
+  border-color: var(--color-danger-active) !important;
+  box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25) !important;
+}
+
+/* Success Button Styles */
+.btn-success {
+  background-color: var(--color-success) !important;
+  border-color: var(--color-success) !important;
+  color: var(--color-white) !important;
+}
+
+.btn-success:hover {
+  background-color: var(--color-secondary-hover) !important;
+  border-color: var(--color-secondary-hover) !important;
+}
+
+.btn-success:active, .btn-success:focus {
+  background-color: var(--color-secondary-active) !important;
+  border-color: var(--color-secondary-active) !important;
+  box-shadow: 0 0 0 0.2rem rgba(113, 119, 68, 0.25) !important;
+}
+
+/* Outline Button Variants */
+.btn-outline-primary {
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-white) !important;
+}
+
+.btn-outline-secondary {
+  border-color: var(--color-secondary) !important;
+  color: var(--color-secondary) !important;
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--color-secondary) !important;
+  border-color: var(--color-secondary) !important;
+  color: var(--color-white) !important;
+}
+
+.btn-outline-warning {
+  border-color: var(--color-accent) !important;
+  color: var(--color-accent) !important;
+}
+
+.btn-outline-warning:hover {
+  background-color: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: var(--color-white) !important;
+}
+
+.btn-outline-danger {
+  border-color: var(--color-danger) !important;
+  color: var(--color-danger) !important;
+}
+
+.btn-outline-danger:hover {
+  background-color: var(--color-danger) !important;
+  border-color: var(--color-danger) !important;
+  color: var(--color-white) !important;
+}
+
+/* Navbar Styles */
+.navbar {
+  background-color: var(--color-primary) !important;
+}
+
+.navbar-brand, .navbar-nav .nav-link {
+  color: var(--color-white) !important;
+}
+
+.navbar-nav .nav-link:hover {
+  color: var(--color-accent) !important;
+}
+
+/* Card Styles */
+.card {
+  border-color: var(--color-primary);
+}
+
+.card.border-primary {
+  border-color: var(--color-primary) !important;
+}
+
+.card-header {
+  background-color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+/* Alert Styles */
+.alert-primary {
+  background-color: rgba(14, 107, 168, 0.1);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.alert-success {
+  background-color: rgba(113, 119, 68, 0.1);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.alert-warning {
+  background-color: rgba(237, 139, 0, 0.1);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.alert-danger {
+  background-color: rgba(255, 0, 0, 0.1);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+/* Badge Styles */
+.badge-primary {
+  background-color: var(--color-primary) !important;
+}
+
+.badge-secondary {
+  background-color: var(--color-secondary) !important;
+}
+
+.badge-warning {
+  background-color: var(--color-accent) !important;
+}
+
+.badge-danger {
+  background-color: var(--color-danger) !important;
+}
+
+.badge-success {
+  background-color: var(--color-success) !important;
+}
+
+/* Form Control Styles */
+.form-control:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.2rem rgba(14, 107, 168, 0.25);
+}
+
+/* Custom Background Classes */
+.bg-primary-custom {
+  background-color: var(--color-primary) !important;
+  color: var(--color-white) !important;
+}
+
+.bg-secondary-custom {
+  background-color: var(--color-secondary) !important;
+  color: var(--color-white) !important;
+}
+
+.bg-accent-custom {
+  background-color: var(--color-accent) !important;
+  color: var(--color-white) !important;
+}
+
+.bg-danger-custom {
+  background-color: var(--color-danger) !important;
+  color: var(--color-white) !important;
+}
+
+/* Text Color Classes */
+.text-primary-custom {
+  color: var(--color-primary) !important;
+}
+
+.text-secondary-custom {
+  color: var(--color-secondary) !important;
+}
+
+.text-accent-custom {
+  color: var(--color-accent) !important;
+}
+
+.text-danger-custom {
+  color: var(--color-danger) !important;
+}
+
+/* Dating App Specific Classes */
+.match-card {
+  border: 2px solid transparent;
+  transition: border-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  background: var(--color-white);
+}
+
+.match-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(14, 107, 168, 0.15);
+}
+
+.match-card.selected {
+  border-color: var(--color-accent);
+  background-color: rgba(237, 139, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(237, 139, 0, 0.2);
+}
+
+.match-card.liked {
+  border-color: var(--color-success);
+  background-color: rgba(113, 119, 68, 0.05);
+}
+
+.match-card.rejected {
+  border-color: var(--color-danger);
+  background-color: rgba(255, 0, 0, 0.05);
+}
+
+.notification-badge {
+  background-color: var(--color-danger) !important;
+  color: var(--color-white) !important;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-bubble-sent {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border-radius: 18px 18px 4px 18px;
+}
+
+.chat-bubble-received {
+  background-color: var(--color-light);
+  color: var(--color-dark);
+  border: 1px solid #e0e0e0;
+  border-radius: 18px 18px 18px 4px;
+}
+
+/* Accordion Override */
+.accordion-button {
+  background-color: var(--color-primary) !important;
+  color: var(--color-white) !important;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: var(--color-primary-hover) !important;
+  color: var(--color-white) !important;
+}
+
+.accordion-button:focus {
+  box-shadow: 0 0 0 0.25rem rgba(14, 107, 168, 0.25) !important;
+}

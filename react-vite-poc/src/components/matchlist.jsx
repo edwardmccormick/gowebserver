@@ -197,9 +197,9 @@ function MatchList({
                     >
                       Oh yeah, that's what I like! Match!
                     </Button>
-                    <button className="btn btn-danger m-2">
+                    <Button variant="danger" className="m-2">
                       Show me less like this person
-                    </button>
+                    </Button>
                   </>
                 )}
               </div>

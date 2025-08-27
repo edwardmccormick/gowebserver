@@ -292,7 +292,7 @@ export function CreateProfile({
         </div>
         <div className="col-2 m-1 p-1">
           <Button 
-            variant="info" 
+            variant="primary" 
             className="mx-2" 
             onClick={handleGetLocation}
           >
