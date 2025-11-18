@@ -144,13 +144,13 @@ var messages = []string{
 }
 
 var Matches = []Match{
-	{Offered: 3, OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
-	{Offered: 4, OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
-	{Offered: 3, OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true},
+	{Offered: 3, OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true, LastMessageTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00")},
+	{Offered: 4, OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true, LastMessageTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00")},
+	{Offered: 3, OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00"), VibeChat: true, LastMessageTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00")},
 	// {MatchID: 1003, Offered: 3, OfferedTime: mustParseTime("2025-06-16T21:03:56.5225862-05:00"), Accepted: 5,  AcceptedTime: mustParseTime("0000-00-1T00:00:0.0000001-05:00"), VibeChat: true},
-	{Offered: 5, OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true},
-	{Offered: 6, OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true},
-	{Offered: 5, OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 7, AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true},
+	{Offered: 5, OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 1, AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true, LastMessageTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00")},
+	{Offered: 6, OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 5, AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true, LastMessageTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00")},
+	{Offered: 5, OfferedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), Accepted: 7, AcceptedTime: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC), VibeChat: true, LastMessageTime: mustParseTime("2025-06-16T21:04:59.5225862-05:00")},
 }
 
 // mustParseTime is a helper to parse time or panic if invalid
