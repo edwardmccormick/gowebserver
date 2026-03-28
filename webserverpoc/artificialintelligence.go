@@ -1,4 +1,4 @@
-package main
+package gowebserver
 
 import (
 	"context"
@@ -233,38 +233,8 @@ func CreateInitialChatMessage(match Match) (*ChatMessage, error) {
 	return message, nil
 }
 
-// Called when a chat is started for the first time
-func GenerateMatchIntroduction(matchID uint) (*ChatMessage, error) {
-	// Find the match
-	var match Match
-	result := db.Preload("OfferedProfile").Preload("AcceptedProfile").First(&match, matchID)
-	if result.Error != nil {
-		return nil, fmt.Errorf("failed to find match: %v", result.Error)
-	}
-
-	// Generate the initial chat message
-	message, err := CreateInitialChatMessage(match)
-	if err != nil {
-		return nil, err
-	}
-
-	// Save the message to the database
-	if err := db.Create(message).Error; err != nil {
-		return nil, fmt.Errorf("failed to save introduction message: %v", err)
-	}
-
-	return message, nil
-}
-
-// GenerateVibeChat creates a new conversation starter based on recent messages
-func GenerateVibeChat(matchID uint, recentMessages []ChatMessage) (*ChatMessage, error) {
-	// Find the match
-	var match Match
-	dbResult := db.Preload("OfferedProfile").Preload("AcceptedProfile").First(&match, matchID)
-	if dbResult.Error != nil {
-		return nil, fmt.Errorf("failed to find match: %v", dbResult.Error)
-	}
-
+// CreateVibeChatMessage creates a new conversation starter based on recent messages.
+func CreateVibeChatMessage(match Match, recentMessages []ChatMessage) (*ChatMessage, error) {
 	// Format profiles for the prompt
 	person1 := FormatPersonForPrompt(match.OfferedProfile)
 	person2 := FormatPersonForPrompt(match.AcceptedProfile)
@@ -272,7 +242,7 @@ func GenerateVibeChat(matchID uint, recentMessages []ChatMessage) (*ChatMessage,
 	// Format recent messages for the prompt
 	var messagesForPrompt strings.Builder
 	messagesForPrompt.WriteString("Recent messages (from oldest to newest):\n")
-	
+
 	// Determine the number of messages to include
 	messageCount := len(recentMessages)
 	if messageCount > 15 {
@@ -292,7 +262,7 @@ func GenerateVibeChat(matchID uint, recentMessages []ChatMessage) (*ChatMessage,
 		} else {
 			sender = fmt.Sprintf("Unknown (%d)", msg.Who)
 		}
-		
+
 		messagesForPrompt.WriteString(fmt.Sprintf("%d. %s: %s\n", i+1, sender, msg.Message))
 	}
 
@@ -339,13 +309,13 @@ IMPORTANT: Format your response as if you're the dating app's AI host sending a 
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate vibe chat message: %v", err)
 	}
-	
+
 	// Get the generated text from the response
 	generatedText := aiResponse.Text()
-	
+
 	// Create the chat message
 	message := &ChatMessage{
-		MatchID: int(matchID),
+		MatchID: int(match.ID),
 		Time:    time.Now(),
 		Who:     0, // 0 indicates system/AI message
 		Message: generatedText,
@@ -354,32 +324,25 @@ IMPORTANT: Format your response as if you're the dating app's AI host sending a 
 	return message, nil
 }
 
-// GenerateDateSuggestion creates a personalized date recommendation based on profiles and location
-func GenerateDateSuggestion(matchID uint, recentMessages []ChatMessage) (*ChatMessage, error) {
-	// Find the match
-	var match Match
-	dbResult := db.Preload("OfferedProfile").Preload("AcceptedProfile").First(&match, matchID)
-	if dbResult.Error != nil {
-		return nil, fmt.Errorf("failed to find match: %v", dbResult.Error)
-	}
-
+// CreateDateSuggestionMessage creates a personalized date recommendation based on profiles and location.
+func CreateDateSuggestionMessage(match Match, recentMessages []ChatMessage) (*ChatMessage, error) {
 	// Format profiles for the prompt
 	person1 := FormatPersonForPrompt(match.OfferedProfile)
 	person2 := FormatPersonForPrompt(match.AcceptedProfile)
-	
+
 	// Format locations for the prompt
 	location1 := fmt.Sprintf("%.6f,%.6f", match.OfferedProfile.LatLocation, match.OfferedProfile.LongLocation)
 	location2 := fmt.Sprintf("%.6f,%.6f", match.AcceptedProfile.LatLocation, match.AcceptedProfile.LongLocation)
-	
+
 	// Calculate midpoint between users (approximation)
 	midLat := (match.OfferedProfile.LatLocation + match.AcceptedProfile.LatLocation) / 2
 	midLong := (match.OfferedProfile.LongLocation + match.AcceptedProfile.LongLocation) / 2
 	midpoint := fmt.Sprintf("%.6f,%.6f", midLat, midLong)
-	
+
 	// Format recent messages for the prompt
 	var messagesForPrompt strings.Builder
 	messagesForPrompt.WriteString("Recent messages (from oldest to newest):\n")
-	
+
 	// Determine the number of messages to include
 	messageCount := len(recentMessages)
 	if messageCount > 15 {
@@ -399,7 +362,7 @@ func GenerateDateSuggestion(matchID uint, recentMessages []ChatMessage) (*ChatMe
 		} else {
 			sender = fmt.Sprintf("Unknown (%d)", msg.Who)
 		}
-		
+
 		messagesForPrompt.WriteString(fmt.Sprintf("%d. %s: %s\n", i+1, sender, msg.Message))
 	}
 
@@ -434,7 +397,7 @@ IMPORTANT: Do NOT make up places or events. If you recommend a specific venue or
 
 If the users are in different cities or far apart, acknowledge this and suggest options for a virtual date or meeting halfway.
 
-Your response should be 3-15 sentences, warm and helpful. Format as a message from the dating app's AI host.`, 
+Your response should be 3-15 sentences, warm and helpful. Format as a message from the dating app's AI host.`,
 		person1, location1, person2, location2, midpoint, messagesForPrompt.String())
 
 	// Ensure client is initialized
@@ -458,13 +421,13 @@ Your response should be 3-15 sentences, warm and helpful. Format as a message fr
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate date suggestion: %v", err)
 	}
-	
+
 	// Get the generated text from the response
 	generatedText := aiResponse.Text()
-	
+
 	// Create the chat message
 	message := &ChatMessage{
-		MatchID: int(matchID),
+		MatchID: int(match.ID),
 		Time:    time.Now(),
 		Who:     0, // 0 indicates system/AI message
 		Message: generatedText,

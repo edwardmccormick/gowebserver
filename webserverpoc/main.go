@@ -1,11 +1,8 @@
-package main
+package gowebserver
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
@@ -20,139 +17,9 @@ var Upgrader = websocket.Upgrader{
 	},
 }
 
-func main() {
-	router := gin.Default()
-
-	// Custom CORS configuration
-	configCors := cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:5174", "http://localhost:5172"}, // Replace with your frontend's origin
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-	}
-
-	router.Use(cors.New(configCors))
-
-	// Load the configuration
-	var config *Config
-	var err error
-
+func DefaultBindAddress() string {
 	if isRunningInDockerContainer() {
-		config, err = LoadConfig("./config.json") // Adjust the path as needed
-		if err != nil {
-			fmt.Println("Error loading config:", err)
-			return
-		}
-	} else {
-		config, err = LoadConfig("./configlocal.json") // Adjust the path as needed
-		if err != nil {
-			fmt.Println("Error loading config:", err)
-			return
-		}
+		return "0.0.0.0:8080"
 	}
-
-	// Connect to MySQL
-	db, err = ConnectToMySQLWithConfig(config)
-	if err != nil {
-		fmt.Println("Error connecting to MySQL:", err)
-		return
-	}
-	fmt.Println("Connected to MySQL.")
-	db = db.Debug()
-
-	// Perform GORM automigration
-	if err := db.AutoMigrate(
-		&User{},
-		&Person{},
-		&Details{},
-		&ProfilePhoto{},
-		&Match{},
-		&ChatMessage{},
-	); err != nil {
-		fmt.Printf("Error during automigration: %v", err)
-	}
-	fmt.Println("Database schema migrated successfully.")
-	
-	// Initialize the AI client
-	if err := InitializeAIClient(); err != nil {
-		fmt.Printf("Error initializing AI client: %v", err)
-	} else {
-		fmt.Println("AI client initialized successfully.")
-	}
-
-	// Connect to MongoDB
-	mongoClient, err = ConnectToMongoDBWithConfig(config)
-	if err != nil {
-		fmt.Println("Error connecting to MongoDB:", err)
-		return
-	}
-	fmt.Println("Connected to MongoDB.")
-
-	// Populate the database
-	if err := PopulateDatabase(db, mongoClient); err != nil {
-		fmt.Println("Error populating database:", err)
-		return
-	}
-	fmt.Println(mongoClient)
-
-	fmt.Println("Database check and population complete.")
-
-	fmt.Println("Let's do the thing")
-	// Sort by general functionality - signup, auth, login, logout
-	router.POST("/signup", Signup)
-	router.POST("/login", Login)
-	router.GET("/logout", Logout)
-	router.POST("/people", PostPeople) // Really create profile for yourself but this logic made sense to me
-	router.GET("/users", GetUsers)     // for troubleshooting or admin purposes
-
-	// Search and find people and profile information
-	router.GET("/people", GetPeople)
-	router.POST("/peoplelocation", GetPeopleByLocation)
-	router.GET("/people/:id", GetPeopleByID)
-	router.GET("/photos/:id", GetPhotosByID)
-
-	// Matchmaking and chat functionality
-	router.GET("/matches", GetMatches)
-	router.GET("/matches/:id", GetMatchByPersonID)
-	router.POST("/matches", PostMatch)
-	router.GET("/ws", WebsocketListener)
-
-	// Troubleshooting and utility endpoints
-	router.GET("/favicon.ico", GetFaviconIco)
-	router.GET("/", GreetUser)
-	router.GET("/greet/:name", GreetUserByName)
-	router.GET("/chat", ChatMessagesFromSQL)
-	router.GET("/chat/:id", ChatMessagesFromMongo)
-	
-	// Chat messages API with AI introduction generation
-	router.GET("/chatmessages/:id", GetChatMessagesForMatch)
-	
-	// VibeChat API to generate conversation starters
-	router.POST("/vibechat/:id", JwtMiddleware, GenerateVibeChatForMatch)
-	
-	// PerfectDate API to generate personalized date suggestions
-	router.POST("/perfectdate/:id", JwtMiddleware, GenerateDateSuggestionForMatch)
-	
-	// Server-Sent Events (SSE) for real-time notifications
-	router.GET("/notifications/:id", JwtMiddleware, SSEHandler)
-	
-	// Mark chat messages as read
-	router.POST("/chat/markread/:id", JwtMiddleware, MarkMessagesAsRead)
-	
-	// Admin routes - protected by AdminMiddleware
-	adminRoutes := router.Group("/admin")
-	adminRoutes.Use(AdminMiddleware)
-	{
-		adminRoutes.GET("/users", AdminGetAllUsers)
-		adminRoutes.GET("/chats", AdminGetAllChats)
-		adminRoutes.GET("/recent", AdminGetRecentUpdates)
-		adminRoutes.POST("/set-admin", AdminSetUserAdmin)
-	}
-	if isRunningInDockerContainer() {
-		router.Run("0.0.0.0:8080")
-	} else {
-		router.Run("localhost:8080")
-	}
-
+	return "localhost:8080"
 }

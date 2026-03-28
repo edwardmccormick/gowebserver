@@ -1,4 +1,4 @@
-package main
+package gowebserver
 
 import (
 	"math"
@@ -161,8 +161,6 @@ func mustParseTime(value string) time.Time {
 	}
 	return t
 }
-
-var jwtSecret = []byte("supersecretkey") // Use a secure random key in production!
 
 func isRunningInDockerContainer() bool {
 	// docker creates a .dockerenv file at the root

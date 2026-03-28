@@ -1,4 +1,4 @@
-package main
+package gowebserver
 
 import (
 	"net/http"
