@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -16,6 +17,23 @@ type ProfileService struct {
 	db         *gorm.DB
 	s3Client   *s3.S3
 	bucketName string
+}
+
+type SearchCriterion struct {
+	Category string `json:"category"`
+	Type     string `json:"type"`
+	Value    *int   `json:"value,omitempty"`
+	Min      *int   `json:"min,omitempty"`
+	Max      *int   `json:"max,omitempty"`
+	Enabled  bool   `json:"enabled,omitempty"`
+}
+
+type SearchOptions struct {
+	Distance     float64                    `json:"distance"`
+	Gender       string                     `json:"gender,omitempty"`
+	Preference   string                     `json:"preference,omitempty"`
+	Relationship string                     `json:"relationship,omitempty"`
+	Criteria     map[string]SearchCriterion `json:"criteria"`
 }
 
 func NewProfileService(db *gorm.DB, s3Client *s3.S3, bucketName string) *ProfileService {
@@ -168,6 +186,200 @@ func (s *ProfileService) ListPhotosByPersonID(personID uint) ([]domain.ProfilePh
 		return nil, err
 	}
 	return photos, nil
+}
+
+func (s *ProfileService) SearchPeople(currentUserID uint, options SearchOptions) ([]domain.Person, error) {
+	currentUser, err := s.GetPersonByID(currentUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	query := s.db.Model(&domain.Person{}).
+		Where("id <> ?", currentUserID).
+		Preload("Photos").
+		Preload("Profile")
+
+	if desiredGender := desiredGenderIdentity(options.Preference); desiredGender != "" {
+		query = query.Where("gender_identity = ?", desiredGender)
+	}
+
+	if seekerGender := normalizeSearchGender(options.Gender); seekerGender != "" {
+		query = query.Where("(interested_in = ? OR interested_in = ?)", seekerInterestValue(seekerGender), "anybody")
+	}
+
+	if desiredRelationship := normalizeRelationshipGoal(options.Relationship); desiredRelationship != "" {
+		query = query.Where("relationship_goal = ?", desiredRelationship)
+	}
+
+	if currentUser.LatLocation != 0 && currentUser.LongLocation != 0 && options.Distance > 0 {
+		latRange, longRange := searchBounds(currentUser.LatLocation, options.Distance)
+		query = query.Where(
+			"lat_location BETWEEN ? AND ? AND long_location BETWEEN ? AND ?",
+			currentUser.LatLocation-latRange,
+			currentUser.LatLocation+latRange,
+			currentUser.LongLocation-longRange,
+			currentUser.LongLocation+longRange,
+		)
+	}
+
+	for _, criterion := range options.Criteria {
+		if criterion.Enabled || criterion.Category != "" {
+			column, ok := searchColumnForCategory(criterion.Category)
+			if !ok {
+				continue
+			}
+
+			switch criterion.Type {
+			case "min":
+				if criterion.Value != nil {
+					query = query.Where(column+" >= ?", *criterion.Value)
+				}
+			case "max":
+				if criterion.Value != nil {
+					query = query.Where(column+" <= ?", *criterion.Value)
+				}
+			case "range":
+				if criterion.Min != nil && criterion.Max != nil {
+					minValue := *criterion.Min
+					maxValue := *criterion.Max
+					if minValue > maxValue {
+						minValue, maxValue = maxValue, minValue
+					}
+					query = query.Where(column+" BETWEEN ? AND ?", minValue, maxValue)
+				}
+			default:
+				if criterion.Value != nil {
+					query = query.Where(column+" = ?", *criterion.Value)
+				}
+			}
+		}
+	}
+
+	var people []domain.Person
+	if err := query.Find(&people).Error; err != nil {
+		return nil, err
+	}
+
+	if currentUser.LatLocation == 0 || currentUser.LongLocation == 0 || options.Distance <= 0 {
+		return people, nil
+	}
+
+	filtered := make([]domain.Person, 0, len(people))
+	for _, person := range people {
+		if person.LatLocation == 0 && person.LongLocation == 0 {
+			continue
+		}
+		if haversineMiles(currentUser.LatLocation, currentUser.LongLocation, person.LatLocation, person.LongLocation) <= options.Distance {
+			filtered = append(filtered, person)
+		}
+	}
+
+	return filtered, nil
+}
+
+func searchBounds(lat, distanceMiles float64) (latRange float64, longRange float64) {
+	const milesPerLatDegree = 69.0
+	latRange = distanceMiles / milesPerLatDegree
+
+	cosLat := math.Cos(lat * math.Pi / 180)
+	if math.Abs(cosLat) < 0.0001 {
+		return latRange, 180
+	}
+
+	longRange = distanceMiles / (milesPerLatDegree * cosLat)
+	return latRange, longRange
+}
+
+func haversineMiles(lat1, lon1, lat2, lon2 float64) float64 {
+	const earthRadiusMiles = 3958.8
+	lat1Rad := lat1 * math.Pi / 180
+	lat2Rad := lat2 * math.Pi / 180
+	deltaLat := (lat2 - lat1) * math.Pi / 180
+	deltaLon := (lon2 - lon1) * math.Pi / 180
+
+	a := math.Sin(deltaLat/2)*math.Sin(deltaLat/2) +
+		math.Cos(lat1Rad)*math.Cos(lat2Rad)*math.Sin(deltaLon/2)*math.Sin(deltaLon/2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+	return earthRadiusMiles * c
+}
+
+func searchColumnForCategory(category string) (string, bool) {
+	switch category {
+	case "bouginess", "bougieness":
+		return "bouginess", true
+	case "cats":
+		return "cats", true
+	case "dogs":
+		return "dogs", true
+	case "drinking":
+		return "drinking", true
+	case "energy_level", "energy_levels":
+		return "energy_level", true
+	case "food":
+		return "food", true
+	case "importance_of_politics":
+		return "importance_of_politics", true
+	case "kids":
+		return "kids", true
+	case "outdoorsyness", "outdoorsy_ness":
+		return "outdoorsyness", true
+	case "religion":
+		return "religion", true
+	case "smoking":
+		return "smoking", true
+	case "travel":
+		return "travel", true
+	default:
+		return "", false
+	}
+}
+
+func normalizeSearchGender(value string) string {
+	switch strings.TrimSpace(strings.ToLower(value)) {
+	case "a woman", "woman", "female":
+		return "woman"
+	case "a man", "man", "male":
+		return "man"
+	case "nonbinary", "non-binary", "nonbinary folks":
+		return "nonbinary"
+	default:
+		return ""
+	}
+}
+
+func desiredGenderIdentity(preference string) string {
+	switch strings.TrimSpace(strings.ToLower(preference)) {
+	case "women", "woman":
+		return "woman"
+	case "men", "man":
+		return "man"
+	case "nonbinary folks", "nonbinary", "non-binary":
+		return "nonbinary"
+	default:
+		return ""
+	}
+}
+
+func seekerInterestValue(gender string) string {
+	switch gender {
+	case "woman":
+		return "women"
+	case "man":
+		return "men"
+	case "nonbinary":
+		return "nonbinary"
+	default:
+		return ""
+	}
+}
+
+func normalizeRelationshipGoal(value string) string {
+	switch strings.TrimSpace(strings.ToLower(value)) {
+	case "", "?", "who cares":
+		return ""
+	default:
+		return strings.TrimSpace(strings.ToLower(value))
+	}
 }
 
 func (s *ProfileService) AttachPhotoViewURLs(photos []domain.ProfilePhoto, duration time.Duration) {

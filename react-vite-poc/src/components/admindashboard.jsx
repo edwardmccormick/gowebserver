@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tabs, Tab, Table, Container, Row, Col, Card, Badge } from 'react-bootstrap';
 import { formatDistance } from 'date-fns';
+import { apiUrl } from '../config/api';
 
 function AdminDashboard({ jwt }) {
   const [users, setUsers] = useState([]);
@@ -25,7 +26,7 @@ function AdminDashboard({ jwt }) {
     if (!jwt) return;
 
     setLoading(prev => ({ ...prev, users: true }));
-    fetch('http://localhost:8080/admin/users', {
+    fetch(apiUrl('/admin/users'), {
       headers: {
         'Authorization': jwt
       }
@@ -52,7 +53,7 @@ function AdminDashboard({ jwt }) {
     if (!jwt) return;
 
     setLoading(prev => ({ ...prev, chats: true }));
-    fetch('http://localhost:8080/admin/chats', {
+    fetch(apiUrl('/admin/chats'), {
       headers: {
         'Authorization': jwt
       }
@@ -79,7 +80,7 @@ function AdminDashboard({ jwt }) {
     if (!jwt) return;
 
     setLoading(prev => ({ ...prev, recent: true }));
-    fetch('http://localhost:8080/admin/recent', {
+    fetch(apiUrl('/admin/recent'), {
       headers: {
         'Authorization': jwt
       }
@@ -104,7 +105,7 @@ function AdminDashboard({ jwt }) {
   // Function to make a user admin
   const makeUserAdmin = async (userId, isAdmin) => {
     try {
-      const response = await fetch('http://localhost:8080/admin/set-admin', {
+      const response = await fetch(apiUrl('/admin/set-admin'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

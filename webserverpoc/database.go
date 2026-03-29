@@ -7,10 +7,9 @@ import (
 	"io"
 	"os"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -59,103 +58,36 @@ func ConnectToMongoDBWithConfig(config *Config) (*mongo.Client, error) {
 	return client, nil
 }
 
-// ConnectToMySQLWithConfig connects to MySQL using values from the config
-func ConnectToMySQLWithConfig(config *Config) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		config.MySQL.User,
-		config.MySQL.Password,
-		config.MySQL.Host,
-		config.MySQL.Port,
-		config.MySQL.Database,
+// ConnectToPostgresWithConfig connects to Postgres using values from the config.
+// Legacy mysql config is still accepted as a fallback during migration.
+func ConnectToPostgresWithConfig(config *Config) (*gorm.DB, error) {
+	sqlConfig := config.Postgres
+	if sqlConfig.Host == "" {
+		sqlConfig.Host = config.MySQL.Host
+		sqlConfig.Port = config.MySQL.Port
+		sqlConfig.User = config.MySQL.User
+		sqlConfig.Password = config.MySQL.Password
+		sqlConfig.Database = config.MySQL.Database
+	}
+
+	sslMode := sqlConfig.SSLMode
+	if sslMode == "" {
+		sslMode = "disable"
+	}
+
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s TimeZone=UTC",
+		sqlConfig.Host,
+		sqlConfig.Port,
+		sqlConfig.User,
+		sqlConfig.Password,
+		sqlConfig.Database,
+		sslMode,
 	)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MySQL: %w", err)
+		return nil, fmt.Errorf("failed to connect to Postgres: %w", err)
 	}
 
 	return db, nil
-}
-
-func PopulateDatabase(db *gorm.DB, mongoClient *mongo.Client) error {
-	// Check if users exist in MySQL
-	var userCount int64
-	if err := db.Model(&User{}).Count(&userCount).Error; err != nil {
-		return fmt.Errorf("failed to check user count: %w", err)
-	}
-
-	if userCount == 0 {
-		// Populate users
-		if err := db.Create(&users).Error; err != nil {
-			return fmt.Errorf("failed to populate users: %w", err)
-		}
-		fmt.Println("Users populated in MySQL.")
-	}
-
-	// Check if people exist in MySQL
-	var peopleCount int64
-	if err := db.Model(&Person{}).Count(&peopleCount).Error; err != nil {
-		return fmt.Errorf("failed to check people count: %w", err)
-	}
-
-	if peopleCount == 0 {
-		// Populate people
-		if err := db.Create(&people).Error; err != nil {
-			return fmt.Errorf("failed to populate people: %w", err)
-		}
-		fmt.Println("People populated in MySQL.")
-	}
-
-	// // Check if matches exist in MySQL
-	var matchCount int64
-	if err := db.Model(&Match{}).Count(&matchCount).Error; err != nil {
-		return fmt.Errorf("failed to check match count: %w", err)
-	}
-
-	if matchCount == 0 {
-		// Populate matches
-		if err := db.Create(&Matches).Error; err != nil {
-			return fmt.Errorf("failed to populate matches: %w", err)
-		}
-		fmt.Println("Matches populated in MySQL.")
-	}
-
-	// Check if PhotoArray1 exists in MongoDB
-	// photoCollection := mongoClient.Database("urmid").Collection("photos")
-	// photoCount, err := photoCollection.CountDocuments(context.TODO(), bson.M{})
-	// if err != nil {
-	// 	return fmt.Errorf("failed to check photo count: %w", err)
-	// }
-
-	// if photoCount == 0 {
-	// 	// Populate PhotoArray1 and PhotoArray2
-	// 	// photos := append(PhotoArray, PhotoArray2...)
-	// 	var photoDocs []interface{}
-	// 	for _, photo := range albums {
-	// 		photoDocs = append(photoDocs, photo)
-	// 	}
-
-	// 	if _, err := photoCollection.InsertMany(context.TODO(), photoDocs); err != nil {
-	// 		return fmt.Errorf("failed to populate photos: %w", err)
-	// 	}
-	// 	fmt.Println("Photos populated in MongoDB.")
-	// }
-
-	// Check if PhotoArray1 exists in MongoDB
-	chat := mongoClient.Database("urmid").Collection("chathistory")
-	chatCount, err := chat.CountDocuments(context.TODO(), bson.M{})
-	if err != nil {
-		return fmt.Errorf("failed to check photo count: %w", err)
-	}
-	if chatCount == 0 {
-		var conversation Conversation
-		// Populate chat history
-		success, err := chat.InsertOne(context.TODO(), conversation)
-		if err != nil {
-			fmt.Errorf("failed to populate chat history: %+v\n", err)
-		}
-		fmt.Println("Chat history table created in MongoDB.", success)
-	}
-
-	return nil
 }

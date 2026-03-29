@@ -3,6 +3,7 @@ import Accordion from 'react-bootstrap/Accordion';
 import ControlledCarousel from './carousel'
 import { getPreciseDistance } from 'geolib';
 import Button from 'react-bootstrap/Button';
+import { apiUrl } from '../config/api';
 
 function convertISODateToLocal(dateString) {
   const date = new Date(dateString);
@@ -27,27 +28,30 @@ function ConfirmMatchList({
     refreshMatches,
     jwt // Add JWT prop
   }) {
+  const safeMatches = Array.isArray(matches) ? [...matches] : [];
 
   const [submittedLikes, setSubmittedLikes] = useState({}); // Track submitted likes
   // Add distance to each person and sort by distance
   if (!loading && User) {
-    matches = matches.map((match) => ({
-      ...match,
-      distance: Math.round(
-        getPreciseDistance(
-          { latitude: User.lat, longitude: User.long },
-          { latitude: match.OfferedProfile.lat, longitude: match.OfferedProfile.long }
-        ) / 1609.34 * 10
-      ) / 10, // Convert meters to miles and round to 1 decimal place
-    }));
+    safeMatches.forEach((match, index) => {
+      safeMatches[index] = {
+        ...match,
+        distance: Math.round(
+          getPreciseDistance(
+            { latitude: User.lat, longitude: User.long },
+            { latitude: match.OfferedProfile.lat, longitude: match.OfferedProfile.long }
+          ) / 1609.34 * 10
+        ) / 10, // Convert meters to miles and round to 1 decimal place
+      };
+    });
 
     // Sort people by distance (smallest to largest)
-  matches.sort((a, b) => a.accepted - b.accepted);;
+  safeMatches.sort((a, b) => a.accepted - b.accepted);;
   }
 
   useEffect(() => {
-    console.log("Pending updated:", matches);
-  }, [matches]);
+    console.log("Pending updated:", safeMatches);
+  }, [safeMatches]);
   
   const handleSubmit = async (User, person, match) => {
     const payload = {
@@ -57,7 +61,7 @@ function ConfirmMatchList({
       accepted: User.id
     };
     try {
-      const response = await fetch('http://localhost:8080/matches', {
+      const response = await fetch(apiUrl('/matches'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,7 +94,7 @@ function ConfirmMatchList({
       <Accordion
        className='w-100'
       >
-        {matches.map((match) => (
+        {safeMatches.map((match) => (
         <Accordion.Item className='w-100' eventKey={match.OfferedProfile.id} key={match.OfferedProfile.id}>
           <Accordion.Header className='w-100' key={`${match.OfferedProfile.id}100`}>
             <img

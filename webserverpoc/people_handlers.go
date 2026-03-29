@@ -7,9 +7,18 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/edwardmccormick/gowebserver/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
+
+type AdvancedSearchRequest struct {
+	Distance     float64                            `json:"distance"`
+	Gender       string                             `json:"gender"`
+	Preference   string                             `json:"preference"`
+	Relationship string                             `json:"relationship"`
+	Criteria     map[string]service.SearchCriterion `json:"criteria"`
+}
 
 func PostPeople(c *gin.Context) {
 	var newPerson Person
@@ -177,6 +186,39 @@ func GetPeopleByLocation(c *gin.Context) {
 	people, err := profileService.ListPeopleWithinBounds(minLat, maxLat, minLong, maxLong)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query database"})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, people)
+}
+
+func SearchPeople(c *gin.Context) {
+	if profileService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Profile service not initialized"})
+		return
+	}
+
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unable to identify user"})
+		return
+	}
+
+	var req AdvancedSearchRequest
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	people, err := profileService.SearchPeople(userIDValue.(uint), service.SearchOptions{
+		Distance:     req.Distance,
+		Gender:       req.Gender,
+		Preference:   req.Preference,
+		Relationship: req.Relationship,
+		Criteria:     req.Criteria,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

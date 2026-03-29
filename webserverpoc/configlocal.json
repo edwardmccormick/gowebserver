@@ -6,11 +6,12 @@
     "user": "root",
     "password": "password123"
   },
-  "mysql": {
+  "postgres": {
     "host": "localhost",
-    "port": 3306,
+    "port": 5432,
     "database": "urmid",
-    "user": "root",
-    "password": "password123"
+    "user": "urmid",
+    "password": "password123",
+    "sslmode": "disable"
   }
 }

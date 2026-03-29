@@ -11,32 +11,53 @@ type Tabler interface {
 }
 
 type Person struct {
-	ID           uint           `json:"id" db:"id" gorm:"primaryKey"`
-	Name         string         `json:"name" db:"name" gorm:"type:varchar(255) not null"`
-	Age          int            `json:"age" db:"age" gorm:"type:int not null"`
-	Motto        string         `json:"motto" db:"motto" gorm:"type:varchar(255)"`
-	LatLocation  float64        `json:"lat" db:"lat" gorm:"type:float not null"`
-	LongLocation float64        `json:"long" db:"long" gorm:"type:float not null"`
-	Profile      ProfilePhoto   `json:"profile" gorm:"foreignKey:PersonID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	Details      Details        `json:"details" db:"details" gorm:"embedded"`
-	Photos       []ProfilePhoto `json:"photos" gorm:"foreignKey:PersonID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	Description  string         `json:"description" db:"description" gorm:"type:text"`
-	CreatedAt    time.Time      `json:"create_time" db:"create_time" gorm:"<-:create"`
-	UpdatedAt    time.Time      `json:"update_time" db:"update_time" gorm:"<-:update"`
+	ID               uint           `json:"id" gorm:"primaryKey"`
+	Name             string         `json:"name" gorm:"not null"`
+	Age              int            `json:"age" gorm:"not null"`
+	Motto            string         `json:"motto"`
+	GenderIdentity   string         `json:"gender_identity"`
+	InterestedIn     string         `json:"interested_in"`
+	RelationshipGoal string         `json:"relationship_goal"`
+	LatLocation      float64        `json:"lat" gorm:"not null"`
+	LongLocation     float64        `json:"long" gorm:"not null"`
+	Profile          ProfilePhoto   `json:"profile" gorm:"foreignKey:PersonID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Details          Details        `json:"details" gorm:"embedded"`
+	Photos           []ProfilePhoto `json:"photos" gorm:"foreignKey:PersonID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Description      string         `json:"description"`
+	CreatedAt        time.Time      `json:"create_time"`
+	UpdatedAt        time.Time      `json:"update_time"`
 }
 
 type User struct {
-	ID           uint      `json:"id" db:"id" gorm:"uniqueIndex;not null"`
-	Person       Person    `json:"user" db:"user" gorm:"foreignKey:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	Email        string    `json:"email" db:"email" gorm:"type:varchar(255);not null"`
-	PasswordHash string    `json:"-" db:"password_hash" gorm:"type:varchar(255);not null"`
-	IsAdmin      bool      `json:"is_admin" db:"is_admin" gorm:"default:false"`
-	LastLogin    time.Time `json:"last_login" db:"last_login" gorm:"<-:update"`
-	CreatedAt    time.Time `json:"create_time" db:"create_time" gorm:"<-:create"`
-	UpdatedAt    time.Time `json:"update_time" db:"update_time" gorm:"<-:update"`
+	ID           uint      `json:"id" gorm:"primaryKey"`
+	Person       Person    `json:"user" gorm:"foreignKey:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Email        string    `json:"email" gorm:"not null;uniqueIndex"`
+	PasswordHash string    `json:"-" gorm:"not null"`
+	IsAdmin      bool      `json:"is_admin" gorm:"default:false"`
+	LastLogin    time.Time `json:"last_login"`
+	CreatedAt    time.Time `json:"create_time"`
+	UpdatedAt    time.Time `json:"update_time"`
+}
+
+type UserSession struct {
+	ID        uint       `json:"id" gorm:"primaryKey"`
+	UserID    uint       `json:"user_id" gorm:"not null;index"`
+	JTI       string     `json:"jti" gorm:"not null;uniqueIndex"`
+	ExpiresAt time.Time  `json:"expires_at" gorm:"not null"`
+	RevokedAt *time.Time `json:"revoked_at,omitempty"`
+	CreatedAt time.Time  `json:"create_time"`
+	UpdatedAt time.Time  `json:"update_time"`
 }
 
 type Config struct {
+	Postgres struct {
+		Host     string `json:"host"`
+		Port     int    `json:"port"`
+		User     string `json:"user"`
+		Password string `json:"password"`
+		Database string `json:"database"`
+		SSLMode  string `json:"sslmode,omitempty"`
+	} `json:"postgres"`
 	MySQL struct {
 		Host     string `json:"host"`
 		Port     int    `json:"port"`
@@ -59,25 +80,36 @@ type ProfilePhoto struct {
 	Url       string    `json:"url" gorm:"-"`
 	Upload    string    `json:"upload,omitempty" gorm:"-"`
 	Delete    string    `json:"delete,omitempty" gorm:"-"`
-	S3Key     string    `json:"s3key" gorm:"not null,unique"`
+	S3Key     string    `json:"s3key" gorm:"not null;index"`
 	Caption   string    `json:"caption"`
-	CreatedAt time.Time `json:"create_time" db:"create_time" gorm:"<-:create"`
-	UpdatedAt time.Time `json:"update_time" db:"update_time" gorm:"<-:update"`
+	CreatedAt time.Time `json:"create_time"`
+	UpdatedAt time.Time `json:"update_time"`
 }
 
 type ChatMessage struct {
-	ID        int64     `json:"id" gorm:"primaryKey,AutoIncrement not null,Unique" bson:"id"`
-	MatchID   int       `json:"match_id" gorm:"not null" bson:"match_id"`
-	Time      time.Time `json:"time" bson:"time"`
-	Who       uint      `json:"who" gorm:"not null" bson:"who"`
-	Message   string    `json:"message" gorm:"type:text;not null" bson:"message"`
-	CreatedAt time.Time `json:"create_time" db:"create_time" gorm:"<-:create"`
-	UpdatedAt time.Time `json:"update_time" db:"update_time" gorm:"<-:update"`
+	ID          int64      `json:"id" gorm:"primaryKey;autoIncrement" bson:"id"`
+	MatchID     int        `json:"match_id" gorm:"not null;index" bson:"match_id"`
+	Time        time.Time  `json:"time" bson:"time"`
+	Who         uint       `json:"who" gorm:"not null" bson:"who"`
+	MessageType string     `json:"message_type" gorm:"not null;default:user" bson:"message_type"`
+	Message     string     `json:"message" gorm:"not null" bson:"message"`
+	ReadAt      *time.Time `json:"read_at,omitempty" bson:"read_at,omitempty" gorm:"-"`
+	CreatedAt   time.Time  `json:"create_time"`
+	UpdatedAt   time.Time  `json:"update_time"`
 }
 
 type Conversation struct {
 	MatchID  uint          `json:"match_id" bson:"match_id"`
 	Messages []ChatMessage `json:"messages" bson:"messages"`
+}
+
+type MatchReadState struct {
+	ID                uint      `json:"id" gorm:"primaryKey"`
+	MatchID           uint      `json:"match_id" gorm:"not null;index:idx_match_user_read_state,unique"`
+	UserID            uint      `json:"user_id" gorm:"not null;index:idx_match_user_read_state,unique"`
+	LastReadMessageID int64     `json:"last_read_message_id" gorm:"not null;default:0"`
+	CreatedAt         time.Time `json:"create_time"`
+	UpdatedAt         time.Time `json:"update_time"`
 }
 
 type Details struct {

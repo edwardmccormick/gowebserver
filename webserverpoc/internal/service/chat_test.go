@@ -53,6 +53,17 @@ func (f *fakeChatHistoryStore) AppendMessage(ctx context.Context, matchID uint, 
 	return f.appendErr
 }
 
+func (f *fakeChatHistoryStore) LatestMessageID(ctx context.Context, matchID uint) (int64, error) {
+	if len(f.conversation.Messages) == 0 {
+		return 0, store.ErrNotFound
+	}
+	return f.conversation.Messages[len(f.conversation.Messages)-1].ID, nil
+}
+
+func (f *fakeChatHistoryStore) SaveReadState(ctx context.Context, state store.MatchReadState) error {
+	return nil
+}
+
 func TestChatServiceUpdateUnreadCountsOfferedSender(t *testing.T) {
 	matchStore := &fakeMatchStore{
 		match: store.Match{ID: 9, Offered: 10, Accepted: 20},

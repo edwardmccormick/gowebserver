@@ -224,10 +224,11 @@ func CreateInitialChatMessage(match Match) (*ChatMessage, error) {
 
 	// Create a system message (ID 0 indicates system message)
 	message := &ChatMessage{
-		MatchID: int(match.ID),
-		Time:    time.Now(),
-		Who:     0, // 0 indicates system/AI message
-		Message: introText,
+		MatchID:     int(match.ID),
+		Time:        time.Now(),
+		Who:         0, // 0 indicates system/AI message
+		MessageType: "system_intro",
+		Message:     introText,
 	}
 
 	return message, nil
@@ -315,10 +316,11 @@ IMPORTANT: Format your response as if you're the dating app's AI host sending a 
 
 	// Create the chat message
 	message := &ChatMessage{
-		MatchID: int(match.ID),
-		Time:    time.Now(),
-		Who:     0, // 0 indicates system/AI message
-		Message: generatedText,
+		MatchID:     int(match.ID),
+		Time:        time.Now(),
+		Who:         0, // 0 indicates system/AI message
+		MessageType: "vibe_chat",
+		Message:     generatedText,
 	}
 
 	return message, nil
@@ -427,10 +429,11 @@ Your response should be 3-15 sentences, warm and helpful. Format as a message fr
 
 	// Create the chat message
 	message := &ChatMessage{
-		MatchID: int(match.ID),
-		Time:    time.Now(),
-		Who:     0, // 0 indicates system/AI message
-		Message: generatedText,
+		MatchID:     int(match.ID),
+		Time:        time.Now(),
+		Who:         0, // 0 indicates system/AI message
+		MessageType: "date_suggestion",
+		Message:     generatedText,
 	}
 
 	return message, nil

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import { apiUrl } from '../config/api';
 
 export function SignUp({ 
   setPendingID , 
@@ -25,7 +26,7 @@ export function SignUp({
     };
 
     try {
-      const response = await fetch('http://localhost:8080/signup', {
+      const response = await fetch(apiUrl('/signup'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

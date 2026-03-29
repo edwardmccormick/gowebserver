@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"time"
 
@@ -95,13 +96,14 @@ func (s *ChatService) LoadConversation(ctx context.Context, matchID uint) (domai
 	}
 	for _, msg := range conversation.Messages {
 		result.Messages = append(result.Messages, domain.ChatMessage{
-			ID:        msg.ID,
-			MatchID:   msg.MatchID,
-			Time:      msg.Time,
-			Who:       msg.Who,
-			Message:   msg.Message,
-			CreatedAt: msg.CreatedAt,
-			UpdatedAt: msg.UpdatedAt,
+			ID:          msg.ID,
+			MatchID:     msg.MatchID,
+			Time:        msg.Time,
+			Who:         msg.Who,
+			MessageType: msg.MessageType,
+			Message:     msg.Message,
+			CreatedAt:   msg.CreatedAt,
+			UpdatedAt:   msg.UpdatedAt,
 		})
 	}
 
@@ -115,13 +117,14 @@ func (s *ChatService) SaveConversation(ctx context.Context, conversation domain.
 	}
 	for _, msg := range conversation.Messages {
 		payload.Messages = append(payload.Messages, store.ChatMessage{
-			ID:        msg.ID,
-			MatchID:   msg.MatchID,
-			Time:      msg.Time,
-			Who:       msg.Who,
-			Message:   msg.Message,
-			CreatedAt: msg.CreatedAt,
-			UpdatedAt: msg.UpdatedAt,
+			ID:          msg.ID,
+			MatchID:     msg.MatchID,
+			Time:        msg.Time,
+			Who:         msg.Who,
+			MessageType: msg.MessageType,
+			Message:     msg.Message,
+			CreatedAt:   msg.CreatedAt,
+			UpdatedAt:   msg.UpdatedAt,
 		})
 	}
 	return s.chat.SaveConversation(ctx, payload)
@@ -129,13 +132,36 @@ func (s *ChatService) SaveConversation(ctx context.Context, conversation domain.
 
 func (s *ChatService) AppendMessage(ctx context.Context, matchID uint, message domain.ChatMessage) error {
 	return s.chat.AppendMessage(ctx, matchID, store.ChatMessage{
-		ID:        message.ID,
-		MatchID:   message.MatchID,
-		Time:      message.Time,
-		Who:       message.Who,
-		Message:   message.Message,
-		CreatedAt: message.CreatedAt,
-		UpdatedAt: message.UpdatedAt,
+		ID:          message.ID,
+		MatchID:     message.MatchID,
+		Time:        message.Time,
+		Who:         message.Who,
+		MessageType: message.MessageType,
+		Message:     message.Message,
+		CreatedAt:   message.CreatedAt,
+		UpdatedAt:   message.UpdatedAt,
+	})
+}
+
+func (s *ChatService) MarkConversationRead(ctx context.Context, matchID uint, userID uint) error {
+	lastMessageID, err := s.chat.LatestMessageID(ctx, matchID)
+	if err != nil && !errors.Is(err, store.ErrNotFound) {
+		return err
+	}
+
+	if err := s.ResetUnreadCount(ctx, matchID, userID); err != nil {
+		return err
+	}
+
+	if errors.Is(err, store.ErrNotFound) {
+		return nil
+	}
+
+	return s.chat.SaveReadState(ctx, store.MatchReadState{
+		MatchID:           matchID,
+		UserID:            userID,
+		LastReadMessageID: lastMessageID,
+		UpdatedAt:         time.Now(),
 	})
 }
 

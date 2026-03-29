@@ -3,6 +3,7 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import DetailsSelections from './detailsselections';
 import details from '../../../details.json';
+import { apiUrl } from '../config/api';
 
 function SignIn({ 
   setLoggedInUser , 
@@ -23,7 +24,7 @@ function SignIn({
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch('http://localhost:8080/login', {
+      const response = await fetch(apiUrl('/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

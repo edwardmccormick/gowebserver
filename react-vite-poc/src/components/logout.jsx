@@ -1,5 +1,6 @@
 import { LogOut } from 'lucide-react';
 import Button from 'react-bootstrap/Button';
+import { apiUrl } from '../config/api';
 
 function Logout({ 
   setLoggedInUser, 
@@ -14,7 +15,7 @@ function Logout({
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch('http://localhost:8080/logout', {
+      const response = await fetch(apiUrl('/logout'), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

@@ -12,6 +12,7 @@ type Handlers struct {
 	PostPeople               gin.HandlerFunc
 	GetUsers                 gin.HandlerFunc
 	GetPeople                gin.HandlerFunc
+	SearchPeople             gin.HandlerFunc
 	GetPeopleByLocation      gin.HandlerFunc
 	GetPeopleByID            gin.HandlerFunc
 	GetPhotosByID            gin.HandlerFunc
@@ -54,6 +55,7 @@ func NewRouter(h Handlers) *gin.Engine {
 	router.GET("/users", h.GetUsers)
 
 	router.GET("/people", h.GetPeople)
+	router.POST("/people/search", h.JwtMiddleware, h.SearchPeople)
 	router.POST("/peoplelocation", h.GetPeopleByLocation)
 	router.GET("/people/:id", h.GetPeopleByID)
 	router.GET("/photos/:id", h.GetPhotosByID)

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { wsUrl } from '../config/api';
 
 export default function WebSocketChat() {
   const [messages, setMessages] = useState([]);
@@ -6,7 +7,7 @@ export default function WebSocketChat() {
   const ws = useRef(null);
 
   useEffect(() => {
-    ws.current = new WebSocket('ws://localhost:8080/ws');
+    ws.current = new WebSocket(wsUrl('/ws'));
 
     ws.current.onmessage = (event) => {
       setMessages((prev) => [...prev, event.data]);

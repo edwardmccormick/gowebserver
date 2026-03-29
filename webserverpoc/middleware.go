@@ -3,6 +3,7 @@ package gowebserver
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/edwardmccormick/gowebserver/internal/store"
 	"github.com/gin-gonic/gin"
@@ -37,6 +38,17 @@ func JwtMiddleware(c *gin.Context) {
 	}
 
 	c.Set("token", parsedToken)
+
+	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok {
+		if jti, exists := claims["jti"].(string); exists && jti != "" && sessionStore != nil {
+			session, err := sessionStore.GetByJTI(c.Request.Context(), jti)
+			if err != nil || session.RevokedAt != nil || time.Now().After(session.ExpiresAt) {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Session has expired"})
+				c.Abort()
+				return
+			}
+		}
+	}
 
 	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok {
 		if userID, exists := claims["sub"].(float64); exists {

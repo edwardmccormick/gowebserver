@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiUrl } from '../config/api';
 
 /**
  * NotificationService component that establishes a Server-Sent Events (SSE) connection
@@ -36,7 +37,7 @@ function NotificationService({ jwt, user, onNewMessage, onNewMatch }) {
         
         // Create the SSE connection with JWT auth as a query parameter
         // because EventSource doesn't support custom headers
-        const sseUrl = `http://localhost:8080/notifications/${user.id}?token=${encodeURIComponent(jwt)}`;
+        const sseUrl = apiUrl(`/notifications/${user.id}?token=${encodeURIComponent(jwt)}`);
         console.log(`Creating SSE connection to: ${sseUrl}`);
         const sse = new EventSource(sseUrl, {
           withCredentials: true

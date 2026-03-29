@@ -1,5 +1,5 @@
 # Use the official Golang image as the base image
-FROM golang:1.24 AS builder
+FROM golang:1.25 AS builder
 
 RUN apt-get update && apt-get install -y ca-certificates openssl
 
@@ -29,7 +29,7 @@ COPY . .
 ENV CGO_ENABLED=0
 
 # Build the Go application
-RUN GOOS=linux GOARCH=amd64 go build -o gowebserver .
+RUN GOOS=linux GOARCH=amd64 go build -o /out/server ./cmd/server
 
 # Use a minimal base image for the final container
 FROM alpine:latest
@@ -41,7 +41,7 @@ RUN apk --no-cache add ca-certificates file
 WORKDIR /root/
 
 # Copy the compiled binary from the builder stage
-COPY --from=builder /app/gowebserver .
+COPY --from=builder /out/server /usr/local/bin/gowebserver
 
 # Copy the config.json file into the container
 COPY config.json .
@@ -50,4 +50,4 @@ COPY config.json .
 EXPOSE 8080
 
 # Command to run the application
-CMD ["./gowebserver"]
+CMD ["/usr/local/bin/gowebserver"]

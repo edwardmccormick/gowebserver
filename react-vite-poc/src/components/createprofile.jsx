@@ -9,6 +9,28 @@ import Tooltip from 'react-bootstrap/Tooltip';
 import ControlledCarousel from './carousel';
 import MatchList from './matchlist';
 import PhotoManager from './photomanager';
+import { apiUrl } from '../config/api';
+
+const genderOptions = [
+  { value: 'woman', label: 'Woman' },
+  { value: 'man', label: 'Man' },
+  { value: 'nonbinary', label: 'Nonbinary' },
+];
+
+const interestedInOptions = [
+  { value: 'women', label: 'Women' },
+  { value: 'men', label: 'Men' },
+  { value: 'nonbinary', label: 'Nonbinary folks' },
+  { value: 'anybody', label: 'Anybody' },
+];
+
+const relationshipOptions = [
+  { value: 'friendship', label: 'Friendship' },
+  { value: 'something casual', label: 'Something casual' },
+  { value: 'dating', label: 'Dating' },
+  { value: 'something serious', label: 'Something serious' },
+  { value: 'something kinky', label: 'Something kinky' },
+];
 
 export function CreateProfile({
   setLoggedInUser, 
@@ -30,6 +52,9 @@ export function CreateProfile({
         age: loggedInUser.age || '',
         description: loggedInUser.description || '',
         motto: loggedInUser.motto || '',
+        gender_identity: loggedInUser.gender_identity || '',
+        interested_in: loggedInUser.interested_in || '',
+        relationship_goal: loggedInUser.relationship_goal || '',
         latitude: loggedInUser.lat || '',
         longitude: loggedInUser.long || '',
         profile: loggedInUser.profile || '',
@@ -43,6 +68,9 @@ export function CreateProfile({
       age: '',
       description: '',
       motto: '',
+      gender_identity: '',
+      interested_in: '',
+      relationship_goal: '',
       latitude: '',
       longitude: '',
       profile: '',
@@ -137,6 +165,9 @@ export function CreateProfile({
       age: parseInt(formData.age),
       name: formData.name,
       motto: formData.motto,
+      gender_identity: formData.gender_identity,
+      interested_in: formData.interested_in,
+      relationship_goal: formData.relationship_goal,
       lat: parseFloat(formData.latitude),
       long: parseFloat(formData.longitude),
       profile: { S3Key: formData.profile.S3Key || "" },
@@ -146,7 +177,7 @@ export function CreateProfile({
     };
 
     try {
-      const response = await fetch('http://localhost:8080/people', {
+      const response = await fetch(apiUrl('/people'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -258,6 +289,48 @@ export function CreateProfile({
           />
         </div>
 
+        <div className="col-2 m-1 p-1">
+          <Form.Label htmlFor="gender_identity">I am</Form.Label>
+          <Form.Select
+            id="gender_identity"
+            value={formData.gender_identity}
+            onChange={handleChange}
+          >
+            <option value="">Pick one</option>
+            {genderOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </Form.Select>
+        </div>
+
+        <div className="col-2 m-1 p-1">
+          <Form.Label htmlFor="interested_in">Interested in</Form.Label>
+          <Form.Select
+            id="interested_in"
+            value={formData.interested_in}
+            onChange={handleChange}
+          >
+            <option value="">Pick one</option>
+            {interestedInOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </Form.Select>
+        </div>
+
+        <div className="col-2 m-1 p-1">
+          <Form.Label htmlFor="relationship_goal">Looking for</Form.Label>
+          <Form.Select
+            id="relationship_goal"
+            value={formData.relationship_goal}
+            onChange={handleChange}
+          >
+            <option value="">Pick one</option>
+            {relationshipOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </Form.Select>
+        </div>
+
         {/* <div className="col-3 m-1 p-1">
           <Form.Label htmlFor="profile">Profile Picture URL</Form.Label>
           <Form.Control
@@ -363,7 +436,7 @@ export function CreateProfile({
                 : '/profile.svg',
               description: JSON.stringify(editorDelta),
               photos: formData.photos.map(photo => ({
-                url: photo.url || `http://localhost:8080/photos/${photo.s3key}`,
+                url: photo.url || apiUrl(`/photos/${photo.s3key}`),
                 caption: photo.caption || ''
               }))
             }]}

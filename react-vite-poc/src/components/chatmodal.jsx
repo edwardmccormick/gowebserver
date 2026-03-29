@@ -4,14 +4,48 @@ import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Modal from 'react-bootstrap/Modal';
 import Badge from 'react-bootstrap/Badge';
+import { apiUrl, wsUrl } from '../config/api';
+import ChatMessage from './chatmessage';
 
-function convertISODateToLocal(dateString) {
-  const date = new Date(dateString);
+function normalizeMessage(message, person, user) {
+  if (!message || typeof message !== 'object') {
+    return null;
+  }
 
+  const normalized = { ...message };
 
-  const localTime = date.toLocaleTimeString();
-  return localTime; // Output: "09:03:56 PM"
+  if (normalized.who == person.id) {
+    normalized.who = person.name;
+  } else if (normalized.who == user.id) {
+    normalized.who = 'Me';
+  } else if (normalized.who === 0) {
+    normalized.who = 'AI Introduction';
+  }
 
+  return normalized;
+}
+
+function mergeMessages(existingMessages, incomingMessages) {
+  const merged = [...existingMessages];
+  const seenIds = new Set(existingMessages.filter((msg) => msg?.id).map((msg) => msg.id));
+
+  incomingMessages.forEach((message) => {
+    if (!message) {
+      return;
+    }
+
+    if (message.id && seenIds.has(message.id)) {
+      return;
+    }
+
+    if (message.id) {
+      seenIds.add(message.id);
+    }
+    merged.push(message);
+  });
+
+  merged.sort((a, b) => new Date(a.time || 0) - new Date(b.time || 0));
+  return merged;
 }
 
 export function ChatModal({match, person, User, unreadmessages, jwt, clearChatNotification}) {
@@ -35,7 +69,7 @@ export function ChatModal({match, person, User, unreadmessages, jwt, clearChatNo
     if (!match || !User || !jwt || !unreadmessages || unreadmessages === 0) return;
     
     try {
-      const response = await fetch(`http://localhost:8080/chat/markread/${match.ID}`, {
+      const response = await fetch(apiUrl(`/chat/markread/${match.ID}`), {
         method: 'POST',
         headers: {
           'Authorization': jwt,
@@ -54,13 +88,8 @@ export function ChatModal({match, person, User, unreadmessages, jwt, clearChatNo
   const [input, setInput] = useState('');
   const ws = useRef(null);
   const messagesEndRef = useRef(null); // Ref for the last message
-  
-  // Track if the chat history has been loaded
-  const [historyLoaded, setHistoryLoaded] = useState(false);
   // Track loading state to show a spinner while fetching
   const [isLoading, setIsLoading] = useState(false);
-  // Track message IDs to prevent duplicates
-  const [messageIds, setMessageIds] = useState(new Set());
   
     // Scroll to the bottom whenever messages change
   useEffect(() => {
@@ -72,12 +101,11 @@ export function ChatModal({match, person, User, unreadmessages, jwt, clearChatNo
 
   // Fetch chat history from the server when needed
   const fetchChatHistory = async () => {
-    if (!match || !User || historyLoaded) return;
+    if (!match || !User || !jwt) return;
     
     setIsLoading(true);
     try {
-
-      const response = await fetch(`http://localhost:8080/chat/messages/${match.ID}`, {
+      const response = await fetch(apiUrl(`/chatmessages/${match.ID}`), {
         headers: {
           'Authorization': jwt,
           'Content-Type': 'application/json'
@@ -90,27 +118,13 @@ export function ChatModal({match, person, User, unreadmessages, jwt, clearChatNo
         // Check if the response contains the messages array directly or within pagination
         const chatMessages = data.messages || data;
         
-        // Process the messages to ensure proper display names
-        const processedMessages = chatMessages.map(msg => {
-          if (msg.who == person.id) {
-            return {...msg, who: person.name};
-          } else if (msg.who == User.id) {
-            return {...msg, who: 'Me'};
-          } else if (msg.who === 0) {
-            return {...msg, who: 'AI Introduction'};
-          }
-          return msg;
-        });
-        
-        // Track message IDs to prevent duplicates
-        const newIds = new Set(messageIds);
-        processedMessages.forEach(msg => {
-          if (msg.id) newIds.add(msg.id);
-        });
-        setMessageIds(newIds);
-        
+        const processedMessages = Array.isArray(chatMessages)
+          ? chatMessages
+              .map((msg) => normalizeMessage(msg, person, User))
+              .filter(Boolean)
+          : [];
+
         setMessages(processedMessages);
-        setHistoryLoaded(true);
         console.log(`Loaded ${processedMessages.length} messages for match ${match.ID}`);
       } else {
         console.error('Failed to fetch chat history:', await response.text());
@@ -124,135 +138,83 @@ export function ChatModal({match, person, User, unreadmessages, jwt, clearChatNo
 
   // Load chat history when the modal is first opened
   useEffect(() => {
-    if (showModal && !historyLoaded) {
-      // Reset messageIds when starting a new chat session
-      if (showModal) {
-        setMessageIds(new Set());
-      }
+    if (showModal) {
       fetchChatHistory();
       // Mark messages as read when opening the chat
       markMessagesAsRead();
     }
-  }, [showModal, historyLoaded]);
+  }, [showModal, match?.ID, jwt]);
 
   useEffect(() => {
     if (!match || !person || !User || !showModal) {
       return;
     }
     
-    ws.current = new WebSocket(`ws://localhost:8080/ws?id=${match.ID}&user_id=${User.id}`);
+    ws.current = new WebSocket(wsUrl(`/ws?id=${match.ID}&user_id=${User.id}`));
 
     ws.current.onopen = () => {
-      setMessages((prev) => [...prev, { message: ' opened.', who: 'Connection', id: Date.now(), time: Date.now() }]);
       console.log('WebSocket connection established');
     };
 
     ws.current.onmessage = (event) => {
       try {
-        let date = new Date()
         const data = JSON.parse(event.data);
-        // If the server sends an array of messages
+
         if (Array.isArray(data)) {
-          // Only append new messages if history hasn't been loaded yet
-          if (!historyLoaded) {
-            setHistoryLoaded(true);
-            
-            // Filter out any duplicate messages
-            const uniqueMessages = data.filter(msg => !msg.id || !messageIds.has(msg.id));
-            
-            // Process message senders
-            const processedMessages = uniqueMessages.map(msg => {
-              if (msg.who == person.id) {
-                return {...msg, who: person.name};
-              } else if (msg.who == User.id) {
-                return {...msg, who: 'Me'};
-              } else if (msg.who === 0) {
-                return {...msg, who: 'AI Introduction'};
-              }
-              return msg;
-            });
-            
-            // Track new message IDs
-            const newIds = new Set(messageIds);
-            processedMessages.forEach(msg => {
-              if (msg.id) newIds.add(msg.id);
-            });
-            setMessageIds(newIds);
-            
-            // Add unique messages to the chat
-            if (processedMessages.length > 0) {
-              setMessages((prev) => [...prev, ...processedMessages]);
-            }
-          }
+          const processedMessages = data
+            .map((msg) => normalizeMessage(msg, person, User))
+            .filter(Boolean);
+
+          setMessages((prev) => mergeMessages(prev, processedMessages));
         } else if (typeof data === 'object' && data !== null) {
-          // Only add the message if it's not a duplicate
-          if (!data.id || !messageIds.has(data.id)) {
-            // Handle different types of senders
-            if (data.who == person.id) {
-              data.who = person.name;
-            } else if (data.who == User.id) {
-              data.who = 'Me';
-            } else if (data.who === 0) {
-              data.who = 'AI Introduction';
-            }
-            
-            // Track the new message ID
-            if (data.id) {
-              setMessageIds(prev => new Set(prev).add(data.id));
-            }
-            
-            setMessages((prev) => [...prev, data]);
+          const normalized = normalizeMessage(data, person, User);
+          if (normalized) {
+            setMessages((prev) => mergeMessages(prev, [normalized]));
           }
-        } else {
-          // If it's not JSON, treat as a status message
-          const statusMsgId = Date.now();
-          setMessages((prev) => [...prev, { message: event.data, who: 'System', id: statusMsgId, time: statusMsgId }]);
         }
       } catch (e) {
-        // Not JSON, treat as a status message
-        const errorMsgId = Date.now();
-        setMessages((prev) => [...prev, { message: event.data, who: 'System', id: errorMsgId, time: errorMsgId }]);
+        console.error('Error parsing websocket payload:', e);
       }
     };
 
     ws.current.onclose = () => {
-      setMessages((prev) => [...prev, { message: 'Connection closed', who: 'Alert', id: Date.now(), time: Date.now() }]);
+      console.log('WebSocket connection closed');
     };
 
     ws.current.onerror = (err) => {
-      setMessages((prev) => [...prev, { message: 'WebSocket error', who: 'System', id: Date.now(), time: Date.now() }]);
+      console.error('WebSocket error', err);
     };
 
     return () => {
-    if (ws.current) {
-      ws.current.close();
-    }
-  };
-  }, [showModal]);
+      if (ws.current) {
+        ws.current.close();
+        ws.current = null;
+      }
+    };
+  }, [showModal, match?.ID, person?.id, person?.name, User?.id]);
   
   const sendMessage = () => {
-    if (ws.current && input) {
+    const trimmedInput = input.trim();
+
+    if (ws.current && trimmedInput) {
       let date = new Date();
       const msgId = Date.now();
       
       // Send message to the server
       ws.current.send(JSON.stringify({ 
-        message: input, 
+        message: trimmedInput, 
         who: User.id, 
         id: msgId, 
         time: date.toISOString() 
       }));
       
       // Add the message to our local state
-      setMessages((prev) => [...prev, { 
-        message: input, 
+      setMessages((prev) => mergeMessages(prev, [{ 
+        message: trimmedInput, 
         who: 'Me', 
         id: msgId, 
-        time: date.toLocaleTimeString() 
-      }]);
-      
-      // Track the message ID to prevent duplicates
-      setMessageIds(prev => new Set(prev).add(msgId));
+        time: date.toISOString() 
+      }]));
       
       // Reset the input field
       setInput('');
@@ -273,7 +235,7 @@ export function ChatModal({match, person, User, unreadmessages, jwt, clearChatNo
       }]);
       
       // Call the PerfectDate API using the jwt prop
-      const response = await fetch(`http://localhost:8080/perfectdate/${match.ID}`, {
+      const response = await fetch(apiUrl(`/perfectdate/${match.ID}`), {
         method: 'POST',
         headers: {
           'Authorization': jwt,
@@ -315,7 +277,7 @@ export function ChatModal({match, person, User, unreadmessages, jwt, clearChatNo
       }]);
       
       // Call the VibeChat API using the jwt prop passed from App.jsx
-      const response = await fetch(`http://localhost:8080/vibechat/${match.ID}`, {
+      const response = await fetch(apiUrl(`/vibechat/${match.ID}`), {
         method: 'POST',
         headers: {
           'Authorization': jwt,
@@ -482,46 +444,13 @@ export function ChatModal({match, person, User, unreadmessages, jwt, clearChatNo
                 No messages yet. Start the conversation!
               </div>
             ) : messages.map((msg, idx) => (
-              <div className={
-                      msg.who === 'System'
-                      ? 'text-center bg-warning text-white rounded m-2 p-2 flex-item'
-                      : msg.who === 'Alert'
-                      ? 'text-center bg-danger text-white rounded m-2 p-2 flex-item'
-                      : msg.who === 'Connection'
-                      ? 'text-center bg-success text-white rounded m-2 p-2 flex-item'
-                      : msg.who === 'Admin' || msg.who === 'Moderator'
-                      ? 'align-self-center bg-info text-white rounded m-2 p-2 flex-item'
-                      : msg.who === "AI Host" || msg.who === "AI Introduction"
-                      ? 'align-self-center bg-purple gradient-bg text-white rounded m-2 p-2 flex-item'
-                      : msg.who == User.id || msg.who === 'Me'
-                      ? 'd-flex flex-row justify-content-end align-items-center'
-                      : 'd-flex flex-row justify-content-start align-items-center'
-                  }
-                  key={`${person.id}${idx}`}>
-                  {msg.who == User.id || msg.who === "Me" ?<span className="text-body-tertiary fs-6">{msg.time}</span> : null}
-                  <span className={
-                    msg.who === 'System'
-                      ? 'text-center bg-warning text-white rounded m-2 p-2 flex-item'
-                      : msg.who === 'Alert'
-                      ? 'text-center bg-danger text-white rounded m-2 p-2 flex-item'
-                      : msg.who === 'Connection'
-                      ? 'text-center bg-success text-white rounded m-2 p-2 flex-item'
-                      : msg.who === 'Admin' || msg.who === 'Moderator'
-                      ? 'align-self-center bg-info text-white rounded m-2 p-2 flex-item'
-                      : msg.who === "AI Host" || msg.who === "AI Introduction"
-                      ? 'align-self-center bg-purple gradient-bg text-white rounded m-2 p-1 flex-item'
-                      : msg.who == `${User.id}` || msg.who === 'Me'
-                      ? 'bg-primary text-white rounded m-2 p-2 flex-item'
-                      : 'bg-light text-black rounded m-2 p-2 flex-item'
-                  }
-                >
-                  {msg.who} - {msg.message} 
-                  </span>
-                  {msg.who == `${person.id}` || msg.who == "Them" || msg.who == `${person.name}` || msg.who !=="Me" 
-                  ?<span className="text-body-tertiary fs-6">  {
-                    convertISODateToLocal(msg.time)                    
-                    }</span> : null}
-              </div>
+              <ChatMessage
+                key={msg.id || `${person.id}-${idx}`}
+                msg={msg}
+                currentUserId={User.id}
+                otherUserId={person.id}
+                otherUserName={person.name}
+              />
             ))}
             <div ref={messagesEndRef} />
           </div>

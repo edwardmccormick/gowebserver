@@ -58,3 +58,18 @@ func (s *MongoChatStore) AppendMessage(ctx context.Context, matchID uint, messag
 
 	return s.SaveConversation(ctx, current)
 }
+
+func (s *MongoChatStore) LatestMessageID(ctx context.Context, matchID uint) (int64, error) {
+	conversation, err := s.LoadByMatchID(ctx, matchID)
+	if err != nil {
+		return 0, err
+	}
+	if len(conversation.Messages) == 0 {
+		return 0, ErrNotFound
+	}
+	return conversation.Messages[len(conversation.Messages)-1].ID, nil
+}
+
+func (s *MongoChatStore) SaveReadState(ctx context.Context, state MatchReadState) error {
+	return nil
+}

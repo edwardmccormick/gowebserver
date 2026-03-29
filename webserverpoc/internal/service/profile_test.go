@@ -113,3 +113,210 @@ func TestProfileServiceGenerateUploadTargetsRequiresS3Client(t *testing.T) {
 		t.Fatalf("expected nil uploads on error, got uploads=%+v profiles=%+v", uploads, profiles)
 	}
 }
+
+func TestProfileServiceSearchPeopleAppliesDistanceAndCriteria(t *testing.T) {
+	db := newTestDB(t)
+	service := NewProfileService(db, nil, "")
+
+	people := []domain.Person{
+		{
+			Name:         "Current",
+			Age:          30,
+			LatLocation:  29.4241,
+			LongLocation: -98.4936,
+			Details: domain.Details{
+				Dogs:        5,
+				EnergyLevel: 5,
+			},
+		},
+		{
+			Name:         "Strong Match",
+			Age:          31,
+			LatLocation:  29.4600,
+			LongLocation: -98.5000,
+			Details: domain.Details{
+				Dogs:        8,
+				EnergyLevel: 7,
+			},
+		},
+		{
+			Name:         "Wrong Trait",
+			Age:          32,
+			LatLocation:  29.4500,
+			LongLocation: -98.4800,
+			Details: domain.Details{
+				Dogs:        2,
+				EnergyLevel: 7,
+			},
+		},
+		{
+			Name:         "Too Far",
+			Age:          33,
+			LatLocation:  30.1000,
+			LongLocation: -98.9000,
+			Details: domain.Details{
+				Dogs:        8,
+				EnergyLevel: 7,
+			},
+		},
+	}
+	for _, person := range people {
+		if err := db.Create(&person).Error; err != nil {
+			t.Fatalf("seed person: %v", err)
+		}
+	}
+
+	minDogs := 7
+	minEnergy := 6
+	results, err := service.SearchPeople(1, SearchOptions{
+		Distance: 25,
+		Criteria: map[string]SearchCriterion{
+			"dogs": {
+				Category: "dogs",
+				Type:     "min",
+				Value:    &minDogs,
+			},
+			"energy": {
+				Category: "energy_levels",
+				Type:     "min",
+				Value:    &minEnergy,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("SearchPeople returned error: %v", err)
+	}
+
+	if len(results) != 1 || results[0].Name != "Strong Match" {
+		t.Fatalf("expected only Strong Match, got %+v", results)
+	}
+}
+
+func TestProfileServiceSearchPeopleSupportsRangeAliases(t *testing.T) {
+	db := newTestDB(t)
+	service := NewProfileService(db, nil, "")
+
+	people := []domain.Person{
+		{
+			Name:         "Current",
+			Age:          30,
+			LatLocation:  41.0,
+			LongLocation: -87.0,
+		},
+		{
+			Name:         "Outdoorsy",
+			Age:          31,
+			LatLocation:  41.1,
+			LongLocation: -87.1,
+			Details: domain.Details{
+				Outdoorsyness: 7,
+				Bouginess:     4,
+			},
+		},
+		{
+			Name:         "Not Outdoorsy Enough",
+			Age:          31,
+			LatLocation:  41.1,
+			LongLocation: -87.1,
+			Details: domain.Details{
+				Outdoorsyness: 2,
+				Bouginess:     4,
+			},
+		},
+	}
+	for _, person := range people {
+		if err := db.Create(&person).Error; err != nil {
+			t.Fatalf("seed person: %v", err)
+		}
+	}
+
+	minOutdoor := 5
+	maxOutdoor := 8
+	exactBougie := 4
+	results, err := service.SearchPeople(1, SearchOptions{
+		Distance: 50,
+		Criteria: map[string]SearchCriterion{
+			"outdoor": {
+				Category: "outdoorsy_ness",
+				Type:     "range",
+				Min:      &minOutdoor,
+				Max:      &maxOutdoor,
+			},
+			"bougie": {
+				Category: "bougieness",
+				Type:     "exact",
+				Value:    &exactBougie,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("SearchPeople returned error: %v", err)
+	}
+
+	if len(results) != 1 || results[0].Name != "Outdoorsy" {
+		t.Fatalf("expected only Outdoorsy, got %+v", results)
+	}
+}
+
+func TestProfileServiceSearchPeopleAppliesIdentityPreferenceAndRelationship(t *testing.T) {
+	db := newTestDB(t)
+	service := NewProfileService(db, nil, "")
+
+	people := []domain.Person{
+		{
+			Name:             "Current",
+			Age:              30,
+			GenderIdentity:   "man",
+			InterestedIn:     "women",
+			RelationshipGoal: "dating",
+			LatLocation:      29.4241,
+			LongLocation:     -98.4936,
+		},
+		{
+			Name:             "Compatible Woman",
+			Age:              29,
+			GenderIdentity:   "woman",
+			InterestedIn:     "men",
+			RelationshipGoal: "dating",
+			LatLocation:      29.4300,
+			LongLocation:     -98.4900,
+		},
+		{
+			Name:             "Wrong Audience",
+			Age:              29,
+			GenderIdentity:   "woman",
+			InterestedIn:     "women",
+			RelationshipGoal: "dating",
+			LatLocation:      29.4300,
+			LongLocation:     -98.4900,
+		},
+		{
+			Name:             "Wrong Goal",
+			Age:              29,
+			GenderIdentity:   "woman",
+			InterestedIn:     "men",
+			RelationshipGoal: "friendship",
+			LatLocation:      29.4300,
+			LongLocation:     -98.4900,
+		},
+	}
+	for _, person := range people {
+		if err := db.Create(&person).Error; err != nil {
+			t.Fatalf("seed person: %v", err)
+		}
+	}
+
+	results, err := service.SearchPeople(1, SearchOptions{
+		Distance:     25,
+		Gender:       "a man",
+		Preference:   "women",
+		Relationship: "dating",
+	})
+	if err != nil {
+		t.Fatalf("SearchPeople returned error: %v", err)
+	}
+
+	if len(results) != 1 || results[0].Name != "Compatible Woman" {
+		t.Fatalf("expected only Compatible Woman, got %+v", results)
+	}
+}

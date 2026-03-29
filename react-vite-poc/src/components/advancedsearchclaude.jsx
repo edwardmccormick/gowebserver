@@ -104,7 +104,13 @@ function ClaudeAdvancedSearch({ onSearch }) {
   };
 
   const handleSearch = () => {
-    onSearch({ distance, criteria });
+    onSearch({
+      distance,
+      gender: gender === '?' || gender === 'who cares' ? '' : gender,
+      preference: preference === '?' || preference === 'anybody' ? '' : preference,
+      relationship: relationship === '?' || relationship === 'who cares' ? '' : relationship,
+      criteria,
+    });
   };
 
   const clearAllCriteria = () => {

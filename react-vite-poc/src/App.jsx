@@ -11,6 +11,7 @@ import SignUp from './components/signup';
 import AdminDashboard from './components/admindashboard';
 import NotificationService from './components/notificationservice';
 import { LogIn } from 'lucide-react';
+import { apiUrl } from './config/api';
 import './styles/custom-theme.css'; // Import custom color theme
 import './App.css'; // Import your CSS file
 
@@ -22,6 +23,7 @@ function App() {
   const [uploadUrls, setUploadUrls] = useState([]); // State to store upload URLs
   const [uploadProfileUrls, setUploadProfileUrls] = useState([]); // State to store profile upload URLs
   const [searchResults, setSearchResults] = useState([]);
+  const [searchActive, setSearchActive] = useState(false);
   const [matches, setMatches] = useState([]);
   const [matchLoading, setMatchLoading] = useState(false);
   const [pendings, setPendings] = useState([]);
@@ -51,19 +53,21 @@ function App() {
       setLoading(false);
       setMatchLoading(false);
       setPeople([]);
+      setSearchResults([]);
+      setSearchActive(false);
       setMatches([]);
       setPendings([]);
       setOffereds([]);
         return;
       }; 
-    fetch('http://localhost:8080/people', {
+    fetch(apiUrl('/people'), {
       headers: {
         'Authorization': jwt, // Include the JWT token for authentication
       },
     })
       .then((res) => res.json())
       .then((data) => {
-        setPeople(data);
+        setPeople(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -157,17 +161,18 @@ function App() {
       console.log("Fetching matches...");
       setMatchLoading(true);
       
-    fetch(`http://localhost:8080/matches/${loggedInUser.id}`, {
+    fetch(apiUrl(`/matches/${loggedInUser.id}`), {
       headers: {
         'Authorization': jwt, // Include the JWT token for authentication
       },
     })
       .then((res) => res.json())
       .then((data) => { 
+        const matchData = Array.isArray(data) ? data : [];
         console.log("Received matches data:", data);
-        const offered = data.filter((match) => (match.accepted_time == "0001-01-01T00:00:00Z" && match.offered == loggedInUser.id)); // This is what a null date looks like in Go
-        const accepted = data.filter((match) => match.accepted_time > "2009-11-10T17:00:00Z"); // A non-null date
-        const pending = data.filter((match) => (match.accepted_time <= "2009-11-10T17:00:00Z" && match.offered != loggedInUser.id))
+        const offered = matchData.filter((match) => (match.accepted_time == "0001-01-01T00:00:00Z" && match.offered == loggedInUser.id)); // This is what a null date looks like in Go
+        const accepted = matchData.filter((match) => match.accepted_time > "2009-11-10T17:00:00Z"); // A non-null date
+        const pending = matchData.filter((match) => (match.accepted_time <= "2009-11-10T17:00:00Z" && match.offered != loggedInUser.id))
         
         console.log("Accepted matches:", accepted);
         console.log("Pending matches:", pending);
@@ -196,50 +201,44 @@ function App() {
   //   setSearchResults(results);
   // };
 
-  const handleSearch = (searchState) => {
-    const { distance, criteria } = searchState;
+  const handleSearch = async (searchState) => {
+    if (!jwt) {
+      return;
+    }
 
-    // This console.log is helpful for debugging!
-    console.log("Searching with:", { distance, criteria });
+    const normalizedSearchState = {
+      ...searchState,
+      distance: Number(searchState.distance) || 0,
+    };
 
-    const results = people.filter((person) => {
-      // 1. Check distance
-      // Make sure the person object has a 'distance' property
-      const personDistance = person.distance || Infinity;
-      if (personDistance > distance) {
-        return false;
+    console.log("Searching with:", normalizedSearchState);
+
+    try {
+      const response = await fetch(apiUrl('/people/search'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': jwt,
+        },
+        body: JSON.stringify(normalizedSearchState),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Search failed with status ${response.status}`);
       }
 
-      // 2. Check all enabled criteria
-      for (const key in criteria) {
-        const setting = criteria[key];
-
-        // Only filter if the criterion is enabled by the user
-        if (setting.enabled) {
-          const personValue = person[key]; // The person's value for this trait (e.g., 7)
-
-          // If the person doesn't have this trait defined, they can't match.
-          if (personValue === undefined) {
-            return false;
-          }
-
-          const min = setting.preference - setting.flexibility;
-          const max = setting.preference + setting.flexibility;
-
-          // Check if the person's value is within the user's desired range
-          if (personValue < min || personValue > max) {
-            return false; // This person is outside the range, so we exclude them.
-          }
-        }
-      }
-
-      // 3. If the person passed the distance and all enabled criteria checks, include them!
-      return true;
-    });
-
-    setSearchResults(results);
-    // You might want to update the main people list to show only search results
-    // setPeople(results); 
+      const data = await response.json();
+      setSearchResults(Array.isArray(data) ? data : []);
+      setSearchActive(true);
+      setShowAdvancedSearch(false);
+      setShowConfirmMatch(true);
+      setShowFAQ(false);
+      setShowAdminDashboard(false);
+    } catch (error) {
+      console.error("Error searching people:", error);
+      setSearchResults([]);
+      setSearchActive(true);
+    }
   };
 
   return ( !jwt ? (
@@ -335,11 +334,13 @@ function App() {
         clearChatNotification={clearChatNotification}
         onSearchClick={() => {
           setShowAdvancedSearch(true)
+          setSearchActive(false);
           setShowConfirmMatch(false);
           setShowFAQ(false);
         }}
         onMeetClick={() => {
           setShowAdvancedSearch(false)
+          setSearchActive(false);
           setShowConfirmMatch(true);
           setShowFAQ(false);
         }}
@@ -382,7 +383,7 @@ function App() {
         <br />
         
         <MatchList 
-          people={people} 
+          people={searchActive ? searchResults : people} 
           loading={loading}
           User = {loggedInUser}
           refreshMatches= {refreshMatches}

@@ -99,7 +99,7 @@ func TestLoadConfig(t *testing.T) {
 	tempDir := t.TempDir()
 	configPath := filepath.Join(tempDir, "config.json")
 	configJSON := `{
-		"mysql": {"host": "localhost", "port": 3306, "user": "urmid", "password": "pw", "database": "urmid"},
+		"postgres": {"host": "localhost", "port": 5432, "user": "urmid", "password": "pw", "database": "urmid", "sslmode": "disable"},
 		"mongodb": {"host": "localhost", "port": 27017, "user": "root", "password": "pw", "database": "urmid"}
 	}`
 
@@ -112,7 +112,7 @@ func TestLoadConfig(t *testing.T) {
 		t.Fatalf("LoadConfig returned error: %v", err)
 	}
 
-	if cfg.MySQL.Host != "localhost" || cfg.Mongo.Port != 27017 {
+	if cfg.Postgres.Host != "localhost" || cfg.Postgres.Port != 5432 || cfg.Mongo.Port != 27017 {
 		t.Fatalf("unexpected config contents: %+v", cfg)
 	}
 }
@@ -334,7 +334,7 @@ func TestLoadChatHistoryFromMongoWithoutClient(t *testing.T) {
 		chatService = previous
 	})
 
-	_, err := loadChatHistoryFromMongo(1)
+	_, err := loadChatHistory(1)
 	if err == nil {
 		t.Fatal("expected error when mongo client is nil")
 	}

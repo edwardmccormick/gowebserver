@@ -2,6 +2,7 @@ package gowebserver
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/edwardmccormick/gowebserver/internal/httpapi"
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,10 @@ type App struct {
 }
 
 func LoadRuntimeConfig() (*Config, error) {
+	if configPath := os.Getenv("CONFIG_FILE"); configPath != "" {
+		return LoadConfig(configPath)
+	}
+
 	configPath := "./configlocal.json"
 	if isRunningInDockerContainer() {
 		configPath = "./config.json"
@@ -23,21 +28,14 @@ func LoadRuntimeConfig() (*Config, error) {
 func NewApp(config *Config) (*App, error) {
 	var err error
 
-	db, err = ConnectToMySQLWithConfig(config)
+	db, err = ConnectToPostgresWithConfig(config)
 	if err != nil {
-		return nil, fmt.Errorf("connect mysql: %w", err)
+		return nil, fmt.Errorf("connect postgres: %w", err)
 	}
 	db = db.Debug()
 
-	if err := db.AutoMigrate(
-		&User{},
-		&Person{},
-		&Details{},
-		&ProfilePhoto{},
-		&Match{},
-		&ChatMessage{},
-	); err != nil {
-		return nil, fmt.Errorf("auto migrate: %w", err)
+	if err := MigrateSchema(db); err != nil {
+		return nil, fmt.Errorf("migrate schema: %w", err)
 	}
 
 	if err := InitializeAIClient(); err != nil {
@@ -47,10 +45,6 @@ func NewApp(config *Config) (*App, error) {
 	mongoClient, err = ConnectToMongoDBWithConfig(config)
 	if err != nil {
 		return nil, fmt.Errorf("connect mongodb: %w", err)
-	}
-
-	if err := PopulateDatabase(db, mongoClient); err != nil {
-		return nil, fmt.Errorf("populate database: %w", err)
 	}
 
 	if err := initializeStores(); err != nil {
@@ -75,6 +69,7 @@ func newRouter() *gin.Engine {
 		PostPeople:               PostPeople,
 		GetUsers:                 GetUsers,
 		GetPeople:                GetPeople,
+		SearchPeople:             SearchPeople,
 		GetPeopleByLocation:      GetPeopleByLocation,
 		GetPeopleByID:            GetPeopleByID,
 		GetPhotosByID:            GetPhotosByID,

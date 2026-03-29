@@ -21,5 +21,5 @@ func DefaultBindAddress() string {
 	if isRunningInDockerContainer() {
 		return "0.0.0.0:8080"
 	}
-	return "localhost:8080"
+	return "localhost:8081"
 }

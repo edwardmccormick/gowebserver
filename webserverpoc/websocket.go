@@ -8,7 +8,6 @@ import (
 	"io"
 	"sort"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/edwardmccormick/gowebserver/internal/realtime"
@@ -16,10 +15,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
-
-// Map to store in-memory messages by room ID that haven't been persisted to MongoDB yet
-var roomMessages = make(map[string][]ChatMessage)
-var roomMessagesLock sync.RWMutex // Read-write mutex for safe concurrent access
 
 // sortMessagesByTime sorts messages by their timestamp in ascending order
 func sortMessagesByTime(messages []ChatMessage) {
@@ -55,14 +50,6 @@ func broadcastMessageToMatch(matchID uint, message *ChatMessage) {
 		return
 	}
 
-	// Add message to in-memory map for this room
-	roomMessagesLock.Lock()
-	if roomMessages[roomID] == nil {
-		roomMessages[roomID] = make([]ChatMessage, 0)
-	}
-	roomMessages[roomID] = append(roomMessages[roomID], *message)
-	roomMessagesLock.Unlock()
-
 	connections := realtimeHub.RoomConnections(roomID)
 	if connections == nil {
 		fmt.Printf("No active connections for match %d\n", matchID)
@@ -87,8 +74,7 @@ func broadcastMessageToMatch(matchID uint, message *ChatMessage) {
 	fmt.Printf("Broadcast message to %d clients in match %d\n", len(connections), matchID)
 }
 
-// addMessageToMongo adds a single message to an existing conversation in MongoDB
-func addMessageToMongo(matchID uint, message ChatMessage) error {
+func saveChatMessage(matchID uint, message ChatMessage) error {
 	if chatService == nil {
 		return fmt.Errorf("chat service is not initialized")
 	}
@@ -96,19 +82,20 @@ func addMessageToMongo(matchID uint, message ChatMessage) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	err := chatService.AppendMessage(ctx, matchID, ChatMessage{
-		ID:        message.ID,
-		MatchID:   message.MatchID,
-		Time:      message.Time,
-		Who:       message.Who,
-		Message:   message.Message,
-		CreatedAt: message.CreatedAt,
-		UpdatedAt: message.UpdatedAt,
+		ID:          message.ID,
+		MatchID:     message.MatchID,
+		Time:        message.Time,
+		Who:         message.Who,
+		MessageType: message.MessageType,
+		Message:     message.Message,
+		CreatedAt:   message.CreatedAt,
+		UpdatedAt:   message.UpdatedAt,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to update conversation: %v", err)
+		return fmt.Errorf("failed to persist message: %v", err)
 	}
 
-	fmt.Printf("Added message to conversation for match %d\n", matchID)
+	fmt.Printf("Saved message for match %d\n", matchID)
 	return nil
 }
 
@@ -204,7 +191,7 @@ func resetUnreadCount(matchID uint, userID uint) {
 		return
 	}
 
-	if err := chatService.ResetUnreadCount(context.Background(), matchID, userID); err != nil {
+	if err := chatService.MarkConversationRead(context.Background(), matchID, userID); err != nil {
 		fmt.Printf("Error resetting unread count for match %d: %v\n", matchID, err)
 	}
 }
@@ -232,78 +219,29 @@ func WebsocketListener(c *gin.Context) {
 	}
 	matchID := uint(matchIDInt)
 
-	// Chat message array for this session
-	var sessionChat Conversation
-	sessionChat.MatchID = matchID
-
-	// Load chat history from MongoDB
-	messages, err := loadChatHistoryFromMongo(matchID)
+	messages, err := loadChatHistory(matchID)
 	if err != nil {
-		// Log error but continue without history
 		fmt.Printf("Error loading chat history in WebsocketListener: %v\n", err)
-		sessionChat.Messages = []ChatMessage{}
-	} else {
-		sessionChat.Messages = messages
+		messages = []ChatMessage{}
+	}
 
-		// Add any in-memory messages that haven't been persisted yet
-		roomMessagesLock.RLock()
-		if inMemoryMsgs, exists := roomMessages[roomID]; exists && len(inMemoryMsgs) > 0 {
-			fmt.Printf("Found %d in-memory messages for match %d\n", len(inMemoryMsgs), matchID)
-			sessionChat.Messages = append(sessionChat.Messages, inMemoryMsgs...)
-			// Sort messages to ensure proper order after merging
-			sortMessagesByTime(sessionChat.Messages)
+	if len(messages) == 0 && chatMessageService != nil {
+		introMessage, err := chatMessageService.EnsureIntroduction(c.Request.Context(), matchID)
+		if err != nil {
+			fmt.Printf("Failed to generate introduction: %v\n", err)
+		} else if introMessage != nil {
+			messages = append(messages, ChatMessage(*introMessage))
 		}
-		roomMessagesLock.RUnlock()
+	}
 
-		// Check if we have any messages
-		if len(messages) == 0 {
-			// No messages yet, try to generate an AI introduction
-			fmt.Printf("No chat history for match %d, generating AI introduction\n", matchID)
-
-			if matchService == nil {
-				fmt.Printf("Failed to generate introduction: match service is not initialized\n")
-			} else if match, err := matchService.GetMatchDetails(matchID); err != nil {
-				fmt.Printf("Failed to load match for introduction: %v\n", err)
-			} else if introMessage, err := CreateInitialChatMessage(match); err != nil {
-				fmt.Printf("Failed to generate introduction: %v\n", err)
-			} else {
-				// Set the 'who' field to 0, which represents the AI system in our application
-				introMessage.Who = 0 // Use 0 to represent the AI/system
-
-				// Add to session chat
-				sessionChat.Messages = append(sessionChat.Messages, *introMessage)
-
-				// Save to MongoDB
-				tempChat := Conversation{
-					MatchID:  matchID,
-					Messages: []ChatMessage{*introMessage},
-				}
-				err = dumpChatHistoryToMongo(tempChat)
-				if err != nil {
-					fmt.Printf("Failed to save introduction message: %v\n", err)
-				}
-
-				// Send to client
-				msgBytes, err := json.Marshal(introMessage)
-				if err == nil {
-					conn.WriteMessage(websocket.TextMessage, msgBytes)
-				}
-			}
-		} else {
-			// We have existing messages, send them to the client
-			// Limit to the most recent messages if there are too many
-			start := 0
-			if len(messages) > 50 {
-				start = len(messages) - 50
-			}
-
-			// Send history to the client
-			for _, msg := range messages[start:] {
-				msgBytes, err := json.Marshal(msg)
-				if err == nil {
-					conn.WriteMessage(websocket.TextMessage, msgBytes)
-				}
-			}
+	start := 0
+	if len(messages) > 50 {
+		start = len(messages) - 50
+	}
+	for _, existing := range messages[start:] {
+		msgBytes, err := json.Marshal(existing)
+		if err == nil {
+			conn.WriteMessage(websocket.TextMessage, msgBytes)
 		}
 	}
 
@@ -315,26 +253,8 @@ func WebsocketListener(c *gin.Context) {
 
 	defer func() {
 		fmt.Printf("WebSocket connection closing for user %d in room %s\n", userID, roomID)
-
-		isRoomEmpty := realtimeHub.RemoveRoomConnection(roomID, conn)
+		realtimeHub.RemoveRoomConnection(roomID, conn)
 		realtimeHub.RemoveActiveConnection(uint(userID))
-
-		// Only save chat history if there are messages
-		if len(sessionChat.Messages) > 0 {
-			// Dump chat history to MongoDB
-			fmt.Printf("Saving %d chat messages for match %d\n", len(sessionChat.Messages), sessionChat.MatchID)
-			err := dumpChatHistoryToMongo(sessionChat)
-			if err != nil {
-				fmt.Printf("Failed to save chat history: %v\n", err)
-			} else if isRoomEmpty {
-				// If this was the last connection in the room and we successfully saved to MongoDB,
-				// clear the in-memory messages for this room to free up memory
-				roomMessagesLock.Lock()
-				delete(roomMessages, roomID)
-				roomMessagesLock.Unlock()
-				fmt.Printf("Cleared in-memory messages for match %d after all users disconnected\n", matchID)
-			}
-		}
 	}()
 
 	// // Load chat history from MongoDB
@@ -368,36 +288,22 @@ func WebsocketListener(c *gin.Context) {
 		receivedMessage.Time = now
 		receivedMessage.CreatedAt = now
 		receivedMessage.UpdatedAt = now
+		if receivedMessage.MessageType == "" {
+			receivedMessage.MessageType = "user"
+		}
 
 		// Add match ID if not set
 		if receivedMessage.MatchID == 0 {
 			receivedMessage.MatchID = int(matchID)
 		}
 
-		// Add message to chat history
-		sessionChat.Messages = append(sessionChat.Messages, receivedMessage)
-
-		// Also add to in-memory messages map for this room
-		roomMessagesLock.Lock()
-		if roomMessages[roomID] == nil {
-			roomMessages[roomID] = make([]ChatMessage, 0)
-		}
-		roomMessages[roomID] = append(roomMessages[roomID], receivedMessage)
-		roomMessagesLock.Unlock()
-
-		// Broadcast the message to all connections in the room except the sender
-		for client := range realtimeHub.RoomConnections(roomID) {
-			if client != conn {
-				err := client.WriteMessage(websocket.TextMessage, msg)
-				if err != nil {
-					client.Close()
-					realtimeHub.RemoveRoomClient(roomID, client)
-				}
-			}
+		if err := saveChatMessage(matchID, receivedMessage); err != nil {
+			fmt.Printf("Error saving chat message: %v\n", err)
+			conn.WriteMessage(websocket.TextMessage, []byte("Failed to save message"))
+			continue
 		}
 
-		// Update unread count for the recipient
-		updateUnreadCounts(matchID, uint(userID))
+		broadcastMessageToMatch(matchID, &receivedMessage)
 	}
 }
 
@@ -432,11 +338,9 @@ func WebsocketListener(c *gin.Context) {
 // 	}
 // }
 
-// dumpChatHistoryToMongo saves the chat history to MongoDB
-// This function handles updating existing conversations or creating new ones
 func dumpChatHistoryToMongo(sessionChat Conversation) error {
 	if chatService == nil {
-		error := "Error: mongoClient is not initialized"
+		error := "Error: chat service is not initialized"
 		fmt.Println(error)
 		return fmt.Errorf("%s", error)
 	}
@@ -449,13 +353,14 @@ func dumpChatHistoryToMongo(sessionChat Conversation) error {
 	}
 	for _, msg := range sessionChat.Messages {
 		conversation.Messages = append(conversation.Messages, ChatMessage{
-			ID:        msg.ID,
-			MatchID:   msg.MatchID,
-			Time:      msg.Time,
-			Who:       msg.Who,
-			Message:   msg.Message,
-			CreatedAt: msg.CreatedAt,
-			UpdatedAt: msg.UpdatedAt,
+			ID:          msg.ID,
+			MatchID:     msg.MatchID,
+			Time:        msg.Time,
+			Who:         msg.Who,
+			MessageType: msg.MessageType,
+			Message:     msg.Message,
+			CreatedAt:   msg.CreatedAt,
+			UpdatedAt:   msg.UpdatedAt,
 		})
 	}
 
@@ -470,13 +375,11 @@ func dumpChatHistoryToMongo(sessionChat Conversation) error {
 	return nil
 }
 
-// loadChatHistoryFromMongo retrieves chat message history for a specific match from MongoDB
-// Returns the messages and any error that occurred during the operation
-func loadChatHistoryFromMongo(matchID uint) ([]ChatMessage, error) {
+func loadChatHistory(matchID uint) ([]ChatMessage, error) {
 	var history Conversation
 
 	if chatService == nil {
-		errMsg := "Error: mongoClient is not initialized"
+		errMsg := "Error: chat service is not initialized"
 		fmt.Println(errMsg)
 		return nil, fmt.Errorf("%s", errMsg)
 	}
@@ -499,13 +402,14 @@ func loadChatHistoryFromMongo(matchID uint) ([]ChatMessage, error) {
 	history.Messages = make([]ChatMessage, 0, len(conversation.Messages))
 	for _, msg := range conversation.Messages {
 		history.Messages = append(history.Messages, ChatMessage{
-			ID:        msg.ID,
-			MatchID:   msg.MatchID,
-			Time:      msg.Time,
-			Who:       msg.Who,
-			Message:   msg.Message,
-			CreatedAt: msg.CreatedAt,
-			UpdatedAt: msg.UpdatedAt,
+			ID:          msg.ID,
+			MatchID:     msg.MatchID,
+			Time:        msg.Time,
+			Who:         msg.Who,
+			MessageType: msg.MessageType,
+			Message:     msg.Message,
+			CreatedAt:   msg.CreatedAt,
+			UpdatedAt:   msg.UpdatedAt,
 		})
 	}
 
@@ -513,7 +417,7 @@ func loadChatHistoryFromMongo(matchID uint) ([]ChatMessage, error) {
 	if len(history.Messages) > 0 {
 		// Simple in-memory sort by time
 		sortMessagesByTime(history.Messages)
-		fmt.Printf("Loaded %d messages for match %d from MongoDB\n", len(history.Messages), matchID)
+		fmt.Printf("Loaded %d messages for match %d from store\n", len(history.Messages), matchID)
 	}
 
 	return history.Messages, nil

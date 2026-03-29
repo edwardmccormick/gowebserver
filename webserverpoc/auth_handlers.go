@@ -43,12 +43,7 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":   newUser.ID,
-		"exp":   time.Now().Add(time.Hour * 72).Unix(),
-		"email": newUser.Email,
-	})
-	tokenString, err := token.SignedString(signingKey())
+	tokenString, err := createSessionToken(newUser.ID, newUser.Email, time.Now().Add(time.Hour*72))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create token"})
 		return
@@ -135,12 +130,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":   user.ID,
-		"exp":   time.Now().Add(time.Hour * 72).Unix(),
-		"email": user.Email,
-	})
-	tokenString, err := token.SignedString(signingKey())
+	tokenString, err := createSessionToken(user.ID, user.Email, time.Now().Add(time.Hour*72))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create token"})
 		return

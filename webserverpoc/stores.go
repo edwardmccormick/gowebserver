@@ -8,6 +8,7 @@ import (
 
 var (
 	userStore        store.UserStore
+	sessionStore     store.SessionStore
 	matchStore       store.MatchStore
 	chatHistoryStore store.ChatHistoryStore
 )
@@ -18,11 +19,9 @@ func initializeStores() error {
 	}
 
 	userStore = store.NewGormUserStore(db)
+	sessionStore = store.NewGormSessionStore(db)
 	matchStore = store.NewGormMatchStore(db)
-
-	if mongoClient != nil {
-		chatHistoryStore = store.NewMongoChatStore(mongoClient, "urmid")
-	}
+	chatHistoryStore = store.NewGormChatStore(db)
 
 	return nil
 }

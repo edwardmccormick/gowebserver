@@ -6,6 +6,7 @@ import Button from 'react-bootstrap/Button';
 import { useQuillLoader, QuillEditor } from './editor';
 import MatchMap from './MatchMap';
 import DetailFlags from './DetailFlags';
+import { apiUrl } from '../config/api';
 
 function MatchList({
     people, 
@@ -14,6 +15,7 @@ function MatchList({
     refreshMatches,
     jwt // Add JWT prop
   }) {
+  const safePeople = Array.isArray(people) ? [...people] : [];
 
   const [submittedLikes, setSubmittedLikes] = useState({}); // Track submitted likes
   const [showMap, setShowMap] = useState(false); // Toggle between list and map view
@@ -22,7 +24,8 @@ function MatchList({
   // let people = peopleObject.people;
   // Add distance to each person and sort by distance
   if (!loading && User) {
-    people = people.map((person) => ({
+    safePeople.forEach((person, index) => {
+      safePeople[index] = {
       ...person,
       distance: Math.round(
         getPreciseDistance(
@@ -30,15 +33,16 @@ function MatchList({
           { latitude: person.lat, longitude: person.long }
         ) / 1609.34 * 10
       ) / 10, // Convert meters to miles and round to 1 decimal place
-    }));
+      };
+    });
 
     // Sort people by distance (smallest to largest)
-  people.sort((a, b) => a.distance - b.distance);
+  safePeople.sort((a, b) => a.distance - b.distance);
   }
 
   useEffect(() => {
-    console.log("People updated:", people);
-  }, [people]);
+    console.log("People updated:", safePeople);
+  }, [safePeople]);
   
   const handleSubmit = async (User, person) => {
     const payload = {
@@ -48,7 +52,7 @@ function MatchList({
       AcceptedProfile: person
     };
     try {
-      const response = await fetch('http://localhost:8080/matches', {
+      const response = await fetch(apiUrl('/matches'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,12 +110,12 @@ function MatchList({
       loading || User==undefined ? (
         <div className="d-flex align-items-center">
           <strong role="status">Loading...</strong>
-          <div className="spinner-border ms-auto" aria-hidden="true"></div>
-        </div>
+        <div className="spinner-border ms-auto" aria-hidden="true"></div>
+      </div>
       ) : (
       <>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>And these {people ? `${people.length} ` : null }cool folks want to be liked by you:</h2>
+        <h2>And these {`${safePeople.length} `}cool folks want to be liked by you:</h2>
         <Button 
           variant="outline-primary" 
           onClick={handleViewToggle}
@@ -129,10 +133,10 @@ function MatchList({
         }}
       >
         {showMap ? (
-          <MatchMap people={people} User={User} />
+          <MatchMap people={safePeople} User={User} />
         ) : (
       <Accordion className='w-100'>
-        {people.map((person) => (
+        {safePeople.map((person) => (
         <Accordion.Item className='w-100' eventKey={person.id} key={person.id}>
           <Accordion.Header className='w-100' key={`${person.id}100`}>
             <img

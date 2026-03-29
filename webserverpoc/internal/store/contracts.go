@@ -14,6 +14,13 @@ type User struct {
 	IsAdmin bool
 }
 
+type Session struct {
+	UserID    uint
+	JTI       string
+	ExpiresAt time.Time
+	RevokedAt *time.Time
+}
+
 type Match struct {
 	ID              uint
 	Offered         uint
@@ -24,13 +31,14 @@ type Match struct {
 }
 
 type ChatMessage struct {
-	ID        int64     `bson:"id"`
-	MatchID   int       `bson:"match_id"`
-	Time      time.Time `bson:"time"`
-	Who       uint      `bson:"who"`
-	Message   string    `bson:"message"`
-	CreatedAt time.Time `bson:"create_time"`
-	UpdatedAt time.Time `bson:"update_time"`
+	ID          int64     `bson:"id"`
+	MatchID     int       `bson:"match_id"`
+	Time        time.Time `bson:"time"`
+	Who         uint      `bson:"who"`
+	MessageType string    `bson:"message_type"`
+	Message     string    `bson:"message"`
+	CreatedAt   time.Time `bson:"create_time"`
+	UpdatedAt   time.Time `bson:"update_time"`
 }
 
 type Conversation struct {
@@ -38,8 +46,21 @@ type Conversation struct {
 	Messages []ChatMessage `bson:"messages"`
 }
 
+type MatchReadState struct {
+	MatchID           uint
+	UserID            uint
+	LastReadMessageID int64
+	UpdatedAt         time.Time
+}
+
 type UserStore interface {
 	GetByID(ctx context.Context, id uint) (User, error)
+}
+
+type SessionStore interface {
+	Create(ctx context.Context, session Session) error
+	GetByJTI(ctx context.Context, jti string) (Session, error)
+	RevokeByJTI(ctx context.Context, jti string, revokedAt time.Time) error
 }
 
 type MatchStore interface {
@@ -51,4 +72,6 @@ type ChatHistoryStore interface {
 	LoadByMatchID(ctx context.Context, matchID uint) (Conversation, error)
 	SaveConversation(ctx context.Context, conversation Conversation) error
 	AppendMessage(ctx context.Context, matchID uint, message ChatMessage) error
+	LatestMessageID(ctx context.Context, matchID uint) (int64, error)
+	SaveReadState(ctx context.Context, state MatchReadState) error
 }

@@ -29,6 +29,26 @@ var people = []Person{
 	{ID: 11, Name: "Admin", Age: 199, Motto: "You shouldn't ever see this", LatLocation: 90, LongLocation: -90, Profile: ProfilePhoto{S3Key: "11/profile"}, Photos: deepCopyPhotoArray(PhotoArray2), Description: "{\"ops\":[{\"insert\":\"Spurs. Fishing. Grilling. Not complicated. Let’s grab a beer at The Friendly Spot.}]},{\"insert\":\"\\n\"}]}"},
 }
 
+type seedIdentity struct {
+	GenderIdentity   string
+	InterestedIn     string
+	RelationshipGoal string
+}
+
+var seedIdentities = map[uint]seedIdentity{
+	1:  {GenderIdentity: "man", InterestedIn: "women", RelationshipGoal: "something serious"},
+	2:  {GenderIdentity: "man", InterestedIn: "women", RelationshipGoal: "dating"},
+	3:  {GenderIdentity: "man", InterestedIn: "women", RelationshipGoal: "something casual"},
+	4:  {GenderIdentity: "man", InterestedIn: "women", RelationshipGoal: "dating"},
+	5:  {GenderIdentity: "man", InterestedIn: "women", RelationshipGoal: "dating"},
+	6:  {GenderIdentity: "woman", InterestedIn: "men", RelationshipGoal: "dating"},
+	7:  {GenderIdentity: "woman", InterestedIn: "men", RelationshipGoal: "something serious"},
+	8:  {GenderIdentity: "woman", InterestedIn: "men", RelationshipGoal: "dating"},
+	9:  {GenderIdentity: "man", InterestedIn: "women", RelationshipGoal: "friendship"},
+	10: {GenderIdentity: "woman", InterestedIn: "men", RelationshipGoal: "dating"},
+	11: {GenderIdentity: "man", InterestedIn: "anybody", RelationshipGoal: "friendship"},
+}
+
 var users = []User{
 	// {ID: 0, Email: "bobby@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Now()},
 	{Email: "marco@urmid.com", PasswordHash: HashPassword("password123"), LastLogin: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)},
